@@ -1,0 +1,11 @@
+name: v&v-festim-report-env
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - jupyter-book
+  - numpy
+  - matplotlib
+  - pip
