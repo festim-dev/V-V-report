@@ -20,3 +20,5 @@ For each case, the L2 error $E$ is calculated in the domain $\Omega$:
     E = \sqrt{\int_\Omega(u_\mathrm{exact} - u_\mathrm{computed})^2 dx}
 \end{equation}
 where $u_\mathrm{exact}$ and $u_\mathrm{computed}$ are the exact and computed solutions, respectively.
+
+Before looking at complex cases, let's start with a [simple example](simple.ipynb).

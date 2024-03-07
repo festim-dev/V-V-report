@@ -9,6 +9,7 @@ chapters:
   - file: mms
     sections:
     - file: mms/principle
+    - file: mms/simple
     - file: mms/discontinuity
     - file: mms/trapping
     - file: mms/heat_transfer
