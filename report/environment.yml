@@ -5,6 +5,7 @@ channels:
   - defaults
 
 dependencies:
+  - python
   - jupyter-book
   - numpy
   - matplotlib
