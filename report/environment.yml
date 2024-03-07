@@ -8,4 +8,5 @@ dependencies:
   - jupyter-book
   - numpy
   - matplotlib
+  - sphinx
   - pip
