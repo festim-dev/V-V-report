@@ -12,3 +12,4 @@ chapters:
     - file: mms/discontinuity
     - file: mms/trapping
     - file: mms/heat_transfer
+  - file: bibliography
