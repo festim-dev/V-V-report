@@ -1,4 +1,4 @@
-name: v&v-festim-report-env
+name: vv-festim-report-env
 
 channels:
   - conda-forge
@@ -10,4 +10,9 @@ dependencies:
   - numpy
   - matplotlib
   - sphinx
+  - sympy
+  - fenics
+  - numpy=1.24
   - pip
+  - pip:
+    - festim
