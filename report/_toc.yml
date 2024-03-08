@@ -2,16 +2,26 @@
 # Learn more at https://jupyterbook.org/customize/toc.html
 
 format: jb-book
-root: intro
-chapters:
-  - file: first-case
-
-  - file: mms
-    sections:
-    - file: mms/principle
-    - file: mms/simple
-    - file: mms/fluxes
-    - file: mms/discontinuity
-    - file: mms/trapping
-    - file: mms/heat_transfer
-  - file: bibliography
+root: index
+parts:
+  - caption: Introduction
+    chapters:
+    - file: intro
+    - file: vv
+  - caption: Verification
+    chapters:
+      - file: first-case
+      - file: mms
+        sections:
+        - file: mms/principle
+        - file: mms/simple
+        - file: mms/fluxes
+        - file: mms/discontinuity
+        - file: mms/trapping
+        - file: mms/heat_transfer
+  - caption: Validation
+    chapters:
+      - file: validation
+  - caption: Bibliography
+    chapters:
+    - file: bibliography
