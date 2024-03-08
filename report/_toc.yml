@@ -18,7 +18,9 @@ parts:
         - file: mms/discontinuity
         - file: mms/trapping
         - file: mms/heat_transfer
-  # - caption: Validation
+  - caption: Validation
+    chapters:
+      - file: validation
   - caption: Bibliography
     chapters:
     - file: bibliography
