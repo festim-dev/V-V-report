@@ -13,7 +13,3 @@ With applications extending beyond nuclear fusion, FESTIM finds utility in acade
 As the FESTIM community continues to evolve, this report will serve as a living document, continuously updated to reflect advancements in the codebase. Each validation and verification case presented herein is accompanied by detailed descriptions, theoretical backgrounds, and, crucially, all requisite FESTIM and Python code for reproducibility, thereby ensuring transparency and accessibility.
 
 Welcome to the V&V book of FESTIM — a testament to collaborative innovation in the realm of hydrogen transport modelling.
-
-
-```{tableofcontents}
-```
