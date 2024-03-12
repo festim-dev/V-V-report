@@ -21,7 +21,7 @@ parts:
         - file: mms/heat_transfer
   - caption: Validation
     chapters:
-      - file: plasma-driven-permeation
+      - file: plasma-driven-permeation/plasma-driven-permeation
   - caption: Bibliography
     chapters:
     - file: bibliography
