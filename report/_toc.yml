@@ -10,7 +10,8 @@ parts:
     - file: vv
   - caption: Verification
     chapters:
-      - file: first-case
+      - file: intro_verification
+      - file: depleting_source
       - file: mms
         sections:
         - file: mms/principle
