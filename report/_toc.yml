@@ -10,16 +10,15 @@ parts:
     - file: vv
   - caption: Verification
     chapters:
-      - file: intro_verification
-      - file: depleting_source
-      - file: mms
+      - file: verification/methods
+      - file: verification/cases
         sections:
-        - file: mms/principle
-        - file: mms/simple
-        - file: mms/fluxes
-        - file: mms/discontinuity
-        - file: mms/trapping
-        - file: mms/heat_transfer
+        - file: verification/depleting_source
+        - file: verification/mms/simple
+        - file: verification/mms/fluxes
+        - file: verification/mms/discontinuity
+        - file: verification/mms/trapping
+        - file: verification/mms/heat_transfer
   - caption: Validation
     chapters:
       - file: plasma-driven-permeation/plasma-driven-permeation

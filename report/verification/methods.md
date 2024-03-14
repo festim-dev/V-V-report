@@ -1,4 +1,4 @@
-# Introduction
+# Methods
 
 In the realm of computational modeling and simulation, the Method of Exact Solutions (MES) and the Method of Manufactured Solutions (MMS) are two distinct methodologies employed for verification purposes. While both aim to assess the accuracy and correctness of numerical codes, they differ significantly in their approach and application.
 
@@ -10,11 +10,23 @@ In MES, the governing equations of the problem are solved symbolically, typicall
 
 ## Method of Manufactured Solutions (MMS)
 
-In contrast to MES, the Method of Manufactured Solutions (MMS) is a more versatile and widely applicable approach to code verification. MMS involves the deliberate construction of artificial solutions, known as manufactured solutions, that satisfy the governing equations of the problem. These manufactured solutions are designed to possess specific mathematical properties, such as smoothness, nonlinearity, or complexity.
+The Method of Manufactured Solutions (MMS) is a mathematical technique used to verify numerical simulation codes \cite{roy_exact_2010}.
+In MMS, an exact analytical solution is intentionally _manufactured_.
+The mathematical model is then operated on this manufactured solution to obtain an analytic source term.
+Computer symbolic manipulation can be used to obtain the derivatives of the manufactured solution.
+Boundary conditions obtained directly from the manufactured solution and the source term then serve as input for the numerical simulation code.
 
-The key principle behind MMS is to create manufactured solutions that are exact solutions of the governing equations. These solutions are carefully crafted to challenge the numerical solver by incorporating mathematical properties that may lead to computational difficulties, such as steep gradients, discontinuities, or highly nonlinear behavior.
+The error between the code output and the manufactured analytical solution is computed and used to assess the code's correctness and accuracy.
+MMS is a valuable tool for code verification in scientific and engineering computing, ensuring the reliability of computational results.
 
-By comparing the numerical solutions obtained from the code against the manufactured solutions, developers can assess the code's ability to accurately capture the underlying physics of the problem and handle various boundary conditions and computational challenges in non-trivial geometries.
+For each case, the L2 error $E$ is calculated in the domain $\Omega$:
+
+\begin{equation}
+    E = \sqrt{\int_\Omega(u_\mathrm{exact} - u_\mathrm{computed})^2 dx}
+\end{equation}
+where $u_\mathrm{exact}$ and $u_\mathrm{computed}$ are the exact and computed solutions, respectively.
+
+A [detailed example](mms/simple.ipynb) is available in this book.
 
 ## Differentiating MES and MMS
 
