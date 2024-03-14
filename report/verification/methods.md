@@ -10,7 +10,7 @@ In MES, the governing equations of the problem are solved symbolically, typicall
 
 ## Method of Manufactured Solutions (MMS)
 
-The Method of Manufactured Solutions (MMS) is a mathematical technique used to verify numerical simulation codes \cite{roy_exact_2010}.
+The Method of Manufactured Solutions (MMS) is a mathematical technique used to verify numerical simulation codes {cite}`roy_exact_2010`.
 In MMS, an exact analytical solution is intentionally _manufactured_.
 The mathematical model is then operated on this manufactured solution to obtain an analytic source term.
 Computer symbolic manipulation can be used to obtain the derivatives of the manufactured solution.
