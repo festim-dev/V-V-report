@@ -1,2 +1,0 @@
-# MMS tests
-
