@@ -5,7 +5,13 @@ This is the repo of the [FESTIM V&V report](https://festim-vv-report.readthedocs
 
 ## Build locally
 
-First create the correct conda environment:
+First clone the repository:
+
+```
+git clone https://github.com/festim-dev/V-V-report
+```
+
+Create the correct conda environment with the required dependencies:
 
 ```
 conda env create -f report/environment.yml
