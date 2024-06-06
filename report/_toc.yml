@@ -22,6 +22,7 @@ parts:
   - caption: Validation
     chapters:
       - file: plasma-driven-permeation/plasma-driven-permeation
+      - file: thermodesorption-spectra/ogorodnikova-tds
   - caption: Bibliography
     chapters:
     - file: bibliography
