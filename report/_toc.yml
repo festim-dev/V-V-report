@@ -14,7 +14,6 @@ parts:
       - file: verification/cases
         sections:
         - file: verification/depleting_source
-        - file: verification/mes_radioactive_decay
         - file: verification/mms/simple
         - file: verification/mms/fluxes
         - file: verification/mms/discontinuity
