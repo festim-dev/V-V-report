@@ -1,5 +1,6 @@
 ---
 jupytext:
+  formats: ipynb,md:myst
   text_representation:
     extension: .md
     format_name: myst
@@ -42,7 +43,7 @@ We can then run a FESTIM model with these conditions and compare the numerical s
 
 ## FESTIM Code
 
-```{code-cell} ipython3
+```{code-cell}
 :tags: [hide-cell]
 
 import festim as F
@@ -96,15 +97,21 @@ def run_model(half_life):
 
 ## Comparison with exact solution
 
-```{code-cell} ipython3
+```{code-cell}
+:tags: [hide-cell]
+
+tests = []
+for half_life in np.linspace(1, 100, 5):
+    tests.append(run_model(half_life))
+```
+
+```{code-cell}
 from matplotlib import cm
 from matplotlib.colors import LogNorm
 
 norm = LogNorm(vmin=1e-2, vmax=100)
 
-
-for half_life in np.linspace(1, 100, 5):
-    time, concentration = run_model(half_life)
+for time, concentration in tests:
     plt.plot(time, concentration, label=f"half-life = {half_life:.2f} s", color=cm.Blues(norm(half_life)), linewidth=3)
     exact = initial_concentration * np.exp(-np.log(2) / half_life * np.array(time))
     plt.plot(time, exact, "--", color="tab:grey")
