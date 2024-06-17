@@ -16,7 +16,7 @@ kernelspec:
 
 # Radioactive decay
 
-This is a simple MMS example.
+This MMS case verifies the implementation of radioactive decay in FESTIM.
 We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with a homogeneous diffusion coefficient $D$.
 We will impose a radioactive decay (`RadioactiveDecay`) source over the whole domain
 with a decay constant $\lambda$.
