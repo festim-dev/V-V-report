@@ -78,16 +78,14 @@ my_model.mesh = F.Mesh(
 )
 
 # Variational formulation
-exact_solution = (
-    1 + 2 * F.x**2 + 3 * F.y**2
-)  # exact solution
+exact_solution = 1 + 2 * F.x**2 + 3 * F.y**2  # exact solution
 
 decay_constant = 3
 D = 2
-    
+
 my_model.sources = [
-    F.Source(decay_constant*exact_solution -10 * D, volume=1, field="solute"),
-    F.RadioactiveDecay(decay_constant, volume=1)
+    F.Source(decay_constant * exact_solution - 10 * D, volume=1, field="solute"),
+    F.RadioactiveDecay(decay_constant, volume=1),
 ]
 
 my_model.boundary_conditions = [
@@ -178,7 +176,12 @@ for i, profile in enumerate(profiles):
     computed_values = [computed_solution(x, y) for x, y in zip(points_x, points_y)]
 
     (exact_line,) = plt.plot(
-        arc_length_exact, u_values, color=l.get_color(), marker="o", linestyle="None", alpha=0.3
+        arc_length_exact,
+        u_values,
+        color=l.get_color(),
+        marker="o",
+        linestyle="None",
+        alpha=0.3,
     )
     (computed_line,) = plt.plot(arc_lengths, computed_values, color=l.get_color())
 
