@@ -35,7 +35,7 @@ $$
 \begin{equation}
     c_\mathrm{exact} = e^{-\lambda t}
 \end{equation}
-$$(c_exact_fluxes)
+$$(c_exact_decay)
 
 We can then run a FESTIM model with these conditions and compare the numerical solution with $c_\mathrm{exact}$.
 
