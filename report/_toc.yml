@@ -23,8 +23,8 @@ parts:
         - file: verification/mms/radioactive_decay
   - caption: Validation
     chapters:
-      - file: plasma-driven-permeation/plasma-driven-permeation
-      - file: thermodesorption-spectra/ogorodnikova-tds
+      - file: validation/plasma-driven-permeation/plasma-driven-permeation
+      - file: validation/thermodesorption-spectra/ogorodnikova/ogorodnikova-tds
   - caption: Bibliography
     chapters:
     - file: bibliography
