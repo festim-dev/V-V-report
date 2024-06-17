@@ -106,6 +106,7 @@ for half_life in np.linspace(1, 100, 5):
 ```
 
 ```{code-cell}
+:tags: [hide-input]
 from matplotlib import cm
 from matplotlib.colors import LogNorm
 

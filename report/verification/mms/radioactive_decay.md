@@ -49,6 +49,8 @@ $$
 We can then run a FESTIM model with these values and compare the numerical solution with $c_\mathrm{exact}$.
 
 ```{code-cell} ipython3
+:tags: [hide-cell]
+
 import festim as F
 import sympy as sp
 import fenics as f
@@ -109,6 +111,8 @@ my_model.run()
 ## Comparison with exact solution
 
 ```{code-cell} ipython3
+:tags: [hide-input]
+
 c_exact = f.Expression(sp.printing.ccode(exact_solution), degree=4)
 c_exact = f.project(c_exact, f.FunctionSpace(my_model.mesh.mesh, "CG", 1))
 
