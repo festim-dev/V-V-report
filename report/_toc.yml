@@ -20,6 +20,7 @@ parts:
         - file: verification/mms/discontinuity
         - file: verification/mms/trapping
         - file: verification/mms/heat_transfer
+        - file: verification/mms/radioactive_decay
   - caption: Validation
     chapters:
       - file: plasma-driven-permeation/plasma-driven-permeation
