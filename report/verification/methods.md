@@ -26,7 +26,7 @@ For each case, the L2 error $E$ is calculated in the domain $\Omega$:
 \end{equation}
 where $u_\mathrm{exact}$ and $u_\mathrm{computed}$ are the exact and computed solutions, respectively.
 
-A [detailed example](mms/simple.ipynb) is available in this book.
+A [detailed example](mms/simple.md) is available in this book.
 
 ## Differentiating MES and MMS
 
