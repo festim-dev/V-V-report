@@ -16,7 +16,9 @@ kernelspec:
 
 This validation case is a thermo-desorption spectrum measurement perfomed by Baldwin et al. {cite}`baldwin_experimental_2014`.
 
-1 *μ*m thick co-deposited $\mathrm{Be}$-(0.1)$\mathrm{D}$ layers were produced on 1mm radii tungsten spheres at $330K$ via a magnetron sputtering technique. The TDS measurement was then performed with a heating ramp of $0.3 K/s^{-1}$.
+1 *μ*m thick co-deposited $\mathrm{Be}$-(0.1)$\mathrm{D}$ layers were produced on 1mm radii tungsten spheres at ~$330K$ via a magnetron sputtering technique.
+
+The TDS measurement was then performed with a resting time of $306s$ and a heating ramp of $0.3 K/s^{-1}$.
 
 To reproduce this experiment, 2 intrinsic traps are used to emulate trapping by $\mathrm{Be}$.
 The model was run with three different BC types: Siervert's, RecombinationFlux and custom dynamically computed surface concentration (DSC) RecombinationFlux using equation 5 from the paper.
@@ -194,6 +196,11 @@ def run_tds(bc_type: str):
     model.run()
 
     return derived_quantities
+
+derived_quantities_map = {}
+bc_types = ["Sieverts", "Recombination flux", "DSC"]
+for bc_type in bc_types:
+    derived_quantities_map[bc_type] = run_tds(bc_type)
 ```
 
 ## Comparison with experimental data
@@ -240,7 +247,7 @@ def plot_experiment():
     plt.scatter(exp_data[:, 0], exp_data[:, 1], alpha=0.6, label="experiment")
 
 
-derived_quantities = run_tds("Recombination flux")
+derived_quantities = derived_quantities_map["Recombination flux"]
 plot_tds(derived_quantities, trap_contribution=True)
 plot_experiment()
 plt.xlim(left=resting_time)
@@ -253,8 +260,8 @@ plt.legend()
 
 # comparison models
 plt.figure()
-for bc_type in ["Sieverts", "Recombination flux", "DSC"]:
-    derived_quantities = run_tds(bc_type)
+for bc_type in bc_types:
+    derived_quantities = derived_quantities_map[bc_type]
     plot_tds(derived_quantities, trap_contribution=False, label=bc_type)
 plot_experiment()
 plt.xlim(left=resting_time)
@@ -264,4 +271,5 @@ plt.ylabel(r"Desorption flux (m$^{-2}$ s$^{-1}$)")
 plt.xlabel(r"Time (s)")
 plt.gca().spines[["right", "top"]].set_visible(False)
 plt.legend()
+plt.show() #hides legend object from output
 ```
