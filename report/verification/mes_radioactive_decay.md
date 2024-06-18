@@ -14,18 +14,14 @@ kernelspec:
 
 # Radioactive decay
 
-This example is a radioactive decay (`RadioactiveDecay`) problem on simple unit area meshes with a uniform mobile concentration and no boundary condition.
-
-The formulation is:
-
-$$\frac{\partial c_m}{\partial t} =  \nabla \cdot (D \nabla c_m)  - \lambda c_m - \sum \left( -k_i \ c_m \ (n_i - c_{t,i}) + p_i \ c_{t,i} \right)$$
+This example is a radioactive decay (`RadioactiveDecay`) problem on simple unit interval with a uniform mobile concentration and no boundary condition.
 
 
 In this problem, for simplicity, we don't set any traps and we model an isolated domain (no flux boundary conditions) to mimick a simple 0D case. Diffusion can therefore be neglected and the problem is:
+
 $$
 \begin{align}
-    \nabla \cdot (D \ \nabla{c}) = 0 &  \quad \text{on }  \Omega  \\
-    \sum \left( -k_i \ c_m \ (n_i - c_{t,i}) + p_i \ c_{t,i} \right) = 0 & \quad \text{(no traps)}
+    \frac{\partial c}{\partial t} = - \lambda \ c &  \quad \text{on }  \Omega  \\
 \end{align}
 $$(problem_decay)
 
@@ -33,9 +29,11 @@ The exact solution for mobile concentration is:
 
 $$
 \begin{equation}
-    c_\mathrm{exact} = e^{-\lambda t}
+    c_\mathrm{exact} = c_0 e^{-\lambda t}
 \end{equation}
 $$(c_exact_decay)
+
+Here, $c_0$ is the initial concentration and $\lambda$ is the decay constant (in $s^{-1}$). We can then run a FESTIM model with these conditions and compare the numerical solution with $c_\mathrm{exact}$.
 
 We can then run a FESTIM model with these conditions and compare the numerical solution with $c_\mathrm{exact}$.
 
