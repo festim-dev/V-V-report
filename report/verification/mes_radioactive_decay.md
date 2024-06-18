@@ -12,7 +12,7 @@ kernelspec:
   name: python3
 ---
 
-# Radioactive decay
+# Radioactive decay 1D
 
 This example is a radioactive decay (`RadioactiveDecay`) problem on simple unit interval with a uniform mobile concentration and no boundary condition.
 

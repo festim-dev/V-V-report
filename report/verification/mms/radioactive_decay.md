@@ -14,7 +14,7 @@ kernelspec:
 
 +++ {"vscode": {"languageId": "javascript"}}
 
-# Radioactive decay
+# Radioactive decay 2D
 
 This MMS case verifies the implementation of radioactive decay in FESTIM.
 We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with a homogeneous diffusion coefficient $D$.
