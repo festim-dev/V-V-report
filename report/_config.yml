@@ -41,3 +41,10 @@ parse:
     # including those that are enabled by default!
     - amsmath
     - dollarmath
+
+# add sphinx configuration
+sphinx:
+  extra_extensions:
+    - sphinx_tags
+  config:
+    tags_create_tags : True
