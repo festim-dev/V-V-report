@@ -76,7 +76,7 @@ def run_model(half_life):
         F.RadioactiveDecay(decay_constant=np.log(2) / half_life, volume=1)
     ]
 
-    derived_quantities = F.DerivedQuantities([F.TotalVolume("solute", volume=1)])
+    derived_quantities = F.DerivedQuantities([F.AverageVolume("solute", volume=1)])
     my_model.exports = [derived_quantities]
 
     my_model.settings = F.Settings(
@@ -91,17 +91,15 @@ def run_model(half_life):
     time = derived_quantities.t
     concentration = derived_quantities[0].data
     return time, concentration
-```
-
-## Comparison with exact solution
-
-```{code-cell} ipython3
-:tags: [hide-cell]
 
 tests = []
 for half_life in np.linspace(1, 100, 5):
     tests.append((*run_model(half_life), half_life))
 ```
+
+## Comparison with exact solution
+
+The evolution of the hydrogen concentration is computed with FESTIM and compared with the exact solution (shown in dashed lines).
 
 ```{code-cell} ipython3
 :tags: [hide-input]
@@ -126,4 +124,5 @@ plt.legend()
 plt.ylim(bottom=0)
 plt.xlabel("Time (s)")
 plt.ylabel("Concentration (H/m3)")
+plt.show()
 ```

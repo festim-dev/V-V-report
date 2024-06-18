@@ -21,6 +21,7 @@ with a decay constant $\lambda$.
 Moreover, a Dirichlet boundary condition will be assumed on the boundaries $\partial \Omega $.
 
 The problem is therefore:
+
 $$
 \begin{align}
     &\nabla \cdot (D \ \nabla{c}) -\lambda c = -S  \quad \text{on }  \Omega  \\
@@ -29,6 +30,7 @@ $$
 $$(problem)
 
 The manufactured exact solution for mobile concentration is:
+
 $$
 \begin{equation}
     c_\mathrm{exact} = 1 + 2 x^2 + 3 y^2
@@ -203,4 +205,7 @@ plt.legend(
 
 plt.grid(alpha=0.3)
 plt.gca().spines[["right", "top"]].set_visible(False)
+plt.show()
 ```
+
+The exact and computed solutions are in excellent agreement.
