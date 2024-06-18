@@ -197,6 +197,7 @@ def run_tds(bc_type: str):
 
     return derived_quantities
 
+
 derived_quantities_map = {}
 bc_types = ["Sieverts", "Recombination flux", "DSC"]
 for bc_type in bc_types:
@@ -271,5 +272,5 @@ plt.ylabel(r"Desorption flux (m$^{-2}$ s$^{-1}$)")
 plt.xlabel(r"Time (s)")
 plt.gca().spines[["right", "top"]].set_visible(False)
 plt.legend()
-plt.show() #hides legend object from output
+plt.show()  # hides legend object from output
 ```
