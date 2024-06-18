@@ -8,6 +8,9 @@ jupytext:
     jupytext_version: 1.16.2
 ---
 
+```{tags} 2D, MMS, HeatTransferProblem
+```
+
 # Heat transfer multi-material
 
 This case verifies the implementation of the heat transfer solver in FESTIM.

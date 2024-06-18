@@ -12,6 +12,9 @@ kernelspec:
   name: python3
 ---
 
+```{tags} 1D
+```
+
 # Plasma-driven permeation
 
 This validation case is a plasma-driven permeation performed at INL in 1985 {cite}`anderl_tritium_1986`.

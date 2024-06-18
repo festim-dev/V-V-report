@@ -8,6 +8,9 @@ jupytext:
     jupytext_version: 1.16.2
 ---
 
+```{tags} 2D, MMS
+```
+
 # Diffusion multi-material
 
 The first MMS problem has two materials (denoted, respectively, by left and right).

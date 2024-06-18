@@ -12,6 +12,9 @@ kernelspec:
   name: python3
 ---
 
+```{tags} 2D, MMS, RadioactiveDecay
+```
+
 # Radioactive decay 2D
 
 This MMS case verifies the implementation of radioactive decay in FESTIM.

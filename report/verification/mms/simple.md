@@ -12,6 +12,9 @@ kernelspec:
   name: python3
 ---
 
+```{tags} 2D, MMS
+```
+
 # Simple diffusion case
 
 This is a simple MMS example.
