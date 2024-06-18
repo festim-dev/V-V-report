@@ -12,8 +12,6 @@ kernelspec:
   name: python3
 ---
 
-+++ {"vscode": {"languageId": "javascript"}}
-
 # Radioactive decay 2D
 
 This MMS case verifies the implementation of radioactive decay in FESTIM.
