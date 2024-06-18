@@ -16,7 +16,7 @@ kernelspec:
 
 This validation case is a thermo-desorption spectrum measurement perfomed by Baldwin et al. {cite}`baldwin_experimental_2014`.
 
-1 *μ*m thick co-deposited $\mathrm{Be}$-(0.1)$\mathrm{D}$ layers were produced on 1mm radii tungsten spheres at ~$330K$ via a magnetron sputtering technique.
+1 *μ*m thick co-deposited $\mathrm{Be}$-(0.1)$\mathrm{D}$ layers were produced on 1mm radii tungsten spheres at ~$330K$ via a magnetron sputtering technique under a pressure of $1.33\times 10^{-6} \mathrm{Pa}$.
 
 The TDS measurement was then performed with a resting time of $306s$ and a heating ramp of $0.3 K/s^{-1}$.
 
