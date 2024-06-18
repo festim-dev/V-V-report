@@ -16,14 +16,10 @@ kernelspec:
 
 This validation case is a thermo-desorption spectrum measurement perfomed by Baldwin et al. {cite}`baldwin_experimental_2014`.
 
-1 *μ*m thick co-deposited Be-(0.1)D layers were formed via a magnetron sputtering technique.
+1 *μ*m thick co-deposited $\mathrm{Be}$-(0.1)$\mathrm{D}$ layers were produced on 1mm radii tungsten spheres at $330K$ via a magnetron sputtering technique. The TDS measurement was then performed with a heating ramp of $0.3 K/s^{-1}$.
 
-To reproduce this experiment, 2 intrinsic traps are needed.
-The experiment was reproduced with three different BC types.
-
-INSERT BERYLLIUM PARAMETERS HERE
-
-INSERT TRAP PARAMETERS HERE
+To reproduce this experiment, 2 intrinsic traps are used to emulate trapping by $\mathrm{Be}$.
+The model was run with three different BC types: Siervert's, RecombinationFlux and custom dynamically computed surface concentration (DSC) RecombinationFlux using equation 5 from the paper.
 
 +++
 
@@ -201,6 +197,8 @@ def run_tds(bc_type: str):
 ```
 
 ## Comparison with experimental data
+
+The results produced by FESTIM are in good agreement with the experimental data. The grey areas represent the contribution of each trap to the global TDS spectrum.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
