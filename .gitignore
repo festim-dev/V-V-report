@@ -1,5 +1,6 @@
 # Build Files
 report/_build
+report/_tags
 
 # Jupyter Notebooks
 *.ipynb
