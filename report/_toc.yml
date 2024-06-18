@@ -8,6 +8,7 @@ parts:
     chapters:
     - file: intro
     - file: vv
+    - file: _tags/tagsindex.md
   - caption: Verification
     chapters:
       - file: verification/methods
