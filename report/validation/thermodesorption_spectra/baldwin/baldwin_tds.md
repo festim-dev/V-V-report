@@ -12,7 +12,7 @@ kernelspec:
   name: python3
 ---
 
-# Thermo-desorption spectrum
+# Beryllium co-deposition TDS
 
 This validation case is a thermo-desorption spectrum measurement perfomed by Baldwin et al. {cite}`baldwin_experimental_2014`.
 
