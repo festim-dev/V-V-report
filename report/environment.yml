@@ -13,6 +13,7 @@ dependencies:
   - sympy
   - fenics
   - numpy=1.24
+  - ipython=8.24
   - pip
   - pip:
     - festim
