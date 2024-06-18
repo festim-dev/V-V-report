@@ -100,7 +100,7 @@ def run_model(half_life):
 
 tests = []
 for half_life in np.linspace(1, 100, 5):
-    tests.append(run_model(half_life))
+    tests.append((*run_model(half_life), half_life))
 ```
 
 ```{code-cell} ipython3
@@ -111,7 +111,7 @@ from matplotlib.colors import LogNorm
 
 norm = LogNorm(vmin=1e-2, vmax=100)
 
-for time, concentration in tests:
+for time, concentration, half_life in tests:
     plt.plot(
         time,
         concentration,
