@@ -10,6 +10,9 @@ jupytext:
 
 # Single trap
 
+```{tags} 2D, MMS, Trapping, Multi-material
+```
+
 The MMS case verifies the implementation of trapping in FESTIM.
 Only one trap is considered for simplicity, but the same principle applies for more traps.
 Exact solutions are defined for both the mobile concentration and the trapped concentration.

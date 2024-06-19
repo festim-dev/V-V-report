@@ -12,7 +12,11 @@ kernelspec:
   name: python3
 ---
 
+
 # Diffusion with dissociation flux
+
+```{tags} 2D, MMS, DissociationFlux
+```
 
 This example is a diffusion problem with one boundary under a dissociation flux (`DissociationFlux`).
 

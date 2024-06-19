@@ -26,6 +26,7 @@ parts:
       - file: validation/plasma-driven-permeation/plasma-driven-permeation
       - file: validation/thermodesorption_spectra/ogorodnikova/ogorodnikova-tds
       - file: validation/thermodesorption_spectra/baldwin/baldwin_tds
-  - caption: Bibliography
+  - caption: Appendices
     chapters:
     - file: bibliography
+    - file: _tags/tagsindex.md

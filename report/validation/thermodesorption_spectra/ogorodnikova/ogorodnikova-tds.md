@@ -14,6 +14,9 @@ kernelspec:
 
 # Thermo-desorption spectrum
 
+```{tags} 1D, TDS
+```
+
 This validation case is a thermo-desorption spectrum measurement perfomed by Ogorodnikova et al. {cite}`ogorodnikova_deuterium_2003`.
 
 Deuterium ions at 200 eV were implanted in a 0.5 mm thick sample of high purity tungsten foil (PCW).

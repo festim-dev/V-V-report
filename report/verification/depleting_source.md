@@ -12,7 +12,11 @@ kernelspec:
   name: python3
 ---
 
+
 # Diffusion from a Depleting Source
+
+```{tags} 2D, MES
+```
 
 This verification case {cite}`ambrosek_verification_2008` consists of an enclosure containing an initial quantity of hydrogen gas (at an initial pressure $P_0$).
 The hydrogen can dissociate on the inner surface of the enclosure and then permeate through the walls.

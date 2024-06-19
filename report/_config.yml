@@ -41,3 +41,26 @@ parse:
     # including those that are enabled by default!
     - amsmath
     - dollarmath
+
+# add sphinx configuration
+sphinx:
+  extra_extensions:
+    - sphinx_tags
+  config:
+    tags_create_tags : True
+    tags_create_badges: True
+    tags_extension : ["md"]
+    tags_page_title : "All Tags"
+    suppress_warnings: ["etoc.toctree"]
+    tags_badge_colors: {
+      "MMS": "success",
+      "MES": "success",
+      "*D": "secondary",
+    }
+    tags_index_head: "Cases categorised by tag"
+    tags_intro_text: "🏷 Tags:"
+    tags_overview_title: "🏷 Tags"
+    tags_page_header: "Cases with this tag"
+    tags_page_title: "🏷 Tag"
+
+
