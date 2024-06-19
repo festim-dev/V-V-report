@@ -16,9 +16,9 @@ kernelspec:
 
 This validation case is a thermo-desorption spectrum measurement perfomed by Baldwin et al. {cite}`baldwin_experimental_2014`.
 
-$1 \ \mathrm{\mu m}$ thick co-deposited $\mathrm{Be}$-(0.1)$\mathrm{D}$ layers were produced on 1mm radii tungsten spheres at ~$330 \ \mathrm{K}$ via a magnetron sputtering technique under a pressure of $1.33\times 10^{-6} \ \mathrm{Pa}$.
+$1 \ \mathrm{\mu m}$ thick co-deposited $\mathrm{Be}$-(0.1)$\mathrm{D}$ layers were produced on 1mm radii tungsten spheres at ~$330 \ \mathrm{K}$ via a magnetron sputtering technique under a mixed atmosphere of Ar and D at a pressure of $0.8 \ \mathrm{Pa}$.
 
-The TDS measurement was then performed after a resting time of $306 \ \mathrm{s}$ and a heating ramp of $0.3 \ \mathrm{K \s^{-1}}$.
+The TDS measurement was then performed after a resting time of $306 \ \mathrm{s}$ and a heating ramp of $0.3 \ \mathrm{K \ s^{-1}}$.
 
 To reproduce this experiment, 2 intrinsic traps are used to emulate trapping by $\mathrm{Be}$.
 The model was run with three different types of boundary conditions: Siervert's law, recombination flux and custom dynamically computed surface concentration (DSC) recombination flux proposed by Baldwin et al. {cite}`baldwin_experimental_2014`.
