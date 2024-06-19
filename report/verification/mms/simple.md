@@ -12,7 +12,11 @@ kernelspec:
   name: python3
 ---
 
+
 # Simple diffusion case
+
+```{tags} 2D, MMS
+```
 
 This is a simple MMS example.
 We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with an homogeneous diffusion coefficient $D$.
