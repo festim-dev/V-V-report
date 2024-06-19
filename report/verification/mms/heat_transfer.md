@@ -8,10 +8,11 @@ jupytext:
     jupytext_version: 1.16.2
 ---
 
-```{tags} 2D, MMS, HeatTransferProblem
-```
 
 # Heat transfer multi-material
+
+```{tags} 2D, MMS, HeatTransferProblem
+```
 
 This case verifies the implementation of the heat transfer solver in FESTIM.
 Two materials with different thermal conductivities are defined: $\lambda_\mathrm{left} = 2$ and $\lambda_\mathrm{right} = 5$.

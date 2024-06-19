@@ -8,10 +8,10 @@ jupytext:
     jupytext_version: 1.16.2
 ---
 
+# Single trap
+
 ```{tags} 2D, MMS, Trapping
 ```
-
-# Single trap
 
 The MMS case verifies the implementation of trapping in FESTIM.
 Only one trap is considered for simplicity, but the same principle applies for more traps.

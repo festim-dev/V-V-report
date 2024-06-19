@@ -12,10 +12,10 @@ kernelspec:
   name: python3
 ---
 
+# Radioactive decay 2D
+
 ```{tags} 2D, MMS, RadioactiveDecay
 ```
-
-# Radioactive decay 2D
 
 This MMS case verifies the implementation of radioactive decay in FESTIM.
 We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with a homogeneous diffusion coefficient $D$.

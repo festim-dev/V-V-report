@@ -8,10 +8,10 @@ jupytext:
     jupytext_version: 1.16.2
 ---
 
+# Diffusion multi-material
+
 ```{tags} 2D, MMS
 ```
-
-# Diffusion multi-material
 
 The first MMS problem has two materials (denoted, respectively, by left and right).
 In material left, the solubility is $K_{S,\mathrm{left}} = 3$ and the diffusivity is $D_\mathrm{left} = 2$.

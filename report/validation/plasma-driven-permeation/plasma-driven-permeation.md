@@ -12,10 +12,11 @@ kernelspec:
   name: python3
 ---
 
-```{tags} 1D
-```
 
 # Plasma-driven permeation
+
+```{tags} 1D
+```
 
 This validation case is a plasma-driven permeation performed at INL in 1985 {cite}`anderl_tritium_1986`.
 Deuterium ions at 3 keV was implanted in a 0.5 mm thick sample of 316 stainless steel variant called primary candidate alloy (PCA).
