@@ -17,7 +17,7 @@ kernelspec:
 ```{tags} 2D, MMS
 ```
 
-This is an extension of the simple MMS example with a non-homogenous temperature gradient.
+This is an extension of the [simple MMS](./simple.md) example with a non-homogenous temperature gradient.
 
 We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with an homogeneous diffusion coefficient $D$.
 
@@ -26,6 +26,7 @@ We will assume a temperature gradient of $T = 300 + x$ over the domain $\Omega$ 
 Moreover, a Dirichlet boundary condition will be assumed on the boundaries $\partial \Omega $.
 
 The problem is therefore:
+
 $$
 \begin{align}
     &\nabla \cdot (D(T) \ \nabla{c}) = -S  \quad \text{on }  \Omega  \\
