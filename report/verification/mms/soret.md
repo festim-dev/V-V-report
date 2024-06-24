@@ -45,7 +45,7 @@ Injecting {eq}`c_exact` in {eq}`problem`, we obtain the expressions of $S$ and $
 
 $$
 \begin{align}
-    & S = 6D\frac{Q^* c}{R_g}\frac{x^2 - 100}{T^3} -20 D \\
+    & S = 6D\frac{Q^* c_\mathrm{exact}}{R_g}\frac{x^2 - 100}{T^3} -20 D \\
     & c_0 = c_\mathrm{exact}
 \end{align}
 $$
