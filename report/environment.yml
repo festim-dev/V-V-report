@@ -15,6 +15,7 @@ dependencies:
   - fenics
   - numpy=1.24
   - ipython=8.23
+  - gxx  # TODO after this is fixed https://github.com/conda-forge/fenics-feedstock/issues/204
   - pip
   - pip:
     - festim
