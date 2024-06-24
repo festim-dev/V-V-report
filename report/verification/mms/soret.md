@@ -14,7 +14,7 @@ kernelspec:
 
 # Radioactive decay 2D
 
-```{tags} 2D, MMS, RadioactiveDecay
+```{tags} 2D, MMS, SoretEffect
 ```
 
 This MMS case verifies the implementation of the Soret effect in FESTIM.
