@@ -14,7 +14,7 @@ kernelspec:
 
 # Deuterium retention in tungsten
 
-```{tags} 1D, TDS
+```{tags} 1D, TDS, trapping, transient
 ```
 
 This validation case is a thermo-desorption spectrum measurement perfomed by Ogorodnikova et al. {cite}`ogorodnikova_deuterium_2003`.

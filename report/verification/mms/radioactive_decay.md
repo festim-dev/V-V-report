@@ -14,7 +14,7 @@ kernelspec:
 
 # Radioactive decay 2D
 
-```{tags} 2D, MMS, RadioactiveDecay
+```{tags} 2D, MMS, RadioactiveDecay, transient
 ```
 
 This MMS case verifies the implementation of radioactive decay in FESTIM.

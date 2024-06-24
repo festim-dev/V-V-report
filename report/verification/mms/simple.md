@@ -15,7 +15,7 @@ kernelspec:
 
 # Simple diffusion case
 
-```{tags} 2D, MMS
+```{tags} 2D, MMS, steady state
 ```
 
 This is a simple MMS example.
