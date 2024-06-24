@@ -10,7 +10,7 @@ jupytext:
 
 # Diffusion multi-material
 
-```{tags} 2D, MMS
+```{tags} 2D, MMS, Multi-material
 ```
 
 The first MMS problem has two materials (denoted, respectively, by left and right).
