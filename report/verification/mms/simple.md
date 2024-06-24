@@ -53,6 +53,8 @@ We can then run a FESTIM model with these values and compare the numerical solut
 ## FESTIM code
 
 ```{code-cell} ipython3
+import os
+print(os.environ)
 import festim as F
 import sympy as sp
 import fenics as f
