@@ -27,7 +27,7 @@ The problem is therefore:
 
 $$
 \begin{align}
-    &\nabla \cdot (D \ \nabla{c}) - \nabla\cdot\vec{\mathrm{J}} = -S  \quad \text{on }  \Omega  \\
+    & - \nabla\cdot\vec{\mathrm{J}} = -S  \quad \text{on }  \Omega  \\
     & \vec{\mathrm{J}} = -D \ \nabla{c} - D\frac{Q^* c}{R_g T^2} \ \nabla{T} \\
     & c = c_0 \quad \text{on }  \partial \Omega
 \end{align}
@@ -45,14 +45,14 @@ Injecting {eq}`c_exact` in {eq}`problem`, we obtain the expressions of $S$ and $
 
 $$
 \begin{align}
-    & S = D\nabla \cdot \left(\frac{Q^* c_\mathrm{exact}}{R_g T^2} \ \nabla{T} \right) -20 D \\
+    & S = D\nabla \cdot \left(\frac{Q^* c_\mathrm{exact}}{R_g T^2} \ \nabla{T} \right) -10 D \\
     & c_0 = c_\mathrm{exact}
 \end{align}
 $$
 
 We can then run a FESTIM model with these values and compare the numerical solution with $c_\mathrm{exact}$.
 
-```{code-cell}
+```{code-cell} ipython3
 :tags: [hide-cell]
 
 import festim as F
@@ -72,7 +72,15 @@ volume_markers.set_all(1)
 surface_markers = f.MeshFunction(
     "size_t", fenics_mesh, fenics_mesh.topology().dim() - 1
 )
-surface_markers.set_all(1)
+
+surface_markers.set_all(0)
+
+class Boundary(f.SubDomain):
+    def inside(self, x, on_boundary):
+        return on_boundary
+
+boundary = Boundary()
+boundary.mark(surface_markers, 1)
 
 # Create the FESTIM model
 my_model = F.Simulation()
@@ -84,26 +92,52 @@ my_model.mesh = F.Mesh(
 # Variational formulation
 exact_solution = 1 + 2 * F.x**2 + 3 * F.y**2  # exact solution
 
-decay_constant = 3
+T = 300 + F.x
+
 D = 2
+Q = 2
+
+def grad(u):
+    """Computes the gradient of a function u.
+
+    Args:
+        u (sympy.Expr): a sympy function
+
+    Returns:
+        sympy.Matrix: the gradient of u
+    """
+    return sp.Matrix([sp.diff(u, F.x), sp.diff(u, F.y)])
+
+
+def div(u):
+    """Computes the divergence of a vector field u.
+
+    Args:
+        u (sympy.Matrix): a sympy vector field
+
+    Returns:
+        sympy.Expr: the divergence of u
+    """
+    return sp.diff(u[0], F.x) + sp.diff(u[1], F.y)
 
 my_model.sources = [
-    F.Source(decay_constant * exact_solution - 10 * D, volume=1, field="solute"),
-    F.RadioactiveDecay(decay_constant, volume=1),
+    F.Source(
+        - D * div((Q * exact_solution)/(F.R * T**2) * grad(T)) - 10 * D,
+        volume=1,
+        field="solute",
+    ),
 ]
 
 my_model.boundary_conditions = [
     F.DirichletBC(surfaces=[1], value=exact_solution, field="solute"),
 ]
 
-my_model.materials = F.Material(id=1, D_0=D, E_D=0)
+my_model.materials = F.Material(id=1, D_0=D, E_D=0, Q=Q)
 
-my_model.T = F.Temperature(500)  # ignored in this problem
+my_model.T = F.Temperature(T)
 
 my_model.settings = F.Settings(
-    absolute_tolerance=1e-10,
-    relative_tolerance=1e-10,
-    transient=False,
+    absolute_tolerance=1e-10, relative_tolerance=1e-10, transient=False, soret=True
 )
 
 my_model.initialise()
@@ -112,7 +146,7 @@ my_model.run()
 
 ## Comparison with exact solution
 
-```{code-cell}
+```{code-cell} ipython3
 :tags: [hide-input]
 
 c_exact = f.Expression(sp.printing.ccode(exact_solution), degree=4)
