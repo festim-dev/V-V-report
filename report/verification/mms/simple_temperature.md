@@ -26,12 +26,12 @@ We will assume a temperature gradient of $T = 300 + x$ over the domain $\Omega$ 
 Moreover, a Dirichlet boundary condition will be assumed on the boundaries $\partial \Omega $.
 
 The problem is therefore:
-```{math}
+$$
 \begin{align}
     &\nabla \cdot (D(T) \ \nabla{c}) = -S  \quad \text{on }  \Omega  \\
     & c = c_0 \quad \text{on }  \partial \Omega
 \end{align}
-```problem_simple_temp
+$$(problem_simple_temp)
 
 The exact solution for mobile concentration is:
 
@@ -43,10 +43,12 @@ $$(c_exact_simple_temp)
 
 Injecting {eq}`c_exact_simple_temp` in {eq}`problem_simple_temp`, we obtain the expressions of $S$ and $c_0$:
 
+$$
 \begin{align}
-    & S = 4Dx\ln{\frac{D/D_0}\frac{1}{T}} - 10D \\
+    & S = - 4 D x \frac{E_D}{k_B T^2} - 10 D \\
     & c_0 = c_\mathrm{exact}
 \end{align}
+$$
 
 We can then run a FESTIM model with these values and compare the numerical solution with $c_\mathrm{exact}$.
 
@@ -54,7 +56,9 @@ We can then run a FESTIM model with these values and compare the numerical solut
 
 ## FESTIM code
 
-```{code-cell} ipython3
+```{code-cell}
+:tags: [hide-cell]
+
 import festim as F
 import sympy as sp
 import fenics as f
@@ -99,17 +103,17 @@ T = 300 + F.x
 D_0 = 2
 E_D = 2
 D = D_0 * sp.exp(-E_D / (F.k_B * T))
-S = D * (4 * F.x * E_D/(F.k_B * T**2) - 10)
+S = - D * (4 * F.x * E_D/(F.k_B * T**2) + 10)
 
 my_model.sources = [
     F.Source(S, volume=1, field="solute"),
 ]
 
 my_model.boundary_conditions = [
-    F.DirichletBC(surfaces=[2], value=exact_solution, field="solute"),
+    F.DirichletBC(surfaces=[1], value=exact_solution, field="solute"),
 ]
 
-my_model.materials = F.Material(id=1, D_0=D, E_D=E_D)
+my_model.materials = F.Material(id=1, D_0=D_0, E_D=E_D)
 
 my_model.T = F.Temperature(T)
 
@@ -123,9 +127,10 @@ my_model.initialise()
 my_model.run()
 ```
 
+
 ## Comparison with exact solution
 
-```{code-cell} ipython3
+```{code-cell}
 :tags: [hide-input]
 
 c_exact = f.Expression(sp.printing.ccode(exact_solution), degree=4)
@@ -225,7 +230,7 @@ It is also possible to compute how the numerical error decreases as we increase 
 By iteratively refining the mesh, we find that the error exhibits a second order convergence rate.
 This is expected for this particular problem as first order finite elements are used.
 
-```{code-cell} ipython3
+```{code-cell}
 :tags: [hide-input]
 
 errors = []
