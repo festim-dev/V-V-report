@@ -37,7 +37,7 @@ The manufactured exact solution for mobile concentration is:
 
 $$
 \begin{equation}
-    c_\mathrm{exact} = 1 + 2 x^2 + 3 y^2
+    c_\mathrm{exact} = 1 + 4 x^2 + 2 y^2
 \end{equation}
 $$(c_exact_soret)
 
@@ -45,7 +45,7 @@ Injecting {eq}`c_exact` in {eq}`problem`, we obtain the expressions of $S$ and $
 
 $$
 \begin{align}
-    & S = D\nabla \cdot \left(\frac{Q^* c_\mathrm{exact}}{R_g T^2} \ \nabla{T} \right) -10 D \\
+    & S = D\nabla \cdot \left(\frac{Q^* c_\mathrm{exact}}{R_g T^2} \ \nabla{T} \right) -12 D \\
     & c_0 = c_\mathrm{exact}
 \end{align}
 $$
@@ -90,7 +90,7 @@ my_model.mesh = F.Mesh(
 )
 
 # Variational formulation
-exact_solution = 1 + 2 * F.x**2 + 3 * F.y**2  # exact solution
+exact_solution = 1 + 4 * F.x**2 + 2 * F.y**2  # exact solution
 
 T = 300 + F.x
 
@@ -122,7 +122,7 @@ def div(u):
 
 my_model.sources = [
     F.Source(
-        - D * div((Q * exact_solution)/(F.R * T**2) * grad(T)) - 10 * D,
+        - D * div((Q * exact_solution)/(F.R * T**2) * grad(T)) - 12 * D,
         volume=1,
         field="solute",
     ),
