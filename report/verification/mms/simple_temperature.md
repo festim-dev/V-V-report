@@ -231,7 +231,7 @@ By iteratively refining the mesh, we find that the error exhibits a second order
 This is expected for this particular problem as first order finite elements are used.
 
 ```{code-cell}
-:tags: [hide-input]
+:tags: [hide-cell]
 
 errors = []
 ns = [5, 10, 20, 30, 50, 100, 150]
@@ -264,7 +264,10 @@ for n in ns:
     
     computed_solution = my_model.h_transport_problem.mobile.post_processing_solution
     errors.append(f.errornorm(computed_solution, c_exact, "L2"))
+```
 
+```{code-cell}
+:tags: [hide-input]
 h = 1 / np.array(ns)
 
 plt.loglog(h, errors, marker="o")
