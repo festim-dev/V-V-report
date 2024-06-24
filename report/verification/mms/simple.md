@@ -12,7 +12,6 @@ kernelspec:
   name: python3
 ---
 
-
 # Simple diffusion case
 
 ```{tags} 2D, MMS
@@ -71,7 +70,14 @@ volume_markers.set_all(1)
 surface_markers = f.MeshFunction(
     "size_t", fenics_mesh, fenics_mesh.topology().dim() - 1
 )
-surface_markers.set_all(1)
+surface_markers.set_all(0)
+
+class Boundary(f.SubDomain):
+    def inside(self, x, on_boundary):
+        return on_boundary
+
+boundary = Boundary()
+boundary.mark(surface_markers, 1)
 
 # Create the FESTIM model
 my_model = F.Simulation()
@@ -86,7 +92,7 @@ exact_solution = (
 )  # exact solution
 
 D = 2
-    
+
 my_model.sources = [
     F.Source(-10 * D, volume=1, field="solute"),
 ]
@@ -133,7 +139,8 @@ plt.xlabel("x")
 plt.title("Computed solution")
 CS2 = f.plot(computed_solution, cmap="inferno")
 
-plt.colorbar(CS2, ax=[axs[0], axs[1]], shrink=0.8)
+plt.colorbar(CS1, ax=[axs[0]], shrink=0.8)
+plt.colorbar(CS2, ax=[axs[1]], shrink=0.8)
 
 axs[0].sharey(axs[1])
 plt.setp(axs[1].get_yticklabels(), visible=False)
@@ -229,7 +236,14 @@ for n in ns:
     surface_markers = f.MeshFunction(
         "size_t", fenics_mesh, fenics_mesh.topology().dim() - 1
     )
-    surface_markers.set_all(1)
+    surface_markers.set_all(0)
+
+    class Boundary(f.SubDomain):
+        def inside(self, x, on_boundary):
+            return on_boundary
+
+    boundary = Boundary()
+    boundary.mark(surface_markers, 1)
 
     my_model.mesh = F.Mesh(
         fenics_mesh, volume_markers=volume_markers, surface_markers=surface_markers
