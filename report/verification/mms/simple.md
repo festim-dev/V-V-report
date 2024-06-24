@@ -12,7 +12,6 @@ kernelspec:
   name: python3
 ---
 
-
 # Simple diffusion case
 
 ```{tags} 2D, MMS
@@ -52,7 +51,7 @@ We can then run a FESTIM model with these values and compare the numerical solut
 
 ## FESTIM code
 
-```{code-cell} ipython3
+```{code-cell}
 import festim as F
 import sympy as sp
 import fenics as f
@@ -111,7 +110,7 @@ my_model.run()
 
 ## Comparison with exact solution
 
-```{code-cell} ipython3
+```{code-cell}
 :tags: [hide-input]
 
 c_exact = f.Expression(sp.printing.ccode(exact_solution), degree=4)
@@ -213,7 +212,7 @@ It is also possible to compute how the numerical error decreases as we increase 
 By iteratively refining the mesh, we find that the error exhibits a second order convergence rate.
 This is expected for this particular problem as first order finite elements are used.
 
-```{code-cell} ipython3
+```{code-cell}
 :tags: [hide-input]
 
 errors = []
