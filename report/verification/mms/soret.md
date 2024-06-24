@@ -12,7 +12,7 @@ kernelspec:
   name: python3
 ---
 
-# Radioactive decay 2D
+# Soret Effect
 
 ```{tags} 2D, MMS, SoretEffect
 ```
