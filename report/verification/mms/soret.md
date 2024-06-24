@@ -19,6 +19,7 @@ kernelspec:
 
 This MMS case verifies the implementation of the Soret effect in FESTIM.
 We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with a homogeneous diffusion coefficient $D$.
+We will consider a temperature gradient of $T = 300 + x^2$.
 We will enable the Soret effect on the problem.
 Moreover, a Dirichlet boundary condition will be assumed on the boundaries $\partial \Omega $.
 
@@ -26,10 +27,11 @@ The problem is therefore:
 
 $$
 \begin{align}
-    &\nabla \cdot (D \ \nabla{c}) -\lambda c = -S  \quad \text{on }  \Omega  \\
+    &\nabla \cdot (D \ \nabla{c}) - \nabla\cdot\vec{\mathrm{J}} = -S  \quad \text{on }  \Omega  \\
+    & \vec{\mathrm{J}} = -D \ \nabla{c} - D\frac{Q^* c}{R_g T^2} \ \nabla{T} \\
     & c = c_0 \quad \text{on }  \partial \Omega
 \end{align}
-$$(problem)
+$$(problem_soret)
 
 The manufactured exact solution for mobile concentration is:
 
@@ -37,13 +39,13 @@ $$
 \begin{equation}
     c_\mathrm{exact} = 1 + 2 x^2 + 3 y^2
 \end{equation}
-$$(c_exact)
+$$(c_exact_soret)
 
 Injecting {eq}`c_exact` in {eq}`problem`, we obtain the expressions of $S$ and $c_0$:
 
 $$
 \begin{align}
-    & S = \lambda \left(1 + 2 x^2 + 3 y^2 \right) -10 D \\
+    & S = 6D\frac{Q^* c}{R_g}\frac{x^2 - 100}{T^3} -20 D \\
     & c_0 = c_\mathrm{exact}
 \end{align}
 $$
