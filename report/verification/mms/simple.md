@@ -77,7 +77,7 @@ class Boundary(f.SubDomain):
         return on_boundary
 
 boundary = Boundary()
-boundary.mark(surface_markers, 2)
+boundary.mark(surface_markers, 1)
 
 # Create the FESTIM model
 my_model = F.Simulation()
@@ -98,7 +98,7 @@ my_model.sources = [
 ]
 
 my_model.boundary_conditions = [
-    F.DirichletBC(surfaces=[2], value=exact_solution, field="solute"),
+    F.DirichletBC(surfaces=[1], value=exact_solution, field="solute"),
 ]
 
 my_model.materials = F.Material(id=1, D_0=D, E_D=0)
