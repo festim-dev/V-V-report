@@ -8,6 +8,8 @@ build:
     pre_build:
       # Generate the Sphinx configuration for this Jupyter Book so it builds.
       - "jupyter-book config sphinx report/"
+      - echo $LDFLAGS
+      - echo $CFLAGS
 
 conda:
   environment: report/environment.yml
