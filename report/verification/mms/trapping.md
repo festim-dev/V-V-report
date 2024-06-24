@@ -10,7 +10,7 @@ jupytext:
 
 # Single trap
 
-```{tags} 2D, MMS, Trapping, Multi-material, steady state
+```{tags} 2D, MMS, Trapping, steady state
 ```
 
 The MMS case verifies the implementation of trapping in FESTIM.
