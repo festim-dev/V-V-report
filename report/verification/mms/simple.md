@@ -243,7 +243,7 @@ for n in ns:
             return on_boundary
 
     boundary = Boundary()
-    boundary.mark(surface_markers, 2)
+    boundary.mark(surface_markers, 1)
 
     my_model.mesh = F.Mesh(
         fenics_mesh, volume_markers=volume_markers, surface_markers=surface_markers
