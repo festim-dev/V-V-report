@@ -12,23 +12,27 @@ kernelspec:
   name: python3
 ---
 
-# Simple diffusion case
+# Simple diffusion with varying temperature
 
-```{tags} 2D, MMS, steady state
+```{tags} 2D, MMS
 ```
 
-This is a simple MMS example.
+This is an extension of the [simple MMS](./simple.md) example with a non-homogenous temperature gradient.
+
 We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with an homogeneous diffusion coefficient $D$.
+
+We will assume a temperature gradient of $T = 300 + x$ over the domain $\Omega$ so the diffusivity coefficient $D = D_0 \exp\left[-\frac{E_D}{k_B T}\right]$.
+
 Moreover, a Dirichlet boundary condition will be assumed on the boundaries $\partial \Omega $.
 
 The problem is therefore:
-```{math}
-:label: problem_simple
+
+$$
 \begin{align}
-    &\nabla \cdot (D \ \nabla{c}) = -S  \quad \text{on }  \Omega  \\
+    &\nabla \cdot (D(T) \ \nabla{c}) = -S  \quad \text{on }  \Omega  \\
     & c = c_0 \quad \text{on }  \partial \Omega
 \end{align}
-```
+$$(problem_simple_temp)
 
 The exact solution for mobile concentration is:
 
@@ -36,14 +40,16 @@ $$
 \begin{equation}
     c_\mathrm{exact} = 1 + 2 x^2 + 3 y^2
 \end{equation}
-$$(c_exact_simple)
+$$(c_exact_simple_temp)
 
-Injecting {eq}`c_exact_simple` in {eq}`problem_simple`, we obtain the expressions of $S$ and $c_0$:
+Injecting {eq}`c_exact_simple_temp` in {eq}`problem_simple_temp`, we obtain the expressions of $S$ and $c_0$:
 
+$$
 \begin{align}
-    & S = -10 D \\
+    & S = - 4 D x \frac{E_D}{k_B T^2} - 10 D \\
     & c_0 = c_\mathrm{exact}
 \end{align}
+$$
 
 We can then run a FESTIM model with these values and compare the numerical solution with $c_\mathrm{exact}$.
 
@@ -52,12 +58,15 @@ We can then run a FESTIM model with these values and compare the numerical solut
 ## FESTIM code
 
 ```{code-cell}
+:tags: [hide-cell]
+
 import festim as F
 import sympy as sp
 import fenics as f
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import sympy as sp
 
 # Create and mark the mesh
 nx = ny = 100
@@ -78,7 +87,6 @@ class Boundary(f.SubDomain):
 
 boundary = Boundary()
 boundary.mark(surface_markers, 1)
-
 # Create the FESTIM model
 my_model = F.Simulation()
 
@@ -91,19 +99,24 @@ exact_solution = (
     1 + 2 * F.x**2 + 3 * F.y**2
 )  # exact solution
 
-D = 2
+T = 300 + F.x
+
+D_0 = 2
+E_D = 2
+D = D_0 * sp.exp(-E_D / (F.k_B * T))
+S = - D * (4 * F.x * E_D/(F.k_B * T**2) + 10)
 
 my_model.sources = [
-    F.Source(-10 * D, volume=1, field="solute"),
+    F.Source(S, volume=1, field="solute"),
 ]
 
 my_model.boundary_conditions = [
     F.DirichletBC(surfaces=[1], value=exact_solution, field="solute"),
 ]
 
-my_model.materials = F.Material(id=1, D_0=D, E_D=0)
+my_model.materials = F.Material(id=1, D_0=D_0, E_D=E_D)
 
-my_model.T = F.Temperature(500)  # ignored in this problem
+my_model.T = F.Temperature(T)
 
 my_model.settings = F.Settings(
     absolute_tolerance=1e-10,
@@ -114,6 +127,7 @@ my_model.settings = F.Settings(
 my_model.initialise()
 my_model.run()
 ```
+
 
 ## Comparison with exact solution
 
@@ -139,8 +153,7 @@ plt.xlabel("x")
 plt.title("Computed solution")
 CS2 = f.plot(computed_solution, cmap="inferno")
 
-plt.colorbar(CS1, ax=[axs[0]], shrink=0.8)
-plt.colorbar(CS2, ax=[axs[1]], shrink=0.8)
+plt.colorbar(CS2, ax=[axs[0], axs[1]], shrink=0.8)
 
 axs[0].sharey(axs[1])
 plt.setp(axs[1].get_yticklabels(), visible=False)
@@ -209,8 +222,6 @@ plt.legend(
 
 plt.grid(alpha=0.3)
 plt.gca().spines[["right", "top"]].set_visible(False)
-for ext in ["png", "svg", "pdf"]:
-    plt.savefig(f"mms_heat_transfer.{ext}")
 plt.show()
 ```
 
@@ -221,7 +232,7 @@ By iteratively refining the mesh, we find that the error exhibits a second order
 This is expected for this particular problem as first order finite elements are used.
 
 ```{code-cell}
-:tags: [hide-input]
+:tags: [hide-cell]
 
 errors = []
 ns = [5, 10, 20, 30, 50, 100, 150]
@@ -254,7 +265,10 @@ for n in ns:
     
     computed_solution = my_model.h_transport_problem.mobile.post_processing_solution
     errors.append(f.errornorm(computed_solution, c_exact, "L2"))
+```
 
+```{code-cell}
+:tags: [hide-input]
 h = 1 / np.array(ns)
 
 plt.loglog(h, errors, marker="o")
