@@ -12,46 +12,52 @@ kernelspec:
   name: python3
 ---
 
-# Radioactive decay 2D
+# Simple diffusion with varying temperature
 
-```{tags} 2D, MMS, RadioactiveDecay, transient
+```{tags} 2D, MMS
 ```
 
-This MMS case verifies the implementation of radioactive decay in FESTIM.
-We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with a homogeneous diffusion coefficient $D$.
-We will impose a radioactive decay (`RadioactiveDecay`) source over the whole domain
-with a decay constant $\lambda$.
+This is an extension of the [simple MMS](./simple.md) example with a non-homogenous temperature gradient.
+
+We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with an homogeneous diffusion coefficient $D$.
+
+We will assume a temperature gradient of $T = 300 + x$ over the domain $\Omega$ so the diffusivity coefficient $D = D_0 \exp\left[-\frac{E_D}{k_B T}\right]$.
+
 Moreover, a Dirichlet boundary condition will be assumed on the boundaries $\partial \Omega $.
 
 The problem is therefore:
 
 $$
 \begin{align}
-    &\nabla \cdot (D \ \nabla{c}) -\lambda c = -S  \quad \text{on }  \Omega  \\
+    &\nabla \cdot (D(T) \ \nabla{c}) = -S  \quad \text{on }  \Omega  \\
     & c = c_0 \quad \text{on }  \partial \Omega
 \end{align}
-$$(problem)
+$$(problem_simple_temp)
 
-The manufactured exact solution for mobile concentration is:
+The exact solution for mobile concentration is:
 
 $$
 \begin{equation}
     c_\mathrm{exact} = 1 + 2 x^2 + 3 y^2
 \end{equation}
-$$(c_exact)
+$$(c_exact_simple_temp)
 
-Injecting {eq}`c_exact` in {eq}`problem`, we obtain the expressions of $S$ and $c_0$:
+Injecting {eq}`c_exact_simple_temp` in {eq}`problem_simple_temp`, we obtain the expressions of $S$ and $c_0$:
 
 $$
 \begin{align}
-    & S = \lambda \left(1 + 2 x^2 + 3 y^2 \right) -10 D \\
+    & S = - 4 D x \frac{E_D}{k_B T^2} - 10 D \\
     & c_0 = c_\mathrm{exact}
 \end{align}
 $$
 
 We can then run a FESTIM model with these values and compare the numerical solution with $c_\mathrm{exact}$.
 
-```{code-cell} ipython3
++++
+
+## FESTIM code
+
+```{code-cell}
 :tags: [hide-cell]
 
 import festim as F
@@ -60,10 +66,12 @@ import fenics as f
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import sympy as sp
 
 # Create and mark the mesh
 nx = ny = 100
 fenics_mesh = f.UnitSquareMesh(nx, ny)
+
 
 volume_markers = f.MeshFunction("size_t", fenics_mesh, fenics_mesh.topology().dim())
 volume_markers.set_all(1)
@@ -71,8 +79,14 @@ volume_markers.set_all(1)
 surface_markers = f.MeshFunction(
     "size_t", fenics_mesh, fenics_mesh.topology().dim() - 1
 )
-surface_markers.set_all(1)
+surface_markers.set_all(0)
 
+class Boundary(f.SubDomain):
+    def inside(self, x, on_boundary):
+        return on_boundary
+
+boundary = Boundary()
+boundary.mark(surface_markers, 1)
 # Create the FESTIM model
 my_model = F.Simulation()
 
@@ -81,23 +95,28 @@ my_model.mesh = F.Mesh(
 )
 
 # Variational formulation
-exact_solution = 1 + 2 * F.x**2 + 3 * F.y**2  # exact solution
+exact_solution = (
+    1 + 2 * F.x**2 + 3 * F.y**2
+)  # exact solution
 
-decay_constant = 3
-D = 2
+T = 300 + F.x
+
+D_0 = 2
+E_D = 2
+D = D_0 * sp.exp(-E_D / (F.k_B * T))
+S = - D * (4 * F.x * E_D/(F.k_B * T**2) + 10)
 
 my_model.sources = [
-    F.Source(decay_constant * exact_solution - 10 * D, volume=1, field="solute"),
-    F.RadioactiveDecay(decay_constant, volume=1),
+    F.Source(S, volume=1, field="solute"),
 ]
 
 my_model.boundary_conditions = [
     F.DirichletBC(surfaces=[1], value=exact_solution, field="solute"),
 ]
 
-my_model.materials = F.Material(id=1, D_0=D, E_D=0)
+my_model.materials = F.Material(id=1, D_0=D_0, E_D=E_D)
 
-my_model.T = F.Temperature(500)  # ignored in this problem
+my_model.T = F.Temperature(T)
 
 my_model.settings = F.Settings(
     absolute_tolerance=1e-10,
@@ -109,9 +128,10 @@ my_model.initialise()
 my_model.run()
 ```
 
+
 ## Comparison with exact solution
 
-```{code-cell} ipython3
+```{code-cell}
 :tags: [hide-input]
 
 c_exact = f.Expression(sp.printing.ccode(exact_solution), degree=4)
@@ -179,12 +199,7 @@ for i, profile in enumerate(profiles):
     computed_values = [computed_solution(x, y) for x, y in zip(points_x, points_y)]
 
     (exact_line,) = plt.plot(
-        arc_length_exact,
-        u_values,
-        color=l.get_color(),
-        marker="o",
-        linestyle="None",
-        alpha=0.3,
+        arc_length_exact, u_values, color=l.get_color(), marker="o", linestyle="None", alpha=0.3
     )
     (computed_line,) = plt.plot(arc_lengths, computed_values, color=l.get_color())
 
@@ -200,7 +215,6 @@ legend_marker = mpl.lines.Line2D(
     linestyle="None",
     label="Exact",
 )
-
 legend_line = mpl.lines.Line2D([], [], color="black", label="Computed")
 plt.legend(
     [legend_marker, legend_line], [legend_marker.get_label(), legend_line.get_label()]
@@ -211,4 +225,59 @@ plt.gca().spines[["right", "top"]].set_visible(False)
 plt.show()
 ```
 
-The exact and computed solutions are in excellent agreement.
+## Compute convergence rates
+
+It is also possible to compute how the numerical error decreases as we increase the number of cells.
+By iteratively refining the mesh, we find that the error exhibits a second order convergence rate.
+This is expected for this particular problem as first order finite elements are used.
+
+```{code-cell}
+:tags: [hide-cell]
+
+errors = []
+ns = [5, 10, 20, 30, 50, 100, 150]
+
+for n in ns:
+    nx = ny = n
+    fenics_mesh = f.UnitSquareMesh(nx, ny)
+
+    volume_markers = f.MeshFunction("size_t", fenics_mesh, fenics_mesh.topology().dim())
+    volume_markers.set_all(1)
+
+    surface_markers = f.MeshFunction(
+        "size_t", fenics_mesh, fenics_mesh.topology().dim() - 1
+    )
+    surface_markers.set_all(0)
+
+    class Boundary(f.SubDomain):
+        def inside(self, x, on_boundary):
+            return on_boundary
+
+    boundary = Boundary()
+    boundary.mark(surface_markers, 1)
+
+    my_model.mesh = F.Mesh(
+        fenics_mesh, volume_markers=volume_markers, surface_markers=surface_markers
+    )
+
+    my_model.initialise()
+    my_model.run()
+    
+    computed_solution = my_model.h_transport_problem.mobile.post_processing_solution
+    errors.append(f.errornorm(computed_solution, c_exact, "L2"))
+```
+
+```{code-cell}
+:tags: [hide-input]
+h = 1 / np.array(ns)
+
+plt.loglog(h, errors, marker="o")
+plt.xlabel("Element size")
+plt.ylabel("L2 error")
+
+plt.loglog(h, 2 * h**2, linestyle="--", color="black")
+plt.annotate("2nd order", (h[0], 2 * h[0]**2), textcoords="offset points", xytext=(10, 0))
+
+plt.grid(alpha=0.3)
+plt.gca().spines[["right", "top"]].set_visible(False)
+```

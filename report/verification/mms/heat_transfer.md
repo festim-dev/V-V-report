@@ -11,7 +11,7 @@ jupytext:
 
 # Heat transfer multi-material
 
-```{tags} 2D, MMS, HeatTransferProblem, Multi-material
+```{tags} 2D, MMS, HeatTransferProblem, Multi-material, steady state
 ```
 
 This case verifies the implementation of the heat transfer solver in FESTIM.

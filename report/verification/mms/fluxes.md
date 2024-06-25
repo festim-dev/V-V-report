@@ -15,7 +15,7 @@ kernelspec:
 
 # Diffusion with dissociation flux
 
-```{tags} 2D, MMS, DissociationFlux
+```{tags} 2D, MMS, DissociationFlux, steady state
 ```
 
 This example is a diffusion problem with one boundary under a dissociation flux (`DissociationFlux`).
