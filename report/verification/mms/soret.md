@@ -19,7 +19,7 @@ kernelspec:
 
 This MMS case verifies the implementation of the Soret effect in FESTIM.
 We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with a homogeneous diffusion coefficient $D$.
-We will consider a temperature gradient of $T = 300 + x^2$.
+We will consider a temperature gradient of $T = 300 + x$.
 We will enable the Soret effect on the problem.
 Moreover, a Dirichlet boundary condition will be assumed on the boundaries $\partial \Omega $.
 
@@ -45,7 +45,7 @@ Injecting {eq}`c_exact` in {eq}`problem`, we obtain the expressions of $S$ and $
 
 $$
 \begin{align}
-    & S = D\nabla \cdot \left(\frac{Q^* c_\mathrm{exact}}{R_g T^2} \ \nabla{T} \right) -12 D \\
+    & S = - D\nabla \cdot \left(\frac{Q^* c_\mathrm{exact}}{R_g T^2} \ \nabla{T} \right) -12 D \\
     & c_0 = c_\mathrm{exact}
 \end{align}
 $$
@@ -75,9 +75,11 @@ surface_markers = f.MeshFunction(
 
 surface_markers.set_all(0)
 
+
 class Boundary(f.SubDomain):
     def inside(self, x, on_boundary):
         return on_boundary
+
 
 boundary = Boundary()
 boundary.mark(surface_markers, 1)
@@ -96,6 +98,7 @@ T = 300 + F.x
 
 D = 2
 Q = 2
+
 
 def grad(u):
     """Computes the gradient of a function u.
@@ -120,9 +123,11 @@ def div(u):
     """
     return sp.diff(u[0], F.x) + sp.diff(u[1], F.y)
 
+
 my_model.sources = [
     F.Source(
-        - D * div((Q * exact_solution)/(F.R * T**2) * grad(T)) - 12 * D,
+        -D * div((Q * exact_solution) / (F.R * T**2) * grad(T))
+        - div(grad(exact_solution)) * D,
         volume=1,
         field="solute",
     ),
