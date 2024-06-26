@@ -27,8 +27,8 @@ The problem is therefore:
 
 $$
 \begin{align}
-    & - \nabla\cdot\vec{\mathrm{J}} = -S  \quad \text{on }  \Omega  \\
-    & \vec{\mathrm{J}} = -D \ \nabla{c} - D\frac{Q^* c}{k_B T^2} \ \nabla{T} \\
+    & - \nabla\cdot\vec{\varphi} = -S  \quad \text{on }  \Omega  \\
+    & \vec{\varphi} = -D \ \nabla{c} - D\frac{Q^* c}{k_B T^2} \ \nabla{T} \\
     & c = c_0 \quad \text{on }  \partial \Omega
 \end{align}
 $$(problem_soret)
@@ -44,7 +44,7 @@ $$(c_exact_soret)
 For this problem, we choose:
 
 \begin{align}
-    & T = 300 + 30 \ x  \\
+    & T = 300 + 30 \ x + 40 \ y \\
     & Q^* = 4 \\
     & D = 2
 \end{align}
@@ -103,7 +103,7 @@ my_model.mesh = F.Mesh(
 # Variational formulation
 exact_solution = 1 + 4 * F.x**2 + 2 * F.y**2  # exact solution
 
-T = 300 + 30*F.x
+T = 300 + 30*F.x + 40 * F.y
 
 D = 2
 Q = 4
@@ -133,10 +133,12 @@ def div(u):
     return sp.diff(u[0], F.x) + sp.diff(u[1], F.y)
 
 
+mms_source = -D * div((Q * exact_solution) / (F.k_B * T**2) * grad(T))
+        - div(grad(exact_solution)) * D
+
 my_model.sources = [
     F.Source(
-        -D * div((Q * exact_solution) / (F.k_B * T**2) * grad(T))
-        - div(grad(exact_solution)) * D,
+        mms_source,
         volume=1,
         field="solute",
     ),
