@@ -14,7 +14,7 @@ kernelspec:
 
 # Soret Effect
 
-```{tags} 2D, MMS, SoretEffect
+```{tags} 2D, MMS, soret
 ```
 
 This MMS case verifies the implementation of the Soret effect in FESTIM.
