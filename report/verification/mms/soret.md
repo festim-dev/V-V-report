@@ -28,7 +28,7 @@ The problem is therefore:
 $$
 \begin{align}
     & - \nabla\cdot\vec{\mathrm{J}} = -S  \quad \text{on }  \Omega  \\
-    & \vec{\mathrm{J}} = -D \ \nabla{c} - D\frac{Q^* c}{R_g T^2} \ \nabla{T} \\
+    & \vec{\mathrm{J}} = -D \ \nabla{c} - D\frac{Q^* c}{k_B T^2} \ \nabla{T} \\
     & c = c_0 \quad \text{on }  \partial \Omega
 \end{align}
 $$(problem_soret)
@@ -41,11 +41,20 @@ $$
 \end{equation}
 $$(c_exact_soret)
 
+For this problem, we choose:
+
+\begin{align}
+    & T = 300 + 30 \ x  \\
+    & Q^* = 4 \\
+    & D = 2
+\end{align}
+
+
 Injecting {eq}`c_exact` in {eq}`problem`, we obtain the expressions of $S$ and $c_0$:
 
 $$
 \begin{align}
-    & S = - D\nabla \cdot \left(\frac{Q^* c_\mathrm{exact}}{R_g T^2} \ \nabla{T} \right) -12 D \\
+    & S = - D\nabla \cdot \left(\frac{Q^* c_\mathrm{exact}}{k_B T^2} \ \nabla{T} \right) -12 D \\
     & c_0 = c_\mathrm{exact}
 \end{align}
 $$
@@ -97,7 +106,7 @@ exact_solution = 1 + 4 * F.x**2 + 2 * F.y**2  # exact solution
 T = 300 + 30*F.x
 
 D = 2
-Q = 2
+Q = 4
 
 
 def grad(u):
