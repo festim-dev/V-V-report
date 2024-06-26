@@ -11,24 +11,35 @@ jupytext:
 
 # Heat transfer multi-material
 
-```{tags} 2D, MMS, HeatTransferProblem, Multi-material, steady state
+```{tags} 2D, MMS, heat transfer, Multi-material, steady state
 ```
 
 This case verifies the implementation of the heat transfer solver in FESTIM.
 Two materials with different thermal conductivities are defined: $\lambda_\mathrm{left} = 2$ and $\lambda_\mathrm{right} = 5$.
 
+$$
+\begin{align}
+    &\nabla \cdot (\lambda \nabla T) + Q = 0  \quad \text{on }  \Omega  \\
+    & T = T_0 \quad \text{on }  \partial\Omega
+\end{align}
+$$(problem_heat_transfer)
+
 The exact solution for temperature is:
+
+$$
 \begin{equation}
     T_\mathrm{exact} = 1 + \sin{\left(\pi \left(2 x + 0.5\right) \right)} + \cos{\left(2 \pi y \right)}
 \end{equation}
+$$(T_exact_heat_transfer)
 
-As for Case 1, the manufactured solution is chosen so that the thermal flux $-\lambda \nabla T \cdot \textbf{n}$ is continuous across the interface.
+The manufactured solution is chosen so that the thermal flux $-\lambda \nabla T \cdot \textbf{n}$ is continuous across the interface.
 
-Different MMS sources are defined (one in each material):
+By injecting {eq}`T_exact_heat_transfer` in {eq}`problem_heat_transfer` we can obtain:
 
 \begin{align}
     Q_\mathrm{left} &= 8 \pi^{2} \left(\cos{\left(2 \pi x \right)} + \cos{\left(2 \pi y \right)}\right) \\
-    Q_\mathrm{right} &= 20 \pi^{2} \left(\cos{\left(2 \pi x \right)} + \cos{\left(2 \pi y \right)}\right)
+    Q_\mathrm{right} &= 20 \pi^{2} \left(\cos{\left(2 \pi x \right)} + \cos{\left(2 \pi y \right)}\right) \\
+    T_0 &= T_\mathrm{exact}
 \end{align}
 
 +++
