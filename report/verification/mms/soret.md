@@ -94,7 +94,7 @@ my_model.mesh = F.Mesh(
 # Variational formulation
 exact_solution = 1 + 4 * F.x**2 + 2 * F.y**2  # exact solution
 
-T = 300 + F.x
+T = 300 + 30*F.x
 
 D = 2
 Q = 2
@@ -126,7 +126,7 @@ def div(u):
 
 my_model.sources = [
     F.Source(
-        -D * div((Q * exact_solution) / (F.R * T**2) * grad(T))
+        -D * div((Q * exact_solution) / (F.k_B * T**2) * grad(T))
         - div(grad(exact_solution)) * D,
         volume=1,
         field="solute",
