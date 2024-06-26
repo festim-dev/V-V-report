@@ -14,7 +14,7 @@ kernelspec:
 
 # FESTIM V&V book
 
-Author: Remi Delaporte-Mathurin
+Author: Remi Delaporte-Mathurin, Jair Santana
 
 Welcome to the FESTIM Verification and Validation (V&V) book! This book aims to provide a comprehensive overview of the verification and validation processes conducted for the FESTIM code. Through a series of verification and validation cases, we aim to demonstrate the accuracy, reliability, and applicability of FESTIM for simulating hydrogen transport phenomena.
 
