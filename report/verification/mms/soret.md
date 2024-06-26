@@ -50,7 +50,7 @@ For this problem, we choose:
 \end{align}
 
 
-Injecting {eq}`c_exact` in {eq}`problem`, we obtain the expressions of $S$ and $c_0$:
+Injecting {eq}`c_exact_soret` in {eq}`problem_soret`, we obtain the expressions of $S$ and $c_0$:
 
 $$
 \begin{align}
