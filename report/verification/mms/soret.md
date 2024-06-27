@@ -133,7 +133,7 @@ def div(u):
     return sp.diff(u[0], F.x) + sp.diff(u[1], F.y)
 
 
-mms_source = -D * div((Q * exact_solution) / (F.k_B * T**2) * grad(T))
+mms_source = -D * div((Q * exact_solution) / (F.k_B * T**2) * grad(T)) \
         - div(grad(exact_solution)) * D
 
 my_model.sources = [
