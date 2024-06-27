@@ -10,7 +10,7 @@ build:
       - "jupyter-book config sphinx report/"
 
 conda:
-  environment: report/environment.yml
+  environment: environment.yml
 
 sphinx:
   builder: html
