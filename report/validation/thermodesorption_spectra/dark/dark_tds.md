@@ -19,14 +19,14 @@ kernelspec:
 
 +++
 
-This validation case is a thermo-desorption spectrum measurement perfomed by TODO: INSERT CITATION.
+This validation case is a thermo-desorption spectrum measurement perfomed by {cite}`dark_modelling_2024`.
 
 Several 0.8 mm thick samples of tungsten were damaged via annealing before being used to perform a TDS measurement.
 
 An ion beam with an incident flux of $5.79 \times 10^{19} \ \mathrm{D \ m^{-2} \ s^{-1}}$ was turned on for $72\mathrm{h}$ with an implantation temperature of $370\mathrm{K}$. The sample then rested for $12\mathrm{h}$ at $295\mathrm{K}$ before beggining the TDS measurement at $300\mathrm{K}$ with a temperature ramp of $0.05\mathrm{K}/s$.
 
 To reproduce this experiment, six traps are needed: 1 intrinsic trap and 5 neutron induced traps.
-The trap densities for the neutron induced traps were fitted by TODO: INSERT CITATION for each _dpa_ amount using FESTIM's `NeutronInducedTrap`.
+The trap densities for the neutron induced traps were fitted by {cite}`dark_modelling_2024` for each _dpa_ amount using FESTIM's `NeutronInducedTrap`.
 
 The damage distribution for the neutron-induced traps is as follows:
 $$
@@ -176,7 +176,7 @@ model.run()
 ```
 
 ```{note}
-Implementation details from CITE ZENODO
+Implementation details from {cite}`dark_modelling_2024_code`.
 ```
 
 +++
@@ -223,5 +223,5 @@ plt.show()
 ```
 
 ```{note}
-The experimental data was taken from the ZENODO CITATION.
+The experimental data was taken from {cite}`dark_modelling_2024` using [WebPlotDigitizer](https://automeris.io/).
 ```
