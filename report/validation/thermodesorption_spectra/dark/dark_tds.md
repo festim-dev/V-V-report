@@ -216,10 +216,10 @@ for i, cont in enumerate(contributions):
 
 
 # plotting original data
-""" experimental_tds = np.genfromtxt("dark-original.csv", delimiter=",")
+experimental_tds = np.genfromtxt("dark-original.csv", delimiter=",")
 experimental_temp = experimental_tds[:, 0]
 experimental_flux = experimental_tds[:, 1]
-plt.scatter(experimental_temp, experimental_flux, color="green", label="original", s=16)"""
+plt.scatter(experimental_temp, experimental_flux, color="black", label="original", s=16)
 
 plt.legend()
 plt.xlim(min_temp, max_temp)
