@@ -202,8 +202,16 @@ plt.plot(temp, flux_total, linewidth=3, label="FESTIM")
 # plotting trap contributions
 traps = [derived_quantities.filter(fields=f"{i}").data for i in range(1, 7)]
 contributions = [-np.diff(trap) / np.diff(t) for trap in traps]
-for cont in contributions:
-    plt.plot(temp[1:], cont, linestyle="--", color="grey")
+
+colors = [(0.9*(i % 2), 0.2*(i % 4), 0.4*(i % 3)) for i in range(6)]
+
+for i, cont in enumerate(contributions):
+    if(i == 0):
+        label = "Trap 1"
+    else:
+        label = f"Trap D{i}"
+
+    plt.plot(temp[1:], cont, linestyle="--", color=colors[i], label=label)
     plt.fill_between(temp[1:], 0, cont, facecolor="grey", alpha=0.1)
 
 
@@ -215,7 +223,7 @@ plt.scatter(experimental_temp, experimental_flux, color="green", label="original
 
 plt.legend()
 plt.xlim(min_temp, max_temp)
-plt.ylim(bottom=0, top=8 * 1e16)
+plt.ylim(bottom=0, top=1e17)
 plt.ylabel(r"Desorption flux (m$^{-2}$ s$^{-1}$)")
 plt.xlabel(r"Temperature (K)")
 
