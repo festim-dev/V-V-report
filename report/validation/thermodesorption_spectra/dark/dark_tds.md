@@ -111,22 +111,21 @@ model.T = F.Temperature(
 
 # trap settings
 k_0 = D_0 / (1.1e-10**2 * 6 * w_atom_density)
+damage_dist = 1 / (1 + sp.exp((F.x - 2.5e-06) / 5e-07))
+n_i = np.array([2.4e-3, 4.8, 3.8, 2.6, 3.6, 1.1]) * 1e25
+neutron_induced_traps = []
+E_p = [1.04, 1.15, 1.35, 1.65, 1.85, 2.05]
 
 trap_1 = F.Trap(
     E_k = 0.28,
     k_0 = k_0,
     E_p = 1.04,
     p_0 = 1e13,
-    density = 2.4e22,
+    density = n_i[0],
     materials = damaged_tungsten
 )
 
-damage_dist = 1 / (1 + sp.exp((F.x - 2.5e-06) / 5e-07))
-n_i = np.array([4.8, 3.8, 2.6, 3.6, 1.1]) * 1e25
-neutron_induced_traps = []
-E_p = [1.15, 1.35, 1.65, 1.85, 2.05]
-
-for i in range(5):
+for i in range(1, 6):
     neutron_induced_traps.append(F.Trap(
         k_0 = k_0,
         E_k = E_D,
@@ -136,8 +135,8 @@ for i in range(5):
         materials = damaged_tungsten,
     ))
 
-
-model.traps = [trap_1] + neutron_induced_traps
+traps = [trap_1] + neutron_induced_traps
+model.traps = traps
 
 model.dt = F.Stepsize(
     initial_value=1,
@@ -200,8 +199,8 @@ temp = min_temp + Beta * (t - start_tds)
 plt.plot(temp, flux_total, linewidth=3, label="FESTIM")
 
 # plotting trap contributions
-traps = [derived_quantities.filter(fields=f"{i}").data for i in range(1, 7)]
-contributions = [-np.diff(trap) / np.diff(t) for trap in traps]
+trap_data = [derived_quantities.filter(fields=f"{i}").data for i in range(1, 7)]
+contributions = [-np.diff(trap) / np.diff(t) for trap in trap_data]
 
 colors = [(0.9*(i % 2), 0.2*(i % 4), 0.4*(i % 3)) for i in range(6)]
 
@@ -233,3 +232,25 @@ plt.show()
 ```{note}
 The experimental data was taken from {cite}`dark_modelling_2024` using [WebPlotDigitizer](https://automeris.io/).
 ```
+
+```{code-cell} ipython3
+:tags: [hide-cell]
+
+from myst_nb import glue
+
+for i, trap in enumerate(model.traps):
+    for key, value in trap.__dict__.items():
+        glue(f'trap{i}{key}', value, display=False)
+        glue(f'ni{i}', n_i[i], display=False)
+```
+
+The density distribution of the neutron-induced traps is $n_i f(x)$.
+
+|Trap|k_0|E_k|E_p|p_0|n_i|
+|:---|:--|:--|:--|:--|:------|
+|1|{glue}`trap0k_0`|{glue}`trap0E_k`|{glue}`trap0E_p`|{glue}`trap0p_0`|{glue}`ni0`|
+|D1|{glue}`trap1k_0`|{glue}`trap1E_k`|{glue}`trap1E_p`|{glue}`trap1p_0`|{glue}`ni1`|
+|D2|{glue}`trap2k_0`|{glue}`trap2E_k`|{glue}`trap2E_p`|{glue}`trap2p_0`|{glue}`ni2`|
+|D3|{glue}`trap3k_0`|{glue}`trap3E_k`|{glue}`trap3E_p`|{glue}`trap3p_0`|{glue}`ni3`|
+|D4|{glue}`trap4k_0`|{glue}`trap4E_k`|{glue}`trap4E_p`|{glue}`trap4p_0`|{glue}`ni4`|
+|D5|{glue}`trap5k_0`|{glue}`trap5E_k`|{glue}`trap5E_p`|{glue}`trap5p_0`|{glue}`ni5`|
