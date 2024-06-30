@@ -33,7 +33,7 @@ $$
     f(x) = \frac{1}{1 + \exp{ \frac{\left( x - x_0 \right)}{\Delta x} }}
 $$
 
-Tables with the relevant trap parameters are at the bottom of the page. TODO: ADD TRAP PARAMETERS
+Tables with the relevant trap parameters are at the bottom of the page.
 
 +++
 
