@@ -14,7 +14,7 @@ git clone https://github.com/festim-dev/V-V-report
 Create the correct conda environment with the required dependencies:
 
 ```
-conda env create -f report/environment.yml
+conda env create -f environment.yml
 conda activate vv-festim-report-env
 ```
 
