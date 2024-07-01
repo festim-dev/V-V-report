@@ -42,7 +42,7 @@ Tables with the relevant trap parameters are at the bottom of the page.
 
 ## FESTIM code
 
-```{code-cell} ipython3
+```{code-cell}
 :tags: [hide-input, hide-output]
 
 # Setup
@@ -176,17 +176,11 @@ model.initialise()
 model.run()
 ```
 
-```{note}
-Implementation details from {cite}`dark_modelling_2024_code`.
-```
-
-+++
-
 ## Comparison with experimental data
 
 The results produced by FESTIM are in good agreement with the experimental data. The grey areas represent the contribution of each trap to the global TDS spectrum.
 
-```{code-cell} ipython3
+```{code-cell}
 :tags: [hide-input]
 
 t = derived_quantities.t
@@ -217,9 +211,10 @@ for i, cont in enumerate(contributions):
 
 
 # plotting original data
-experimental_tds = np.genfromtxt("dark-original.csv", delimiter=",")
+sample_area = 12e-03 * 15e-03
+experimental_tds = np.genfromtxt("tds_data/0.1_dpa.csv", delimiter=",")
 experimental_temp = experimental_tds[:, 0]
-experimental_flux = experimental_tds[:, 1]
+experimental_flux = experimental_tds[:, 1] / sample_area
 plt.scatter(experimental_temp, experimental_flux, color="black", label="original", s=16)
 
 plt.legend()
@@ -232,10 +227,10 @@ plt.show()
 ```
 
 ```{note}
-The experimental data was taken from {cite}`dark_modelling_2024` using [WebPlotDigitizer](https://automeris.io/).
+The experimental data was taken from {cite}`dark_modelling_2024_code`.
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 :tags: [hide-cell]
 
 from myst_nb import glue
