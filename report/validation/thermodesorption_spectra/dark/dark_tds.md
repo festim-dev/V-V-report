@@ -53,11 +53,11 @@ import matplotlib.pyplot as plt
 
 
 # Deuterium in Tungsten [35]
-D_0 = 1.6 * 1e-7 # m^2 s^-1
+D_0 = 1.6e-7 # m^2 s^-1
 E_D = 0.28 # eV
 w_atom_density = 6.3222e28
 
-sample_depth = 0.8e-3 # m
+sample_thickness = 0.8e-3 # m
 
 # Table 2 from Dark et al 10.1088/1741-4326/ad56a0
 T_imp = 370 # K
@@ -71,9 +71,6 @@ Beta = 0.05 # K s^-1
 fluence = 1.5e25
 flux = fluence / t_imp
 
-# Deuterium Beam Profile (S = flux * f(x))
-distribution = (1 / (sigma * (2 * np.pi) ** 0.5) * sp.exp(-0.5 * ((F.x - R_p) / sigma) ** 2))
-
 model = F.Simulation()
 
 vertices = np.concatenate(
@@ -86,19 +83,25 @@ vertices = np.concatenate(
 )
 model.mesh = F.MeshFromVertices(vertices)
 
-# material
-damaged_tungsten = F.Material(1, D_0, E_D, borders=[0, sample_depth])
+# ### Material ###
+damaged_tungsten = F.Material(1, D_0, E_D, borders=[0, sample_thickness])
 model.materials = damaged_tungsten
 
-# hydrogen source
+# ### Source ###
+
+# Deuterium Beam Profile (S = flux * f(x))
+distribution = (1 / (sigma * (2 * np.pi) ** 0.5) * sp.exp(-0.5 * ((F.x - R_p) / sigma) ** 2))
+
 ion_flux = sp.Piecewise((flux*distribution, F.t < t_imp), (0, True))
 source_term = F.Source(value=ion_flux, volume=1, field=0)
 model.sources = [source_term]
 
-# boundary conditions
+
+# ### Boundary Conditions ###
 model.boundary_conditions = [F.DirichletBC(surfaces=[1, 2], value=0, field="solute")]
 
-# temperature
+
+# ### Temperature ###
 start_tds = t_imp + t_rest  # s
 min_temp, max_temp = 300, 1000
 
@@ -110,7 +113,7 @@ model.T = F.Temperature(
     )
 )
 
-# trap settings
+# ### Trap Settings ###
 k_0 = D_0 / (1.1e-10**2 * 6 * w_atom_density)
 damage_dist = 1 / (1 + sp.exp((F.x - 2.5e-06) / 5e-07))
 n_i = np.array([2.4e-3, 4.8, 3.8, 2.6, 3.6, 1.1]) * 1e25
@@ -136,15 +139,14 @@ for i in range(1, 6):
         materials = damaged_tungsten,
     ))
 
-traps = [trap_1] + neutron_induced_traps
-model.traps = traps
+model.traps = [trap_1] + neutron_induced_traps
 
 model.dt = F.Stepsize(
     initial_value=1,
     stepsize_change_ratio=1.1,
     t_stop=t_imp + t_rest * 0.5,
     dt_min=1e-1,
-    stepsize_stop_max=50,
+    max_stepsize=50,
 )
 
 model.settings = F.Settings(
