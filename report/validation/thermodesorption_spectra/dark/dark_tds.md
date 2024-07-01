@@ -23,6 +23,8 @@ This validation case is a thermo-desorption spectrum measurement on damaged tung
 
 Several 0.8 mm thick samples of tungsten were self-damaged and annealing before being used to perform a TDS measurement.
 
+The diffusivity of tungsten in the FESTIM model is as measured by Holzner et al. {cite}`holzner_2020`.
+
 An ion beam with an incident flux of $5.79 \times 10^{19} \ \mathrm{D \ m^{-2} \ s^{-1}}$ was turned on for $72 \ \mathrm{h}$ with an implantation temperature of $370 \ \mathrm{K}$. The sample then rested for $12 \ \mathrm{h}$ at $295 \ \mathrm{K}$ before beginning the TDS measurement at $300 \ \mathrm{K}$ with a temperature ramp of $0.05 \ \mathrm{K}/s$.
 
 To reproduce this experiment, six traps are needed: 1 intrinsic trap and 5 neutron induced traps.
@@ -49,10 +51,8 @@ import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
 
-# Parameters
+# ### Parameters ###
 
-
-# Deuterium in Tungsten [35]
 D_0 = 1.6e-7 # m^2 s^-1
 E_D = 0.28 # eV
 w_atom_density = 6.3222e28
