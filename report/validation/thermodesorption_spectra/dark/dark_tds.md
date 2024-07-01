@@ -241,7 +241,7 @@ from myst_nb import glue
 for i, trap in enumerate(model.traps):
     for key, value in trap.__dict__.items():
         glue(f'trap{i}{key}', value, display=False)
-        glue(f'ni{i}', n_i[i], display=False)
+    glue(f'ni{i}', n_i[i], display=False)
 ```
 
 The density distribution of the neutron-induced traps is $n_i f(x)$.
