@@ -144,9 +144,8 @@ model.traps = [trap_1] + neutron_induced_traps
 model.dt = F.Stepsize(
     initial_value=1,
     stepsize_change_ratio=1.1,
-    t_stop=t_imp + t_rest * 0.5,
     dt_min=1e-1,
-    max_stepsize=50,
+    max_stepsize=lambda t: 50 if t > t_imp + t_rest * 0.5 else None
 )
 
 model.settings = F.Settings(
