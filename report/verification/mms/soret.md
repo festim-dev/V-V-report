@@ -18,9 +18,7 @@ kernelspec:
 ```
 
 This MMS case verifies the implementation of the Soret effect in FESTIM.
-We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with a homogeneous diffusion coefficient $D$.
-We will consider a temperature gradient of $T = 300 + x$.
-We will enable the Soret effect on the problem.
+We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with a homogeneous diffusion coefficient $D$ including the Soret effect.
 Moreover, a Dirichlet boundary condition will be assumed on the boundaries $\partial \Omega $.
 
 The problem is therefore:
