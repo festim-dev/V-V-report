@@ -12,23 +12,24 @@ kernelspec:
   name: python3
 ---
 
-# Deuterium retention in neutron-damaged tungsten
+# Deuterium retention in self-damaged tungsten
 
 ```{tags} 1D, TDS, trapping, transient
 ```
 
 +++
 
-This validation case is a thermo-desorption spectrum measurement perfomed by {cite}`dark_modelling_2024`.
+This validation case is a thermo-desorption spectrum measurement on damaged tungsten. The complete description is available in {cite}`dark_modelling_2024`.
 
-Several 0.8 mm thick samples of tungsten were damaged via annealing before being used to perform a TDS measurement.
+Several 0.8 mm thick samples of tungsten were self-damaged and annealing before being used to perform a TDS measurement.
 
-An ion beam with an incident flux of $5.79 \times 10^{19} \ \mathrm{D \ m^{-2} \ s^{-1}}$ was turned on for $72\mathrm{h}$ with an implantation temperature of $370\mathrm{K}$. The sample then rested for $12\mathrm{h}$ at $295\mathrm{K}$ before beggining the TDS measurement at $300\mathrm{K}$ with a temperature ramp of $0.05\mathrm{K}/s$.
+An ion beam with an incident flux of $5.79 \times 10^{19} \ \mathrm{D \ m^{-2} \ s^{-1}}$ was turned on for $72 \ \mathrm{h}$ with an implantation temperature of $370 \ \mathrm{K}$. The sample then rested for $12 \ \mathrm{h}$ at $295 \ \mathrm{K}$ before beginning the TDS measurement at $300 \ \mathrm{K}$ with a temperature ramp of $0.05 \ \mathrm{K}/s$.
 
 To reproduce this experiment, six traps are needed: 1 intrinsic trap and 5 neutron induced traps.
-The trap densities for the neutron induced traps were fitted by {cite}`dark_modelling_2024` for each _dpa_ amount using FESTIM's `NeutronInducedTrap`.
+The trap densities for the neutron induced traps were fitted by {cite}`dark_modelling_2024` for each _dpa_ dose using FESTIM's `NeutronInducedTrap`.
 
-The damage distribution for the neutron-induced traps is as follows:
+The damage distribution for the damage-induced traps is as follows:
+
 $$
     f(x) = \frac{1}{1 + \exp{ \frac{\left( x - x_0 \right)}{\Delta x} }}
 $$
@@ -58,7 +59,7 @@ w_atom_density = 6.3222e28
 
 sample_depth = 0.8e-3 # m
 
-# Table 2
+# Table 2 from Dark et al 10.1088/1741-4326/ad56a0
 T_imp = 370 # K
 T_rest = 295 # K
 R_p = 0.7e-9 # m
@@ -244,7 +245,7 @@ for i, trap in enumerate(model.traps):
     glue(f'ni{i}', n_i[i], display=False)
 ```
 
-The density distribution of the neutron-induced traps is $n_i f(x)$.
+The density distribution of the neutron-induced traps is $n_i \ f(x)$.
 
 |Trap|k_0|E_k|E_p|p_0|n_i|
 |:---|:--|:--|:--|:--|:------|
