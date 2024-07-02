@@ -38,7 +38,7 @@ The time evolution of extrinsic traps density $n_i$ expressed in $\text{m}^{-3}$
 ## FESTIM code
 
 ```{code-cell} ipython3
-:tags: [hide-input, hide-output]
+:tags: [hide-cell]
 
 import festim as F
 import numpy as np

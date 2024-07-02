@@ -47,7 +47,7 @@ By injecting {eq}`T_exact_heat_transfer` in {eq}`problem_heat_transfer` we can o
 ## FESTIM code
 
 ```{code-cell}
-:tags: [hide-input, hide-output]
+:tags: [hide-cell]
 
 import festim as F
 import sympy as sp
