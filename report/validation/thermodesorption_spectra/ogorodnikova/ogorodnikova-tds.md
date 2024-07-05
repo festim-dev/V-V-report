@@ -182,14 +182,6 @@ flux_left = derived_quantities.filter(fields="solute", surfaces=1).data
 flux_right = derived_quantities.filter(fields="solute", surfaces=2).data
 flux_total = -np.array(flux_left) - np.array(flux_right)
 
-trap_1 = derived_quantities.filter(fields="1").data
-trap_2 = derived_quantities.filter(fields="2").data
-trap_3 = derived_quantities.filter(fields="3").data
-
-contribution_trap_1 = -np.diff(trap_1) / np.diff(t)
-contribution_trap_2 = -np.diff(trap_2) / np.diff(t)
-contribution_trap_3 = -np.diff(trap_3) / np.diff(t)
-
 t = np.array(t)
 temp = implantation_temp + 8 * (t - start_tds)
 
@@ -197,13 +189,11 @@ temp = implantation_temp + 8 * (t - start_tds)
 plt.plot(temp, flux_total, linewidth=3, label="FESTIM")
 
 # plotting trap contributions
-plt.plot(temp[1:], contribution_trap_1, linestyle="--", color="grey")
-plt.fill_between(temp[1:], 0, contribution_trap_1, facecolor="grey", alpha=0.1)
-plt.plot(temp[1:], contribution_trap_2, linestyle="--", color="grey")
-plt.fill_between(temp[1:], 0, contribution_trap_2, facecolor="grey", alpha=0.1)
-plt.plot(temp[1:], contribution_trap_3, linestyle="--", color="grey")
-plt.fill_between(temp[1:], 0, contribution_trap_3, facecolor="grey", alpha=0.1)
-
+traps = [derived_quantities.filter(fields=f"{i}").data for i in range(1, 4)]
+contributions = [-np.diff(trap) / np.diff(t) for trap in traps]
+for cont in contributions:
+    plt.plot(temp[1:], cont, linestyle="--", color="grey")
+    plt.fill_between(temp[1:], 0, cont, facecolor="grey", alpha=0.1)
 
 # plotting original data
 experimental_tds = np.genfromtxt("ogorodnikova-original.csv", delimiter=",")
