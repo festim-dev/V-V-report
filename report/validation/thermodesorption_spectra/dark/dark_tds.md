@@ -42,7 +42,7 @@ Tables with the relevant trap parameters are at the bottom of the page.
 
 ## FESTIM code
 
-```{code-cell}
+```{code-cell} ipython3
 :tags: [hide-input, hide-output]
 
 # Setup
@@ -156,7 +156,6 @@ model.settings = F.Settings(
 
 derived_quantities = F.DerivedQuantities(
     [
-        F.AverageVolume("T", volume=1),
         F.TotalVolume("solute", volume=1),
         F.TotalVolume("retention", volume=1),
         F.TotalVolume("1", volume=1),
@@ -180,7 +179,7 @@ model.run()
 
 The results produced by FESTIM are in good agreement with the experimental data. The grey areas represent the contribution of each trap to the global TDS spectrum.
 
-```{code-cell}
+```{code-cell} ipython3
 :tags: [hide-input]
 
 t = derived_quantities.t
@@ -222,6 +221,102 @@ plt.xlim(min_temp, max_temp)
 plt.ylim(bottom=0, top=1e17)
 plt.ylabel(r"Desorption flux (m$^{-2}$ s$^{-1}$)")
 plt.xlabel(r"Temperature (K)")
+plt.title("0.1 dpa")
+
+plt.show()
+```
+
+```{code-cell} ipython3
+dpa_values = [0, 0.001, 0.005, 0.023, 0.1, 0.23, 0.5, 2.5]
+dpa_n_i = {
+    0: [0, 0, 0, 0, 0],
+    0.001: [1e+24, 2.5e+24, 1e+24, 1e+24, 2e+23], 
+    0.005: [3.5e+24, 5e+24, 2.5e+24, 1.9e+24, 1.6e+24], 
+    0.023: [2.2e+25, 1.5e+25, 6.5e+24, 2.1e+25, 6e+24], 
+    0.1: [4.8e+25, 3.8e+25, 2.6e+25, 3.6e+25, 1.1e+25], 
+    0.23: [5.4e+25, 4.4e+25, 3.6e+25, 3.9e+25, 1.4e+25], 
+    0.5: [5.5e+25, 4.6e+25, 4e+25, 4.5e+25, 1.7e+25], 
+    2.5: [6.8e+25, 6.1e+25, 5e+25, 5e+25, 2e+25],
+}
+
+results = dict()
+for dpa in reversed(dpa_values):
+    neutron_induced_traps = []
+    if dpa != 0:
+        for i in range(1, 6):
+            neutron_induced_traps.append(F.Trap(
+                k_0 = k_0,
+                E_k = E_D,
+                p_0 = 1e13,
+                E_p = E_p[i],
+                density = dpa_n_i[dpa][i - 1] * damage_dist,
+                materials = damaged_tungsten,
+            ))
+
+    ## can remove once data empty fix is live
+    model.traps = [trap_1] + neutron_induced_traps
+    derived_quantities = F.DerivedQuantities(
+        [
+            F.TotalVolume("solute", volume=1),
+            F.TotalVolume("retention", volume=1),
+            F.HydrogenFlux(surface=1),
+            F.HydrogenFlux(surface=2),
+        ],
+    )
+    ##
+
+    model.exports = [derived_quantities]
+
+    model.initialise()
+    model.run()
+
+    results[dpa] = {
+        "t" : np.array(derived_quantities.t),
+        "flux_left" : np.array(derived_quantities.filter(fields="solute", surfaces=1).data),
+        "flux_right" : np.array(derived_quantities.filter(fields="solute", surfaces=2).data),
+    }
+    
+```
+
+```{code-cell} ipython3
+# Color Bar
+from matplotlib import cm, colors
+
+norm = colors.LogNorm(vmin=min(dpa_values[1:]), vmax=max(dpa_values))
+colorbar = cm.viridis
+sm = plt.cm.ScalarMappable(cmap=colorbar, norm=norm)
+
+colors = ["black"] + [colorbar(norm(dpa)) for dpa in dpa_values[1:]]
+for dpa, color in zip(dpa_values, colors):
+    experimental_tds = np.genfromtxt(f"tds_data/{dpa}_dpa.csv", delimiter=",")
+    experimental_temp = experimental_tds[:, 0]
+    experimental_flux = experimental_tds[:, 1] / sample_area
+
+    label = "undamaged" if color == "black" else ""
+    plt.plot(experimental_temp, experimental_flux, color=color, linewidth=3, label=label)
+
+    t = np.array(results[dpa]["t"])
+    flux_total = -np.array(results[dpa]["flux_left"]) - np.array(results[dpa]["flux_right"])
+    temp = min_temp + Beta * (t - start_tds)
+
+    # plotting simulation data
+    label = "FESTIM" if color == "black" else ""
+    plt.plot(temp, flux_total, linewidth=2, color="grey", linestyle="--", label=label)
+
+plt.legend()
+plt.xlim(min_temp, max_temp)
+plt.ylim(bottom=0, top=1e17)
+plt.ylabel(r"Desorption flux (m$^{-2}$ s$^{-1}$)")
+plt.xlabel(r"Temperature (K)")
+
+# Plotting color bar
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+ax = plt.gca()
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+divider = make_axes_locatable(ax)
+cax = divider.append_axes("right", size="5%", pad=0.1)
+plt.colorbar(sm, cax=cax, label="Damage (dpa)")
 
 plt.show()
 ```
@@ -230,20 +325,20 @@ plt.show()
 The experimental data was taken from {cite}`dark_modelling_2024_code`.
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 :tags: [hide-cell]
 
 from myst_nb import glue
 
 for i, trap in enumerate(model.traps):
     for key, value in trap.__dict__.items():
-        glue(f'trap{i}{key}', value, display=False)
-    glue(f'ni{i}', n_i[i], display=False)
+        glue(f'trap{i}{key}:.2e', value, display=False)
+    glue(f'ni{i}:2e', n_i[i], display=False)
 ```
 
 The density distribution of the neutron-induced traps is $n_i \ f(x)$.
 
-|Trap|k_0|E_k|E_p|p_0|n_i|
+|Trap|$k_0 \ (m^3 s^{-1})$|$E_k \ (\mathrm{eV})$|$E_p \ (\mathrm{eV})$|$p_0 \ (s^{-1})$|$n_i \ (m^{-3})$|
 |:---|:--|:--|:--|:--|:------|
 |1|{glue}`trap0k_0`|{glue}`trap0E_k`|{glue}`trap0E_p`|{glue}`trap0p_0`|{glue}`ni0`|
 |D1|{glue}`trap1k_0`|{glue}`trap1E_k`|{glue}`trap1E_p`|{glue}`trap1p_0`|{glue}`ni1`|
