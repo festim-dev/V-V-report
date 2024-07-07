@@ -239,6 +239,30 @@ dpa_n_i = {
     2.5: [6.8e+25, 6.1e+25, 5e+25, 5e+25, 2e+25],
 }
 
+## Gluing for making tables
+
+from myst_nb import glue
+
+for i, trap in enumerate(model.traps):
+    for key, value in trap.__dict__.items():
+        if (not isinstance(value, float)) and (not isinstance(value, int)):
+            continue
+        glue(f"trap{i}{key}", value, display=False)
+    glue(f"ni{i}", n_i[i], display=False)
+
+table = "" # useful for making the table
+for i in range(0, 5):
+    output = ""
+    for j, dpa in enumerate(dpa_values[1:]):
+        glue(f"ni_{i}_{j}", dpa_n_i[dpa][i], display=False)
+        output += f"{{glue:text}}`ni_{i}_{j}:.2e`|"
+    table += output + "\n"
+print(table)
+
+##
+```
+
+```{code-cell} ipython3
 results = dict()
 for dpa in reversed(dpa_values):
     neutron_induced_traps = []
@@ -275,7 +299,6 @@ for dpa in reversed(dpa_values):
         "flux_left" : np.array(derived_quantities.filter(fields="solute", surfaces=1).data),
         "flux_right" : np.array(derived_quantities.filter(fields="solute", surfaces=2).data),
     }
-    
 ```
 
 ```{code-cell} ipython3
@@ -325,24 +348,27 @@ plt.show()
 The experimental data was taken from {cite}`dark_modelling_2024_code`.
 ```
 
-```{code-cell} ipython3
-:tags: [hide-cell]
-
-from myst_nb import glue
-
-for i, trap in enumerate(model.traps):
-    for key, value in trap.__dict__.items():
-        glue(f'trap{i}{key}:.2e', value, display=False)
-    glue(f'ni{i}:2e', n_i[i], display=False)
-```
++++
 
 The density distribution of the neutron-induced traps is $n_i \ f(x)$.
 
+### Trap parameters, and densities for 0.1 dpa dose
+
 |Trap|$k_0 \ (m^3 s^{-1})$|$E_k \ (\mathrm{eV})$|$E_p \ (\mathrm{eV})$|$p_0 \ (s^{-1})$|$n_i \ (m^{-3})$|
 |:---|:--|:--|:--|:--|:------|
-|1|{glue}`trap0k_0`|{glue}`trap0E_k`|{glue}`trap0E_p`|{glue}`trap0p_0`|{glue}`ni0`|
-|D1|{glue}`trap1k_0`|{glue}`trap1E_k`|{glue}`trap1E_p`|{glue}`trap1p_0`|{glue}`ni1`|
-|D2|{glue}`trap2k_0`|{glue}`trap2E_k`|{glue}`trap2E_p`|{glue}`trap2p_0`|{glue}`ni2`|
-|D3|{glue}`trap3k_0`|{glue}`trap3E_k`|{glue}`trap3E_p`|{glue}`trap3p_0`|{glue}`ni3`|
-|D4|{glue}`trap4k_0`|{glue}`trap4E_k`|{glue}`trap4E_p`|{glue}`trap4p_0`|{glue}`ni4`|
-|D5|{glue}`trap5k_0`|{glue}`trap5E_k`|{glue}`trap5E_p`|{glue}`trap5p_0`|{glue}`ni5`|
+|1|{glue:text}`trap0k_0:.2e`|{glue:text}`trap0E_k:.2e`|{glue:text}`trap0E_p:.2e`|{glue:text}`trap0p_0:.2e`|{glue:text}`ni0:.2e`|
+|D1|{glue:text}`trap1k_0:.2e`|{glue:text}`trap1E_k:.2e`|{glue:text}`trap1E_p:.2e`|{glue:text}`trap1p_0:.2e`|{glue:text}`ni1:.2e`|
+|D2|{glue:text}`trap2k_0:.2e`|{glue:text}`trap2E_k:.2e`|{glue:text}`trap2E_p:.2e`|{glue:text}`trap2p_0:.2e`|{glue:text}`ni2:.2e`|
+|D3|{glue:text}`trap3k_0:.2e`|{glue:text}`trap3E_k:.2e`|{glue:text}`trap3E_p:.2e`|{glue:text}`trap3p_0:.2e`|{glue:text}`ni3:.2e`|
+|D4|{glue:text}`trap4k_0:.2e`|{glue:text}`trap4E_k:.2e`|{glue:text}`trap4E_p:.2e`|{glue:text}`trap4p_0:.2e`|{glue:text}`ni4:.2e`|
+|D5|{glue:text}`trap5k_0:.2e`|{glue:text}`trap5E_k:.2e`|{glue:text}`trap5E_p:.2e`|{glue:text}`trap5p_0:.2e`|{glue:text}`ni5:.2e`|
+
+### Density per induced trap for each dpa dose
+
+|Trap|$0.001$|$0.005$|$0.023$|$0.1$|$0.23$|$0.5$|$2.5$|
+|:---|:------|:------|:------|:----|:-----|:----|:----|
+|D1|{glue:text}`ni_0_0:.2e`|{glue:text}`ni_0_1:.2e`|{glue:text}`ni_0_2:.2e`|{glue:text}`ni_0_3:.2e`|{glue:text}`ni_0_4:.2e`|{glue:text}`ni_0_5:.2e`|{glue:text}`ni_0_6:.2e`|
+|D2|{glue:text}`ni_1_0:.2e`|{glue:text}`ni_1_1:.2e`|{glue:text}`ni_1_2:.2e`|{glue:text}`ni_1_3:.2e`|{glue:text}`ni_1_4:.2e`|{glue:text}`ni_1_5:.2e`|{glue:text}`ni_1_6:.2e`|
+|D3|{glue:text}`ni_2_0:.2e`|{glue:text}`ni_2_1:.2e`|{glue:text}`ni_2_2:.2e`|{glue:text}`ni_2_3:.2e`|{glue:text}`ni_2_4:.2e`|{glue:text}`ni_2_5:.2e`|{glue:text}`ni_2_6:.2e`|
+|D4|{glue:text}`ni_3_0:.2e`|{glue:text}`ni_3_1:.2e`|{glue:text}`ni_3_2:.2e`|{glue:text}`ni_3_3:.2e`|{glue:text}`ni_3_4:.2e`|{glue:text}`ni_3_5:.2e`|{glue:text}`ni_3_6:.2e`|
+|D5|{glue:text}`ni_4_0:.2e`|{glue:text}`ni_4_1:.2e`|{glue:text}`ni_4_2:.2e`|{glue:text}`ni_4_3:.2e`|{glue:text}`ni_4_4:.2e`|{glue:text}`ni_4_5:.2e`|{glue:text}`ni_4_6:.2e`|
