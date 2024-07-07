@@ -44,7 +44,7 @@ These exact solutions can then determine the MMS fluxes and boundary conditions.
 ## FESTIM code
 
 ```{code-cell}
-:tags: [hide-input, hide-output]
+:tags: [hide-cell]
 
 import festim as F
 import sympy as sp

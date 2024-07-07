@@ -41,7 +41,7 @@ Again, the computed solution agrees very well with the exact solution.
 ## FESTIM code
 
 ```{code-cell}
-:tags: [hide-input, hide-output]
+:tags: [hide-cell]
 
 import festim as F
 import sympy as sp
