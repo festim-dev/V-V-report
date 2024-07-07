@@ -227,7 +227,7 @@ plt.show()
 ```
 
 ```{code-cell} ipython3
-:tags: [hide]
+:tags: [hide-cell]
 dpa_values = [0, 0.001, 0.005, 0.023, 0.1, 0.23, 0.5, 2.5]
 dpa_n_i = {
     0: [0, 0, 0, 0, 0],
