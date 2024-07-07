@@ -251,14 +251,9 @@ for i, trap in enumerate(model.traps):
         glue(f"trap{i}{key}", value, display=False)
     glue(f"ni{i}", n_i[i], display=False)
 
-table = "" # useful for making the table
 for i in range(0, 5):
-    output = ""
     for j, dpa in enumerate(dpa_values[1:]):
         glue(f"ni_{i}_{j}", dpa_n_i[dpa][i], display=False)
-        output += f"{{glue:text}}`ni_{i}_{j}:.2e`|"
-    table += output + "\n"
-print(table)
 
 ##
 
