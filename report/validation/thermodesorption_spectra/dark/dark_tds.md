@@ -227,6 +227,7 @@ plt.show()
 ```
 
 ```{code-cell} ipython3
+:tags: [hide]
 dpa_values = [0, 0.001, 0.005, 0.023, 0.1, 0.23, 0.5, 2.5]
 dpa_n_i = {
     0: [0, 0, 0, 0, 0],
@@ -260,9 +261,8 @@ for i in range(0, 5):
 print(table)
 
 ##
-```
 
-```{code-cell} ipython3
+
 results = dict()
 for dpa in reversed(dpa_values):
     neutron_induced_traps = []
@@ -302,6 +302,7 @@ for dpa in reversed(dpa_values):
 ```
 
 ```{code-cell} ipython3
+:tags: [hide-input]
 # Color Bar
 from matplotlib import cm, colors
 
