@@ -228,6 +228,7 @@ plt.show()
 
 ```{code-cell} ipython3
 :tags: [hide-cell]
+
 dpa_values = [0, 0.001, 0.005, 0.023, 0.1, 0.23, 0.5, 2.5]
 dpa_n_i = {
     0: [0, 0, 0, 0, 0],
@@ -237,7 +238,7 @@ dpa_n_i = {
     0.1: [4.8e+25, 3.8e+25, 2.6e+25, 3.6e+25, 1.1e+25], 
     0.23: [5.4e+25, 4.4e+25, 3.6e+25, 3.9e+25, 1.4e+25], 
     0.5: [5.5e+25, 4.6e+25, 4e+25, 4.5e+25, 1.7e+25], 
-    2.5: [6.8e+25, 6.1e+25, 5e+25, 5e+25, 2e+25],
+    2.5: [6e+25, 6.1e+25, 5e+25, 4.8e+25, 2e+25],
 }
 
 ## Gluing for making tables
@@ -298,6 +299,7 @@ for dpa in reversed(dpa_values):
 
 ```{code-cell} ipython3
 :tags: [hide-input]
+
 # Color Bar
 from matplotlib import cm, colors
 
