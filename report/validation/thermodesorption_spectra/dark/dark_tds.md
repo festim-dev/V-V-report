@@ -238,7 +238,7 @@ dpa_n_i = {
     0.1: [4.8e+25, 3.8e+25, 2.6e+25, 3.6e+25, 1.1e+25], 
     0.23: [5.4e+25, 4.4e+25, 3.6e+25, 3.9e+25, 1.4e+25], 
     0.5: [5.5e+25, 4.6e+25, 4e+25, 4.5e+25, 1.7e+25], 
-    2.5: [6e+25, 6.1e+25, 5e+25, 4.8e+25, 2e+25],
+    2.5: [5.8e+25, 6.5e+25, 4.5e+25, 5.5e+25, 2e+25], # re-fit
 }
 
 ## Gluing for making tables
@@ -257,7 +257,6 @@ for i in range(0, 5):
         glue(f"ni_{i}_{j}", dpa_n_i[dpa][i], display=False)
 
 ##
-
 
 results = dict()
 for dpa in reversed(dpa_values):
@@ -303,7 +302,8 @@ for dpa in reversed(dpa_values):
 # Color Bar
 from matplotlib import cm, colors
 
-norm = colors.LogNorm(vmin=min(dpa_values[1:]), vmax=max(dpa_values))
+#norm = colors.LogNorm(vmin=min(dpa_values[1:]), vmax=max(dpa_values))
+norm = colors.LogNorm(1, 2)
 colorbar = cm.viridis
 sm = plt.cm.ScalarMappable(cmap=colorbar, norm=norm)
 
