@@ -21,7 +21,9 @@ This validation case is a thermo-desorption spectrum measurement perfomed by Ogo
 
 Deuterium ions at 200 eV were implanted in a 0.5 mm thick sample of high purity tungsten foil (PCW).
 
-The ion beam with an incident flux of $2.5 \times 10^{19} \ \mathrm{D \ m^{-2} \ s^{-1}}$ was turned on for 400 s which corresponds to a fluence of $1.0 \times 10^{22} \ \mathrm{D \ m^{-2}}$
+For the first case, the ion beam with an incident flux of $2.5 \times 10^{19} \ \mathrm{D \ m^{-2} \ s^{-1}}$ was turned on for 400 s which corresponds to a fluence of $1.0 \times 10^{22} \ \mathrm{D \ m^{-2}}$
+
+For the second case, the ion beam was turned on for 4000 s which corresponds to a fluence of $1.0 \times 10^{23} \ \mathrm{D \ m^{-2}}$
 
 The diffusivity of tungsten in the FESTIM model is as measured by Frauenfelder {cite}`frauenfelder_permeation_1968`.
 
