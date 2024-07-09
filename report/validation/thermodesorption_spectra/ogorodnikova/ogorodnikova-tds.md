@@ -79,12 +79,13 @@ model.sources = [source_term]
 # trap settings
 w_atom_density = 6.3e28  # atom/m3
 
+densities = [1.3e-3 * w_atom_density, 4e-4 * w_atom_density, None]
 trap_1 = F.Trap(
     k_0=4.1e-7 / (1.1e-10**2 * 6 * w_atom_density),
     E_k=0.39,
     p_0=1e13,
     E_p=0.87,
-    density=1.3e-3 * w_atom_density,
+    density=densities[0],
     materials=tungsten,
 )
 
@@ -93,7 +94,7 @@ trap_2 = F.Trap(
     E_k=0.39,
     p_0=1e13,
     E_p=1.0,
-    density=4e-4 * w_atom_density,
+    density=densities[1],
     materials=tungsten,
 )
 
@@ -119,6 +120,14 @@ trap_3 = F.ExtrinsicTrap(
 )
 
 model.traps = [trap_1, trap_2, trap_3]
+## Glueing parameters for table
+from myst_nb import glue
+for i, trap in enumerate(model.traps):
+    for key, value in trap.__dict__.items():
+        glue(f"small_trap{i}{key}", value, display=False)
+    glue(f"small_trap{i}density", densities[i], display=False)
+##
+
 # boundary conditions
 model.boundary_conditions = [F.DirichletBC(surfaces=[1, 2], value=0, field=0)]
 implantation_temp = 293  # K
@@ -191,13 +200,14 @@ source_term = F.ImplantationFlux(
 model.sources = [source_term]
 # trap settings
 w_atom_density = 6.3e28  # atom/m3
+densities = [1.364e-3 * w_atom_density, 3.639e-4 * w_atom_density, None]
 
 trap_1 = F.Trap(
     k_0 = 1e13 / (6 * w_atom_density),
     E_k = 0.2,
     p_0 = 1e13,
     E_p = 0.834,
-    density = 1.364e-3 * w_atom_density,
+    density = densities[0],
     materials = tungsten,
 )
 
@@ -206,7 +216,7 @@ trap_2 = F.Trap(
     E_k = 0.2,
     p_0 = 1e13,
     E_p = 0.959,
-    density = 3.639e-4 * w_atom_density,
+    density = densities[1],
     materials = tungsten,
 )
 
@@ -224,6 +234,13 @@ trap_3 = F.Trap(
 )
 
 model.traps = [trap_1, trap_2, trap_3]
+
+## Glueing parameters for table
+for i, trap in enumerate(model.traps):
+    for key, value in trap.__dict__.items():
+        glue(f"big_trap{i}{key}", value, display=False)
+    glue(f"big_trap{i}density", densities[i], display=False)
+##
 
 # boundary conditions
 implantation_temp = 300  # K
@@ -327,3 +344,19 @@ plt.show()
 ```{note}
 The experimental data was taken from Figure 5 of the original experiment paper {cite}`ogorodnikova_deuterium_2003` using [WebPlotDigitizer](https://automeris.io/)
 ```
+
+### Trap parameters for the small fluence case
+
+|Trap|$k_0 \ (m^3 s^{-1})$|$E_k \ (\mathrm{eV})$|$E_p \ (\mathrm{eV})$|$p_0 \ (s^{-1})$|$n_i \ (m^{-3})$|
+|:---|:--|:--|:--|:--|:------|
+|1|{glue:text}`small_trap0k_0:.2e`|{glue:text}`small_trap0E_k:.2e`|{glue:text}`small_trap0E_p:.2e`|{glue:text}`small_trap0p_0:.2e`|{glue:text}`small_trap0density:.2e`|
+|2|{glue:text}`small_trap1k_0:.2e`|{glue:text}`small_trap1E_k:.2e`|{glue:text}`small_trap1E_p:.2e`|{glue:text}`small_trap1p_0:.2e`|{glue:text}`small_trap1density:.2e`|
+|3|{glue:text}`small_trap2k_0:.2e`|{glue:text}`small_trap2E_k:.2e`|{glue:text}`small_trap2E_p:.2e`|{glue:text}`small_trap2p_0:.2e`|**Extrinsic**|
+
+### Trap parameters for the big fluence case
+
+|Trap|$k_0 \ (m^3 s^{-1})$|$E_k \ (\mathrm{eV})$|$E_p \ (\mathrm{eV})$|$p_0 \ (s^{-1})$|$n_i \ (m^{-3})$|
+|:---|:--|:--|:--|:--|:------|
+|1|{glue:text}`big_trap0k_0:.2e`|{glue:text}`big_trap0E_k:.2e`|{glue:text}`big_trap0E_p:.2e`|{glue:text}`big_trap0p_0:.2e`|{glue:text}`big_trap0density:.2e`|
+|2|{glue:text}`big_trap1k_0:.2e`|{glue:text}`big_trap1E_k:.2e`|{glue:text}`big_trap1E_p:.2e`|{glue:text}`big_trap1p_0:.2e`|{glue:text}`big_trap1density:.2e`|
+|3|{glue:text}`big_trap2k_0:.2e`|{glue:text}`big_trap2E_k:.2e`|{glue:text}`big_trap2E_p:.2e`|{glue:text}`big_trap2p_0:.2e`|**Extrinsic**|
