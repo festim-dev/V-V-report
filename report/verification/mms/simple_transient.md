@@ -180,7 +180,7 @@ for i, counter in enumerate(counters):
     c_exact = f.Expression(sp.printing.ccode(exact_solution_copy.subs(F.t, time)), degree=4)
     c_exact = f.project(c_exact, f.FunctionSpace(my_model.mesh.mesh, "CG", 1))
 
-    computed_solution = load_xdmf(fenics_mesh, xdmf_file_name, "mobile_concentration", "DG", counter)
+    computed_solution = load_xdmf(fenics_mesh, xdmf_file_name, "mobile_concentration", "CG", counter)
     E = f.errornorm(computed_solution, c_exact, "L2")
 
     # plot exact solution and computed solution
@@ -229,7 +229,7 @@ for i, counter in enumerate(counters):
 
         points_x = np.linspace(start_x, end_x, num=100)
         points_y = np.linspace(start_y, end_y, num=100)
-        arc_lengths = compute_arc_length(points_x, points_y)
+        arc_lengths = sorted(compute_arc_length(points_x, points_y))
         computed_values = [computed_solution(x, y) for x, y in zip(points_x, points_y)]
 
         (exact_line,) = plt.plot(
