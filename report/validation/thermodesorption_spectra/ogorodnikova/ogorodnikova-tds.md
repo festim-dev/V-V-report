@@ -126,6 +126,8 @@ model.traps = [trap_1, trap_2, trap_3]
 from myst_nb import glue
 for i, trap in enumerate(model.traps):
     for key, value in trap.__dict__.items():
+        if(key == "density"):
+            continue
         glue(f"small_trap{i}{key}", value, display=False)
     glue(f"small_trap{i}density", densities[i], display=False)
 ##
@@ -242,6 +244,8 @@ model.traps = [trap_1, trap_2, trap_3]
 ## Glueing parameters for table
 for i, trap in enumerate(model.traps):
     for key, value in trap.__dict__.items():
+        if(key == "density"):
+            continue
         glue(f"big_trap{i}{key}", value, display=False)
     glue(f"big_trap{i}density", densities[i], display=False)
 ##
