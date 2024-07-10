@@ -59,13 +59,14 @@ sample_area = 12e-03 * 15e-03
 
 detrapping_energies = [1.15, 1.35, 1.65, 1.85, 2.05]
 dpa_n_i = {
+    0: [],
     0.001: [1e24, 2.5e24, 1e24, 1e24, 2e23],
-    0.005: [3.5e24, 5e24, 2.5e24, 1.9e24, 1.6e24],
-    0.023: [2.2e25, 1.5e25, 6.5e24, 2.1e25, 6e24],
+    # 0.005: [3.5e24, 5e24, 2.5e24, 1.9e24, 1.6e24],
+    # 0.023: [2.2e25, 1.5e25, 6.5e24, 2.1e25, 6e24],
     0.1: [4.8e25, 3.8e25, 2.6e25, 3.6e25, 1.1e25],
-    0.23: [5.4e25, 4.4e25, 3.6e25, 3.9e25, 1.4e25],
-    0.5: [5.5e25, 4.6e25, 4e25, 4.5e25, 1.7e25],
-    2.5: [5.8e25, 6.5e25, 4.5e25, 5.5e25, 2e25],  # re-fit
+    # 0.23: [5.4e25, 4.4e25, 3.6e25, 3.9e25, 1.4e25],
+    # 0.5: [5.5e25, 4.6e25, 4e25, 4.5e25, 1.7e25],
+    # 2.5: [5.8e25, 6.5e25, 4.5e25, 5.5e25, 2e25],  # re-fit
 }
 
 # Table 2 from Dark et al 10.1088/1741-4326/ad56a0
@@ -171,7 +172,7 @@ def festim_sim(densities):
         ],
     )
     derived_quantities += [
-        F.TotalVolume(f"{i}", volume=1) for i, _ in enumerate(model.traps, start=1)
+        F.TotalVolume(f"{i}", volume=1) for i in range(1, len(model.traps) + 1)
     ]
     model.exports = [derived_quantities]
     model.initialise()
@@ -190,6 +191,11 @@ The results produced by FESTIM are in good agreement with the experimental data.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
+
+from matplotlib import cm, colors
+norm = colors.LogNorm(vmin=min(list(dpa_n_i.keys())[1:]), vmax=max(dpa_n_i.keys())) #using [1:] indexing to ignore 0
+colorbar = cm.viridis
+sm = plt.cm.ScalarMappable(cmap=colorbar, norm=norm)
 
 def plot_tds(derived_quantities, trap_contributions=False, **kwargs):
     t = np.array(derived_quantities.t)
@@ -217,12 +223,6 @@ def plot_tds(derived_quantities, trap_contributions=False, **kwargs):
             plt.plot(temp[idx][1:], cont, linestyle="--", color=colors[i], label=label)
             plt.fill_between(temp[idx][1:], 0, cont, facecolor="grey", alpha=0.1)
 
-from matplotlib import cm, colors
-
-norm = colors.LogNorm(vmin=min(dpa_values[1:]), vmax=max(dpa_values))
-colorbar = cm.viridis
-sm = plt.cm.ScalarMappable(cmap=colorbar, norm=norm)
-
 for dpa, derived_quantities in dpa_to_quantities.items():
     filename = f"tds_data/{dpa}_dpa.csv"
     experimental_tds = np.genfromtxt(filename, delimiter=",")
@@ -245,25 +245,20 @@ for dpa, derived_quantities in dpa_to_quantities.items():
     plot_tds(derived_quantities, linestyle="dashed", color="tab:grey", linewidth=2)
     plt.plot(experimental_temp, experimental_flux, color=colorbar(norm(dpa)), linewidth=3)
 
-plt.figure(1)
-plt.ylim(bottom=0, top=1e17)
-plt.ylabel(r"Desorption flux (m$^{-2}$ s$^{-1}$)")
-plt.xlabel(r"Temperature (K)")
-plt.legend()
-plt.figure(2)
-plt.ylim(bottom=0, top=1e17)
-plt.ylabel(r"Desorption flux (m$^{-2}$ s$^{-1}$)")
-plt.xlabel(r"Temperature (K)")
-
-# Plotting color bar
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-
 for i in [1, 2]:
     plt.figure(i)
+    plt.ylabel(r"Desorption flux (m$^{-2}$ s$^{-1}$)")
+    plt.xlabel(r"Temperature (K)")
+    plt.ylim(bottom=0, top=1e17)
     ax = plt.gca()
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
+plt.figure(1)
+plt.legend()
+
+# Plotting color bar
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 plt.figure(2)
 divider = make_axes_locatable(ax)
 cax = divider.append_axes("right", size="5%", pad=0.1)
@@ -275,6 +270,3 @@ plt.show()
 ```{note}
 The experimental data was taken from {cite}`dark_modelling_2024_code`.
 ```
-
-+++
-
