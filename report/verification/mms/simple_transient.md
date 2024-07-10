@@ -257,6 +257,55 @@ for i, counter in enumerate(counters):
 plt.show()
 ```
 
+## Compute convergence rates
+
+It is also possible to compute how the numerical error decreases as we increase the number of cells.
+By iteratively refining the mesh, we find that the error exhibits a second order convergence rate.
+This is expected for this particular problem as first order finite elements are used.
+
 ```{code-cell} ipython3
 
+errors = []
+ns = [5, 10, 20, 30, 50, 100, 150]
+
+for n in ns:
+    nx = ny = n
+    fenics_mesh = f.UnitSquareMesh(nx, ny)
+
+    volume_markers = f.MeshFunction("size_t", fenics_mesh, fenics_mesh.topology().dim())
+    volume_markers.set_all(1)
+
+    surface_markers = f.MeshFunction(
+        "size_t", fenics_mesh, fenics_mesh.topology().dim() - 1
+    )
+    surface_markers.set_all(0)
+
+    class Boundary(f.SubDomain):
+        def inside(self, x, on_boundary):
+            return on_boundary
+
+    boundary = Boundary()
+    boundary.mark(surface_markers, 1)
+
+    my_model.mesh = F.Mesh(
+        fenics_mesh, volume_markers=volume_markers, surface_markers=surface_markers
+    )
+
+    my_model.initialise()
+    my_model.run()
+    
+    computed_solution = my_model.h_transport_problem.mobile.post_processing_solution
+    errors.append(f.errornorm(computed_solution, c_exact, "L2"))
+
+h = 1 / np.array(ns)
+
+plt.loglog(h, errors, marker="o")
+plt.xlabel("Element size")
+plt.ylabel("L2 error")
+
+plt.loglog(h, 2 * h**2, linestyle="--", color="black")
+plt.annotate("2nd order", (h[0], 2 * h[0]**2), textcoords="offset points", xytext=(10, 0))
+
+plt.grid(alpha=0.3)
+plt.gca().spines[["right", "top"]].set_visible(False)
 ```
