@@ -111,7 +111,7 @@ xdmf_file_name = "simple_transient_mobile.xdmf"
 my_model.exports = [F.XDMFExport(field="solute", filename=xdmf_file_name, checkpoint=True)]
 
 final_time = 16
-slices = 4 # <-------- free parameter
+slices = 4 # <-------- free parameter, better if slices | final_time
 slice_size = final_time // slices
 milestones = [slice_size * i for i in range(1, slices + 1)]
 
@@ -159,7 +159,7 @@ def load_xdmf(mesh, filename, field, element="CG", counter=-1):
     XDMFFile(filename).read_checkpoint(u, field, counter)
     return u
 
-fig, axs = plt.subplots(slices, 3, figsize=(12, 7))
+fig, axs = plt.subplots(slices, 3, figsize=(slices*2.2, slices*2.5 + 1)) # tweak figsize if needed
 fig.tight_layout() # <----------------- this is very useful
 
 def compute_arc_length(xs, ys):
@@ -185,15 +185,12 @@ for i, counter in enumerate(counters):
 
     # plot exact solution and computed solution
     plt.sca(axs[i, 0])
-    if i == 0:
-        plt.title("Exact solution")
-    plt.xlabel("x")
-    plt.ylabel("y")
+    plt.title(f"Exact solution at t={time}s")
     CS1 = f.plot(c_exact, cmap="inferno")
     plt.sca(axs[i, 1])
     plt.xlabel("x")
-    if i == 0:
-        plt.title("Computed solution")
+    plt.ylabel("y")
+    plt.title(f"Computed solution at t={time}s")
     CS2 = f.plot(computed_solution, cmap="inferno")
 
     plt.colorbar(CS1, ax=[axs[i, 0]], shrink=0.8)
@@ -240,7 +237,6 @@ for i, counter in enumerate(counters):
     plt.sca(axs[i, 2])
     if(i == 0):
         plt.xlabel("Arc length")
-        plt.ylabel("Solution")
 
     if i == 0:
         legend_marker = mpl.lines.Line2D(
