@@ -61,12 +61,12 @@ detrapping_energies = [1.15, 1.35, 1.65, 1.85, 2.05]
 dpa_n_i = {
     0: [],
     0.001: [1e24, 2.5e24, 1e24, 1e24, 2e23],
-    # 0.005: [3.5e24, 5e24, 2.5e24, 1.9e24, 1.6e24],
-    # 0.023: [2.2e25, 1.5e25, 6.5e24, 2.1e25, 6e24],
+    0.005: [3.5e24, 5e24, 2.5e24, 1.9e24, 1.6e24],
+    0.023: [2.2e25, 1.5e25, 6.5e24, 2.1e25, 6e24],
     0.1: [4.8e25, 3.8e25, 2.6e25, 3.6e25, 1.1e25],
-    # 0.23: [5.4e25, 4.4e25, 3.6e25, 3.9e25, 1.4e25],
-    # 0.5: [5.5e25, 4.6e25, 4e25, 4.5e25, 1.7e25],
-    # 2.5: [5.8e25, 6.5e25, 4.5e25, 5.5e25, 2e25],  # re-fit
+    0.23: [5.4e25, 4.4e25, 3.6e25, 3.9e25, 1.4e25],
+    0.5: [5.5e25, 4.6e25, 4e25, 4.5e25, 1.7e25],
+    2.5: [5.8e25, 6.5e25, 4.5e25, 5.5e25, 2e25],  # re-fit
 }
 
 # Table 2 from Dark et al 10.1088/1741-4326/ad56a0
@@ -136,20 +136,20 @@ def festim_sim(densities):
         density=2.4e22,
         materials=damaged_tungsten,
     )
+
     neutron_induced_traps = []
-    if densities != []:
-        damage_dist = 1 / (1 + sp.exp((F.x - 2.5e-06) / 5e-07))
-        for E_p, density in zip(detrapping_energies, densities):
-            neutron_induced_traps.append(
-                F.Trap(
-                    k_0=k_0,
-                    E_k=damaged_tungsten.E_D,
-                    p_0=1e13,
-                    E_p=E_p,
-                    density=density * damage_dist,
-                    materials=damaged_tungsten,
-                )
+    damage_dist = 1 / (1 + sp.exp((F.x - 2.5e-06) / 5e-07))
+    for E_p, density in zip(detrapping_energies, densities):
+        neutron_induced_traps.append(
+            F.Trap(
+                k_0=k_0,
+                E_k=damaged_tungsten.E_D,
+                p_0=1e13,
+                E_p=E_p,
+                density=density * damage_dist,
+                materials=damaged_tungsten,
             )
+        )
     model.traps = [trap_1] + neutron_induced_traps
 
     model.dt = F.Stepsize(
@@ -243,7 +243,7 @@ for dpa, derived_quantities in dpa_to_quantities.items():
 
     plt.figure(2)
     plot_tds(derived_quantities, linestyle="dashed", color="tab:grey", linewidth=2)
-    plt.plot(experimental_temp, experimental_flux, color=colorbar(norm(dpa)), linewidth=3)
+    plt.plot(experimental_temp, experimental_flux, color=colorbar(norm(dpa)) if dpa != 0 else "black", linewidth=3)
 
 for i in [1, 2]:
     plt.figure(i)
