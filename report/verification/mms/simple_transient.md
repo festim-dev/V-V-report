@@ -52,6 +52,7 @@ We can then run a FESTIM model with these values and compare the numerical solut
 ## FESTIM code
 
 ```{code-cell} ipython3
+:tags: [hide-cell]
 import festim as F
 import sympy as sp
 import fenics as f
@@ -264,7 +265,7 @@ By iteratively refining the mesh, we find that the error exhibits a second order
 This is expected for this particular problem as first order finite elements are used.
 
 ```{code-cell} ipython3
-
+:tags: [hide-input]
 errors = []
 ns = [5, 10, 20, 30, 50, 100, 150]
 
