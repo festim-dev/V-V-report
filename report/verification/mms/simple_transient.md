@@ -120,7 +120,6 @@ milestones = [slice_size * i for i in range(1, slices + 1)]
 
 my_model.dt = F.Stepsize(
     initial_value=1,
-    stepsize_change_ratio=1,
     milestones=milestones
 )
 
@@ -163,7 +162,7 @@ def load_xdmf(mesh, filename, field, element="CG", counter=-1):
     return u
 
 fig, axs = plt.subplots(slices, 3, figsize=(slices*2.2, slices*2.5 + 1)) # tweak figsize if needed
-fig.tight_layout() # <----------------- this is very useful
+fig.tight_layout()
 
 def compute_arc_length(xs, ys):
     """Computes the arc length of x,y points based
