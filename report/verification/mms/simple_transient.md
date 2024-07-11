@@ -25,8 +25,9 @@ The problem is therefore:
 
 $$
 \begin{align}
-    &\nabla \cdot (D \ \nabla{c}) - \frac{\partial c}{\partial t} = -S  \quad \text{on }  \Omega  \\
-    & c = c_0 \quad \text{on }  \partial \Omega
+    &\nabla \cdot (D \ \nabla{c}) - \frac{\partial c}{\partial t} = -S  \quad \text{on }  \Omega  ; \ t\geq 0 \\
+    & c = c_0 \quad \text{on }  \partial \Omega ; \ t\geq 0 \\
+    & c = c_\mathrm{initial} \quad \text{at } t=0
 \end{align}
 $$(problem_simple_transient)
 
@@ -42,7 +43,8 @@ Injecting {eq}`c_exact_simple_transient` in {eq}`problem_simple_transient`, we o
 
 \begin{align}
     & S = 2 + 3 y^2 - (4 + 6t) D \\
-    & c_0 = c_\mathrm{exact}
+    & c_0 = c_\mathrm{exact} \\
+    & c_\mathrm{initial} = c_\mathrm{exact}(t=0)
 \end{align}
 
 We can then run a FESTIM model with these values and compare the numerical solution with $c_\mathrm{exact}$.
