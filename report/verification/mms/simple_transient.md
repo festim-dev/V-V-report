@@ -55,6 +55,7 @@ We can then run a FESTIM model with these values and compare the numerical solut
 
 ```{code-cell} ipython3
 :tags: [hide-cell]
+
 import festim as F
 import sympy as sp
 import fenics as f
@@ -113,10 +114,10 @@ my_model.T = F.Temperature(500)  # ignored in this problem
 xdmf_file_name = "simple_transient_mobile.xdmf"
 my_model.exports = [F.XDMFExport(field="solute", filename=xdmf_file_name, checkpoint=True)]
 
-final_time = 16
-slices = 4 # <-------- free parameter, better if slices | final_time
-slice_size = final_time // slices
-milestones = [slice_size * i for i in range(1, slices + 1)]
+final_time = 17
+slices = 4
+slice_size = final_time / slices
+milestones = list(np.linspace(slice_size, final_time, slices))
 
 my_model.dt = F.Stepsize(
     initial_value=1,
@@ -173,8 +174,11 @@ def compute_arc_length(xs, ys):
     arc_length = np.insert(np.cumsum(distance), 0, [0.0])
     return arc_length
 
+def exists_close(x, list):
+    return any(np.isclose(x, t) for t in list)
+
 xdmf_times = F.extract_xdmf_times(xdmf_file_name)
-counters = [i for (i, time) in enumerate(xdmf_times) if time in milestones]
+counters = [i for (i, time) in enumerate(xdmf_times) if exists_close(time, milestones)]
 
 for i, counter in enumerate(counters):
     time = xdmf_times[counter]
@@ -267,6 +271,7 @@ This is expected for this particular problem as first order finite elements are 
 
 ```{code-cell} ipython3
 :tags: [hide-input]
+
 errors = []
 ns = [5, 10, 20, 30, 50, 100, 150]
 
