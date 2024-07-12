@@ -27,7 +27,7 @@ $$
 \begin{align}
     &\nabla \cdot (D \ \nabla{c}) - \frac{\partial c}{\partial t} = -S  \quad \text{on }  \Omega  ; \ t\geq 0 \\
     & c = c_0 \quad \text{on }  \partial \Omega ; \ t\geq 0 \\
-    & c = c_\mathrm{initial} \quad \text{on } \partial \Omega ; \\text{at } t=0
+    & c = c_\mathrm{initial} \quad \text{on } \partial \Omega ; \ \text{at } t=0
 \end{align}
 $$(problem_simple_transient)
 
