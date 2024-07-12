@@ -162,7 +162,7 @@ def load_xdmf(mesh, filename, field, element="CG", counter=-1):
     XDMFFile(filename).read_checkpoint(u, field, counter)
     return u
 
-fig, axs = plt.subplots(slices, 3, figsize=(slices*2.2, slices*2.5 + 1)) # tweak figsize if needed
+fig, axs = plt.subplots(slices, 3, figsize=(slices*2.3, slices*2.5 + 1)) # tweak figsize if needed
 fig.tight_layout()
 
 def compute_arc_length(xs, ys):
@@ -191,12 +191,22 @@ for i, counter in enumerate(counters):
 
     # plot exact solution and computed solution
     plt.sca(axs[i, 0])
-    plt.title(f"Exact solution at t={time}s")
+    if(i == 0):
+        plt.title(f"Exact")
+    plt.annotate(
+        f"t={time}s", 
+        xy=(0.5, 1), 
+        xytext=(-axs[i, 0].yaxis.labelpad - 3, 0),
+        xycoords=axs[i, 0].yaxis.label,
+        textcoords="offset points",
+        size="large",
+        ha="right",
+        va="center"
+    )
     CS1 = f.plot(c_exact, cmap="inferno")
     plt.sca(axs[i, 1])
-    plt.xlabel("x")
-    plt.ylabel("y")
-    plt.title(f"Computed solution at t={time}s")
+    if(i == 0):
+        plt.title(f"Computed")
     CS2 = f.plot(computed_solution, cmap="inferno")
 
     plt.colorbar(CS1, ax=[axs[i, 0]], shrink=0.8)
@@ -241,8 +251,8 @@ for i, counter in enumerate(counters):
         (computed_line,) = plt.plot(arc_lengths, computed_values, color=l.get_color())
 
     plt.sca(axs[i, 2])
+    plt.xlabel("Arc length")
     if i == 0:
-        plt.xlabel("Arc length")
         legend_marker = mpl.lines.Line2D(
             [],
             [],
