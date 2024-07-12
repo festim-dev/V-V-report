@@ -241,10 +241,8 @@ for i, counter in enumerate(counters):
         (computed_line,) = plt.plot(arc_lengths, computed_values, color=l.get_color())
 
     plt.sca(axs[i, 2])
-    if(i == 0):
-        plt.xlabel("Arc length")
-
     if i == 0:
+        plt.xlabel("Arc length")
         legend_marker = mpl.lines.Line2D(
             [],
             [],
