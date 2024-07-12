@@ -243,7 +243,21 @@ for dpa, derived_quantities in dpa_to_quantities.items():
 
     plt.figure(2)
     plot_tds(derived_quantities, linestyle="dashed", color="tab:grey", linewidth=2)
-    plt.plot(experimental_temp, experimental_flux, color=colorbar(norm(dpa)) if dpa != 0 else "black", linewidth=3)
+    plt.plot(
+        experimental_temp,
+        experimental_flux,
+        color=colorbar(norm(dpa)) if dpa != 0 else "black",
+        linewidth=3,
+    )
+    if dpa == 0:
+        max_curve_y = np.max(experimental_flux)
+        max_curve_x = experimental_temp[experimental_flux == max_curve_y][0]
+        plt.annotate(
+            "undamaged",
+            xy=(max_curve_x, max_curve_y),  # Point to annotate
+            xytext=(300, 0.4e17),  # Location of text
+            arrowprops=dict(arrowstyle="->", connectionstyle="arc3", facecolor='black'),  # Arrow properties
+        )
 
 for i in [1, 2]:
     plt.figure(i)
