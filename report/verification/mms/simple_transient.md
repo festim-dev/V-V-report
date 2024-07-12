@@ -268,14 +268,15 @@ By iteratively refining the mesh, we find that the error exhibits a second order
 This is expected for this particular problem as first order finite elements are used.
 
 ```{code-cell} ipython3
-:tags: [hide-input]
+:tags: [hide-cell]
 
-errors = []
-ns = [5, 10, 20, 30, 50, 100, 150]
+def make_unit_square_mesh(n):
+    """
+    Makes a festim Mesh with sides n x n for a total of n^2 cells.
+    Sets surface markers on the boundary to 1, otherwise 0.
+    """
 
-for n in ns:
-    nx = ny = n
-    fenics_mesh = f.UnitSquareMesh(nx, ny)
+    fenics_mesh = f.UnitSquareMesh(n, n)
 
     volume_markers = f.MeshFunction("size_t", fenics_mesh, fenics_mesh.topology().dim())
     volume_markers.set_all(1)
@@ -292,15 +293,23 @@ for n in ns:
     boundary = Boundary()
     boundary.mark(surface_markers, 1)
 
-    my_model.mesh = F.Mesh(
-        fenics_mesh, volume_markers=volume_markers, surface_markers=surface_markers
-    )
+    return F.Mesh(fenics_mesh, volume_markers, surface_markers)
+
+errors = []
+ns = [5, 10, 20, 30, 50, 100, 150]
+
+for n in ns:
+    my_model.mesh = make_unit_square_mesh(n)
 
     my_model.initialise()
     my_model.run()
     
     computed_solution = my_model.h_transport_problem.mobile.post_processing_solution
     errors.append(f.errornorm(computed_solution, c_exact, "L2"))
+```
+
+```{code-cell} ipython3
+:tags: [hide-input]
 
 h = 1 / np.array(ns)
 
