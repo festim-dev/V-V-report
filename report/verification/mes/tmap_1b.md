@@ -19,8 +19,13 @@ kernelspec:
 
 This verification case {cite}`ambrosek_verification_2008` from TMAP7's V&V document consists of a semi-infinite slab with no traps under a constant concentration $C_0$ boundary condition on the left.
 
-```{code-cell} ipython3
++++
+
+## FESTIM Code
+
+```{code-cell}
 :tags: [hide-cell]
+
 import festim as F
 import numpy as np
 import sympy as sp
@@ -78,10 +83,11 @@ model.initialise()
 model.run()
 ```
 
-# Comparison with exact solution
+## Comparison with exact solution
 
-```{code-cell} ipython3
+```{code-cell}
 :tags: [hide-input]
+
 # plotting computed data
 computed_data = np.genfromtxt("./tmap_1b_concentration.txt", delimiter=",", skip_header=1)
 computed_x = computed_data[:, 0]
@@ -100,8 +106,9 @@ plt.legend()
 plt.show()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 :tags: [hide-input]
+
 # plotting computed data
 computed_solution = derived_quantities[0].data
 t = derived_quantities[0].t
