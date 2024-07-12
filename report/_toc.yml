@@ -23,6 +23,7 @@ parts:
         - file: verification/mms/radioactive_decay
         - file: verification/mms/soret
         - file: verification/mms/simple_temperature
+        - file: verification/mes/tmap_1b
   - caption: Validation
     chapters:
       - file: validation/plasma-driven-permeation/plasma-driven-permeation
