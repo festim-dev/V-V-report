@@ -1,5 +1,6 @@
 ---
 jupytext:
+  formats: ipynb,md:myst
   text_representation:
     extension: .md
     format_name: myst
@@ -10,6 +11,10 @@ kernelspec:
   language: python
   name: python3
 ---
+
+# TMAP7 V&V Val-1b
+
+This verification case {cite}`ambrosek_verification_2008` from TMAP7's V&V document consists of a semi-infinite slab with no traps under a constant concentration $C_0$ boundary condition on the left.
 
 ```{code-cell} ipython3
 import festim as F
@@ -68,6 +73,8 @@ model.exports = [
 model.initialise()
 model.run()
 ```
+
+# Comparison with exact solution
 
 ```{code-cell} ipython3
 # plotting computed data
