@@ -27,7 +27,7 @@ $$
 \begin{align}
     &\nabla \cdot (D \ \nabla{c}) - \frac{\partial c}{\partial t} = -S  \quad \text{on }  \Omega  ; \ t\geq 0 \\
     & c = c_0 \quad \text{on }  \partial \Omega ; \ t\geq 0 \\
-    & c = c_\mathrm{initial} \quad \text{at } t=0
+    & c = c_\mathrm{initial} \quad \text{on } \partial \Omega ; \\text{at } t=0
 \end{align}
 $$(problem_simple_transient)
 
@@ -39,7 +39,7 @@ $$
 \end{equation}
 $$(c_exact_simple_transient)
 
-Injecting {eq}`c_exact_simple_transient` in {eq}`problem_simple_transient`, we obtain the expressions of $S$ and $c_0$:
+Injecting {eq}`c_exact_simple_transient` in {eq}`problem_simple_transient`, we obtain the expressions of $S$, $c_0$, and $c_\mathrm{initial}$:
 
 \begin{align}
     & S = 2 + 3 y^2 - (4 + 6t) D \\
