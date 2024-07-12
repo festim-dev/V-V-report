@@ -76,9 +76,11 @@ surface_markers = f.MeshFunction(
 )
 surface_markers.set_all(0)
 
+
 class Boundary(f.SubDomain):
     def inside(self, x, on_boundary):
         return on_boundary
+
 
 boundary = Boundary()
 boundary.mark(surface_markers, 1)
@@ -91,9 +93,7 @@ my_model.mesh = F.Mesh(
 )
 
 # Variational formulation
-exact_solution = (
-    1 + 2 * F.x**2 + 3 * F.t * F.y**2 + 2 * F.t
-)  # exact solution
+exact_solution = 1 + 2 * F.x**2 + 3 * F.t * F.y**2 + 2 * F.t  # exact solution
 
 exact_solution_copy = exact_solution.subs(F.x, F.x)
 
@@ -112,17 +112,16 @@ my_model.materials = F.Material(id=1, D_0=D, E_D=0)
 my_model.T = F.Temperature(500)  # ignored in this problem
 
 xdmf_file_name = "simple_transient_mobile.xdmf"
-my_model.exports = [F.XDMFExport(field="solute", filename=xdmf_file_name, checkpoint=True)]
+my_model.exports = [
+    F.XDMFExport(field="solute", filename=xdmf_file_name, checkpoint=True)
+]
 
 final_time = 17
 slices = 4
 slice_size = final_time / slices
 milestones = list(np.linspace(slice_size, final_time, slices))
 
-my_model.dt = F.Stepsize(
-    initial_value=1,
-    milestones=milestones
-)
+my_model.dt = F.Stepsize(initial_value=1, milestones=milestones)
 
 my_model.settings = F.Settings(
     absolute_tolerance=1e-10,
@@ -140,6 +139,8 @@ my_model.run()
 :tags: [hide-input]
 
 from fenics import XDMFFile, FunctionSpace, Function, plot
+
+
 def load_xdmf(mesh, filename, field, element="CG", counter=-1):
     """Loads a XDMF file and store its content to a fenics.Function
 
@@ -162,8 +163,12 @@ def load_xdmf(mesh, filename, field, element="CG", counter=-1):
     XDMFFile(filename).read_checkpoint(u, field, counter)
     return u
 
-fig, axs = plt.subplots(slices, 3, figsize=(slices*2.3, slices*2.5 + 1)) # tweak figsize if needed
+
+fig, axs = plt.subplots(
+    slices, 3, figsize=(slices * 2.3, slices * 2.5 + 1)
+)  # tweak figsize if needed
 fig.tight_layout()
+
 
 def compute_arc_length(xs, ys):
     """Computes the arc length of x,y points based
@@ -174,38 +179,44 @@ def compute_arc_length(xs, ys):
     arc_length = np.insert(np.cumsum(distance), 0, [0.0])
     return arc_length
 
+
 def exists_close(x, list):
     return any(np.isclose(x, t) for t in list)
+
 
 xdmf_times = F.extract_xdmf_times(xdmf_file_name)
 counters = [i for (i, time) in enumerate(xdmf_times) if exists_close(time, milestones)]
 
 for i, counter in enumerate(counters):
     time = xdmf_times[counter]
-    
-    c_exact = f.Expression(sp.printing.ccode(exact_solution_copy.subs(F.t, time)), degree=4)
+
+    c_exact = f.Expression(
+        sp.printing.ccode(exact_solution_copy.subs(F.t, time)), degree=4
+    )
     c_exact = f.project(c_exact, f.FunctionSpace(my_model.mesh.mesh, "CG", 1))
 
-    computed_solution = load_xdmf(fenics_mesh, xdmf_file_name, "mobile_concentration", "CG", counter)
+    computed_solution = load_xdmf(
+        fenics_mesh, xdmf_file_name, "mobile_concentration", "CG", counter
+    )
     E = f.errornorm(computed_solution, c_exact, "L2")
 
     # plot exact solution and computed solution
     plt.sca(axs[i, 0])
-    if(i == 0):
+    if i == 0:
         plt.title(f"Exact")
     plt.annotate(
-        f"t={time}s", 
-        xy=(0.5, 1), 
+        f"t={time}s",
+        xy=(0.5, 1),
         xytext=(-axs[i, 0].yaxis.labelpad - 3, 0),
         xycoords=axs[i, 0].yaxis.label,
         textcoords="offset points",
         size="large",
         ha="right",
-        va="center"
+        va="center",
     )
     CS1 = f.plot(c_exact, cmap="inferno")
     plt.sca(axs[i, 1])
-    if(i == 0):
+    if i == 0:
         plt.title(f"Computed")
     CS2 = f.plot(computed_solution, cmap="inferno")
 
@@ -217,7 +228,6 @@ for i, counter in enumerate(counters):
 
     for CS in [CS1, CS2]:
         CS.set_edgecolor("face")
-
 
     # define the profiles
     profiles = [
@@ -246,7 +256,12 @@ for i, counter in enumerate(counters):
         computed_values = [computed_solution(x, y) for x, y in zip(points_x, points_y)]
 
         (exact_line,) = plt.plot(
-            arc_length_exact, u_values, color=l.get_color(), marker="o", linestyle="None", alpha=0.3
+            arc_length_exact,
+            u_values,
+            color=l.get_color(),
+            marker="o",
+            linestyle="None",
+            alpha=0.3,
         )
         (computed_line,) = plt.plot(arc_lengths, computed_values, color=l.get_color())
 
@@ -263,11 +278,12 @@ for i, counter in enumerate(counters):
         )
         legend_line = mpl.lines.Line2D([], [], color="black", label="Computed")
         plt.legend(
-            [legend_marker, legend_line], [legend_marker.get_label(), legend_line.get_label()]
+            [legend_marker, legend_line],
+            [legend_marker.get_label(), legend_line.get_label()],
         )
     plt.grid(alpha=0.3)
     plt.gca().spines[["right", "top"]].set_visible(False)
-    
+
 plt.show()
 ```
 
@@ -305,6 +321,7 @@ def make_unit_square_mesh(n):
 
     return F.Mesh(fenics_mesh, volume_markers, surface_markers)
 
+
 errors = []
 ns = [5, 10, 20, 30, 50, 100, 150]
 
@@ -313,7 +330,7 @@ for n in ns:
 
     my_model.initialise()
     my_model.run()
-    
+
     computed_solution = my_model.h_transport_problem.mobile.post_processing_solution
     errors.append(f.errornorm(computed_solution, c_exact, "L2"))
 ```
@@ -328,7 +345,9 @@ plt.xlabel("Element size")
 plt.ylabel("L2 error")
 
 plt.loglog(h, 2 * h**2, linestyle="--", color="black")
-plt.annotate("2nd order", (h[0], 2 * h[0]**2), textcoords="offset points", xytext=(10, 0))
+plt.annotate(
+    "2nd order", (h[0], 2 * h[0] ** 2), textcoords="offset points", xytext=(10, 0)
+)
 
 plt.grid(alpha=0.3)
 plt.gca().spines[["right", "top"]].set_visible(False)
