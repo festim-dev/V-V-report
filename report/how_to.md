@@ -4,11 +4,12 @@
 
 ### Navigating tags
 
-Each case is tagged and a tag's cases can be navigated through the [🏷 Tags](./_tags/tagsindex.md) index.
+Each case is categorized by a collection of relevant tags. A specific tag's cases (such as `2D`) can be navigated through the [🏷 Tags](./_tags/tagsindex.md) index.
 
 ### Executing and editing code
 
-Press the ![Live Code button]([./how_to_media/live_code_button.png](https://fontawesome.com/icons/rocket?f=classic&s=solid)) Live Code button on the toolbar to edit and run the code.
+Press the Live Code button on the toolbar to edit and run the code.
+![Live Code button, on the Rocket menu][Live Code Button]
 
 ```{note}
 This might take a while to load after new releases of the book.
@@ -54,3 +55,5 @@ TODO
     ```{note}
     Jupyter notebook support for black can be installed with `pip install black[jupyter]`.
     ```
+
+[Live Code Button]: ./how_to_media/live_code_button.png
