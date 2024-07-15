@@ -27,7 +27,13 @@ Running the same command will sync all changes between the files.
 
 2. Run [`jupytext --set-formats ipynb,myst`](https://jupytext.readthedocs.io/en/latest/using-cli.html) on the `.ipynb` notebook file. This creates a ["paired"](https://jupytext.readthedocs.io/en/latest/paired-notebooks.html) Markdown file which we will be tracking on git.
 
-3. Add to ToC TODO
+3. Add the path to the case to the table of contents located at `./report/_toc.yml` under the appropriate chapter.
+
+    ```{note}
+    The files in the table of contents lack an extension. This is useful for testing since jupyter-book will prioritize `.ipynb` files over `.md` files when building the book.
+    ```
+
+You can build the book locally by running `jupyter-book build ./report`.
 
 ### Coding Guidelines
 
@@ -35,7 +41,7 @@ TODO
 
 ### Final Touches
 
-1. Add category tags by using the [\{tags\}](https://sphinx-tags.readthedocs.io/en/latest/quickstart.html#usage) directive below the case title:
+1. Add category tags by using the [\{tags\}](https://sphinx-tags.readthedocs.io/en/latest/quickstart.html#usage) directive below the case title as follows:
 
     ``````md
     ```{tags} tag1, tag2
