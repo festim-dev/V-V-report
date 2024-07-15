@@ -124,7 +124,7 @@ tmap_t = tmap_data[:, 0]
 tmap_solution = tmap_data[:, 1]
 plt.scatter(tmap_t, tmap_solution, label="TMAP7", color="purple")
 
-plt.title(f"Concentration profile at x={test_point_x}s")
+plt.title(f"Concentration profile at x={test_point_x}m")
 plt.ylabel("Concentration (atom / m^3)")
 plt.xlabel("t (s)")
 
