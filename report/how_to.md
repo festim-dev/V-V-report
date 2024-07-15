@@ -8,8 +8,7 @@ Each case is categorized by a collection of relevant tags. A specific tag's case
 
 ### Executing and editing code
 
-Press the Live Code button on the toolbar to edit and run the code.
-![Live Code button, on the Rocket menu][Live Code Button]
+Press the {fas}`rocket` button on the toolbar, then the {fas}`play` button to edit and run the code.
 
 ```{note}
 This might take a while to load after new releases of the book.
@@ -55,5 +54,3 @@ TODO
     ```{note}
     Jupyter notebook support for black can be installed with `pip install black[jupyter]`.
     ```
-
-[Live Code Button]: ./how_to_media/live_code_button.png
