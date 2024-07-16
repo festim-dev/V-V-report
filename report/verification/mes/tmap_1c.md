@@ -101,9 +101,10 @@ cmap = cm.viridis
 plt.figure()
 filename = model.exports[1].filename
 data = np.genfromtxt(filename, delimiter=",", skip_header=1)
+data = np.array(data).transpose()
 
-# sort data by the x-column
-data = [*zip(*sorted(zip(*(data[:, i] for i in range(len(profile_times) + 1)))))]
+# sort data by the x-row
+data = data[:,data[0].argsort()]
 
 # pre-compute exact solution
 def get_exact_solution(x, t):
@@ -119,7 +120,7 @@ def get_exact_solution(x, t):
 )
 
 t = np.array(profile_times)
-x = np.array(data[0])
+x = data[0]
 exact_solution = get_exact_solution(x, t)
 
 for i, t in enumerate(profile_times):
