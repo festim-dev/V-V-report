@@ -73,10 +73,11 @@ model.dt = F.Stepsize(
 
 test_points = [0.5, preloaded_length, 12] #m
 final_times = [100, 100, 50]
+profile_times = [0.1] + np.linspace(0, 100, num=10).tolist()[1:]
 derived_quantities = F.DerivedQuantities(
     [F.PointValue("solute", x=v) for v in test_points]
 )
-model.exports = [derived_quantities]
+model.exports = [derived_quantities, F.TXTExport(field='solute', filename='./c_profiles.txt', times=profile_times)]
 
 model.settings = F.Settings(
     absolute_tolerance=1e-10,
@@ -89,6 +90,43 @@ model.run()
 ```
 
 ## Comparison with exact solution
+
+This is a comparison of the computed concentration profiles at different times with the exact analytical solution (shown in dashed lines).
+
+```{code-cell} ipython3
+:tags: [hide-input]
+
+from matplotlib import cm
+from matplotlib.colors import Normalize
+
+norm = Normalize(vmin=0, vmax=max(profile_times))
+cmap = cm.viridis
+
+plt.figure()
+filename = model.exports[1].filename
+data = np.genfromtxt(filename, delimiter=",", names=True)
+for t in profile_times:
+    x = data["x"]
+    y = data[f"t{t:.2e}s".replace("+", "").replace("-", "").replace(".", "")]
+    x, y = zip(*sorted(zip(x, y)))
+    exact_y = [exact_solution.subs({F.x : x_val, F.t : t}) for x_val in x]
+
+    plt.plot(x, exact_y, linestyle="dashed", color="tab:grey", linewidth=3)
+    plt.plot(x, y, color=cmap(norm(t)))
+
+
+plt.xlabel("x")
+plt.ylabel("$c$")
+
+# Add colorbar
+sm = cm.ScalarMappable(cmap=cmap, norm=norm)
+sm.set_array([])  # You can also set this to the range of your data
+plt.colorbar(sm, label='Time (s)', ax=plt.gca())
+
+plt.show()
+```
+
+The results can also be compared with the results obtained by TMAP7.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
