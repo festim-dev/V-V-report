@@ -1,0 +1,113 @@
+---
+jupytext:
+  formats: ipynb,md:myst
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.16.2
+kernelspec:
+  display_name: vv-festim-report-env
+  language: python
+  name: python3
+---
+
+# TMAP7 V&V Val-1da
+
+```{tags} 1D, MES, transient
+```
+
+This verification case {cite}`ambrosek_verification_2008` from TMAP7's V&V document consists of a semi-infinite slab with one trap under the effective diffusivity regime.
+
+TODO: Add expression for the permeation transient (analytical flux).
+
++++
+
+## FESTIM Code
+
+```{code-cell} ipython3
+:tags: [hide-cell]
+
+# referenced https://github.com/gabriele-ferrero/Titans_TT_codecomparison/blob/main/Festim_models/WeakTrap.py
+
+import festim as F
+import numpy as np
+import matplotlib.pyplot as plt
+
+D_0 = 1.9e-7
+N_A = 6.0221408e23
+rhow = 6.3382e28
+N_Tis = 6 * rhow
+T = 1000
+D = D_0 * np.exp(-0.2 / F.k_B / T)
+S = 2.9e-5 * np.exp(-1 / F.k_B / T)
+c_0 = (1e5) ** 0.5 * S * 1.0525e5
+zeta = (N_Tis * np.exp((0.2 - 1) / (F.k_B * T)) + c_0 * N_A) / (rhow * 1e-3)
+Deff = D / (1 + 1 / zeta)
+
+sample_depth = 1e-3
+
+model = F.Simulation()
+model.mesh = F.MeshFromVertices(vertices=np.linspace(0, sample_depth, num=1001))
+model.materials = F.Material(id=1, D_0=D_0, E_D=0.2)
+model.T = F.Temperature(value=T)
+
+model.boundary_conditions = [
+    F.DirichletBC(surfaces=1, value=0.0088 * N_A, field=0),
+    F.DirichletBC(surfaces=2, value=0, field=0),
+]
+
+rho_n = 6.338e28
+trap = F.Trap(
+    k_0=1.58e7 / N_A,
+    E_k=0.2,
+    p_0=1e13,
+    E_p=1,
+    density=1e-3 * rho_n,
+    materials=model.materials[0],
+)
+
+model.traps = [trap]
+
+model.settings = F.Settings(
+    absolute_tolerance=1e10, relative_tolerance=1e-10, final_time=100  # s
+)
+
+model.dt = F.Stepsize(initial_value=1e-2, dt_min=1e-3, stepsize_change_ratio=1.1)
+
+derived_quantities = F.DerivedQuantities([F.HydrogenFlux(surface=2)])
+model.exports = [derived_quantities]
+
+model.initialise()
+model.run()
+```
+
+## Comparison with exact solution
+
+```{code-cell} ipython3
+:tags: [hide-input]
+
+# plot computed solution
+t = np.array(derived_quantities.t)
+computed_solution = derived_quantities.filter(surfaces=2).data
+plt.plot(t, np.abs(computed_solution) / 2, label="FESTIM", linewidth=3)
+
+# plot exact solution
+exact_solution = np.ones(len(t))
+for m in range(1, 10001):
+    add = 2 * (-1) ** m * np.exp(-(m**2) * np.pi**2 * Deff * t / sample_depth**2)
+    exact_solution += add
+exact_solution = N_A * exact_solution * c_0 * D / sample_depth / 2
+
+plt.plot(t, exact_solution, linestyle="--", color="green")
+
+plt.xlabel("Time (s)")
+plt.ylabel("Downstream flux (H/m2/s)")
+
+plt.legend()
+plt.show()
+```
+
+```{code-cell} ipython3
+
+```
