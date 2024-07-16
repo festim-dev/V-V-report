@@ -101,10 +101,12 @@ cmap = cm.viridis
 plt.figure()
 filename = model.exports[1].filename
 data = np.genfromtxt(filename, delimiter=",", skip_header=1)
-data = np.array(data).transpose()
+data = np.array(data).T
 
 # sort data by the x-row
-data = data[:,data[0].argsort()]
+data = np.array(data).T
+sorted_column_ind = data[0].argsort() # indices to sort by x
+data = data[:,sorted_column_ind]
 
 # pre-compute exact solution
 def get_exact_solution(x, t):
