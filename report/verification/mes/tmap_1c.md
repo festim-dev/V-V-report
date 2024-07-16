@@ -44,8 +44,8 @@ model = F.Simulation()
 
 ### Mesh Settings ###
 vertices = np.concatenate([
-    np.linspace(0, 10, 200),
-    np.linspace(10, 100, 300),
+    np.linspace(0, 10, 400),
+    np.linspace(10, 100, 1000),
 ])
 
 model.mesh = F.MeshFromVertices(vertices)
