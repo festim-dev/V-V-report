@@ -108,7 +108,7 @@ for i, x in enumerate(test_points):
     plt.plot(t, exact_y, label="Exact", color="green", linestyle="--")
 
     # plotting TMAP data
-    tmap_data = np.genfromtxt(f"./tmap_1c_data/tmap_point_data_{i}.txt", delimiter=" ")
+    tmap_data = np.genfromtxt(f"./tmap_1c_data/tmap_point_data_{i}.txt", delimiter=" ", skip_header=1)
     tmap_t = tmap_data[:, 0]
     tmap_solution = tmap_data[:, 1]
     plt.scatter(tmap_t, tmap_solution, label="TMAP7", color="purple")
