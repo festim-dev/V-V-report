@@ -34,11 +34,6 @@ from matplotlib import pyplot as plt
 preloaded_length = 10 # m
 C_0 = 1 # atom m^-3
 D = 1 # 1 m^2 s^-1
-exact_solution = C_0/2 * (
-    2*sp.erf(F.x / sp.sqrt(4*D*F.t)) 
-    - sp.erf((F.x - preloaded_length) / sp.sqrt(4*D*F.t))
-    - sp.erf((F.x + preloaded_length) / sp.sqrt(4*D*F.t))
-)
 
 model = F.Simulation()
 
@@ -77,7 +72,7 @@ profile_times = [0.1] + np.linspace(0, 100, num=10).tolist()[1:]
 derived_quantities = F.DerivedQuantities(
     [F.PointValue("solute", x=v) for v in test_points]
 )
-model.exports = [derived_quantities, F.TXTExport(field='solute', filename='./c_profiles.txt', times=profile_times)]
+model.exports = [derived_quantities, F.TXTExport(field='solute', filename='./tmap_1c_data/c_profiles.txt', times=profile_times)]
 
 model.settings = F.Settings(
     absolute_tolerance=1e-10,
@@ -98,31 +93,46 @@ This is a comparison of the computed concentration profiles at different times w
 
 from matplotlib import cm
 from matplotlib.colors import Normalize
+from scipy.special import erf
 
 norm = Normalize(vmin=0, vmax=max(profile_times))
 cmap = cm.viridis
 
 plt.figure()
 filename = model.exports[1].filename
-data = np.genfromtxt(filename, delimiter=",", names=True)
-for t in profile_times:
-    x = data["x"]
-    y = data[f"t{t:.2e}s".replace("+", "").replace("-", "").replace(".", "")]
-    x, y = zip(*sorted(zip(x, y)))
-    exact_y = [exact_solution.subs({F.x : x_val, F.t : t}) for x_val in x]
+data = np.genfromtxt(filename, delimiter=",", skip_header=1)
 
-    plt.plot(x, exact_y, linestyle="dashed", color="tab:grey", linewidth=3)
+#sort data by the x-column
+data = [*zip(*sorted(zip(*(data[:, i] for i in range(len(profile_times) + 1)))))]
+
+#pre-compute exact solution
+t = np.array(profile_times)
+sqrt_term = np.sqrt(4*D*t)
+
+x = np.array(data[0])
+exact_solution = C_0/2 * (
+    2*erf(x / sqrt_term[:, None])
+    - erf((x - preloaded_length) / sqrt_term[:, None])
+    - erf((x + preloaded_length) / sqrt_term[:, None])
+)
+
+for i, t in enumerate(profile_times):
+    y = data[i + 1]
+
+    label = "exact" if i == 0 else ""
+    plt.plot(x, exact_solution[i], linestyle="dashed", color="tab:grey", linewidth=3, label=label)
     plt.plot(x, y, color=cmap(norm(t)))
 
 
 plt.xlabel("x")
-plt.ylabel("$c$")
+plt.ylabel("Concentration (atom / m^3)")
 
 # Add colorbar
 sm = cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])  # You can also set this to the range of your data
 plt.colorbar(sm, label='Time (s)', ax=plt.gca())
 
+plt.legend()
 plt.show()
 ```
 
@@ -159,8 +169,4 @@ for i, x in enumerate(test_points):
 fig.tight_layout()
 plt.legend()
 plt.show()
-```
-
-```{code-cell} ipython3
-
 ```
