@@ -17,7 +17,7 @@ kernelspec:
 ```{tags} 1D, MES, transient
 ```
 
-This verification case from TMAP7's V&V report {cite}`ambrosek_verification_2008` consists of a semi-infinite slab with no traps under a constant concentration $C_0$ on the first $10 m$ of the slab.
+This verification case {cite}`ambrosek_verification_2008` from TMAP7's V&V document consists of a semi-infinite slab with no traps under a constant concentration $C_0$ on the first $10 m$ of the slab.
 
 +++
 
@@ -106,11 +106,9 @@ data = np.genfromtxt(filename, delimiter=",", skip_header=1)
 data = [*zip(*sorted(zip(*(data[:, i] for i in range(len(profile_times) + 1)))))]
 
 # pre-compute exact solution
-t = np.array(profile_times)
-sqrt_term = np.sqrt(4 * D * t)
-
-x = np.array(data[0])
-exact_solution = (
+def get_exact_solution(x, t):
+    sqrt_term = np.sqrt(4 * D * t)
+    return (
     C_0
     / 2
     * (
@@ -119,6 +117,10 @@ exact_solution = (
         - erf((x + preloaded_length) / sqrt_term[:, None])
     )
 )
+
+t = np.array(profile_times)
+x = np.array(data[0])
+exact_solution = get_exact_solution(x, t)
 
 for i, t in enumerate(profile_times):
     y = data[i + 1]
@@ -159,12 +161,11 @@ for i, x in enumerate(test_points):
 
     # plotting computed data
     computed_solution = derived_quantities[i].data
-    t = derived_quantities[i].t
+    t = np.array(derived_quantities[i].t)
     plt.plot(t, computed_solution, label="FESTIM", linewidth=3)
 
     # plotting exact solution
-    exact_y = [exact_solution.subs({F.x: x, F.t: time}) for time in t]
-    plt.plot(t, exact_y, label="Exact", color="green", linestyle="--")
+    plt.plot(t, get_exact_solution(x, t), label="Exact", color="green", linestyle="--")
 
     # plotting TMAP data
     tmap_data = np.genfromtxt(
