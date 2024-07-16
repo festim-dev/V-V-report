@@ -31,33 +31,30 @@ import numpy as np
 import sympy as sp
 from matplotlib import pyplot as plt
 
-preloaded_length = 10 # m
-C_0 = 1 # atom m^-3
-D = 1 # 1 m^2 s^-1
+preloaded_length = 10  # m
+C_0 = 1  # atom m^-3
+D = 1  # 1 m^2 s^-1
 
 model = F.Simulation()
 
 ### Mesh Settings ###
-vertices = np.concatenate([
-    np.linspace(0, 10, 400),
-    np.linspace(10, 100, 1000),
-])
+vertices = np.concatenate(
+    [
+        np.linspace(0, 10, 400),
+        np.linspace(10, 100, 1000),
+    ]
+)
 
 model.mesh = F.MeshFromVertices(vertices)
 
-model.boundary_conditions = [
-    F.DirichletBC(surfaces=[1], value=0, field="solute")
-]
+model.boundary_conditions = [F.DirichletBC(surfaces=[1], value=0, field="solute")]
 
-initial_concentration = sp.Piecewise(
-    (C_0, F.x <= preloaded_length),
-    (0, True)
-)
+initial_concentration = sp.Piecewise((C_0, F.x <= preloaded_length), (0, True))
 model.initial_conditions = [
     F.InitialCondition(field="solute", value=initial_concentration)
 ]
 
-model.materials = [F.Material(id=1, D_0=D, E_D=0)]
+model.materials = F.Material(id=1, D_0=D, E_D=0)
 
 model.T = F.Temperature(500)  # ignored in this problem
 
@@ -66,18 +63,21 @@ model.dt = F.Stepsize(
     stepsize_change_ratio=1.1,
 )
 
-test_points = [0.5, preloaded_length, 12] #m
+test_points = [0.5, preloaded_length, 12]  # m
 final_times = [100, 100, 50]
 profile_times = [0.1] + np.linspace(0, 100, num=10).tolist()[1:]
 derived_quantities = F.DerivedQuantities(
     [F.PointValue("solute", x=v) for v in test_points]
 )
-model.exports = [derived_quantities, F.TXTExport(field='solute', filename='./tmap_1c_data/c_profiles.txt', times=profile_times)]
+model.exports = [
+    derived_quantities,
+    F.TXTExport(
+        field="solute", filename="./tmap_1c_data/c_profiles.txt", times=profile_times
+    ),
+]
 
 model.settings = F.Settings(
-    absolute_tolerance=1e-10,
-    relative_tolerance=1e-10,
-    final_time=max(final_times)
+    absolute_tolerance=1e-10, relative_tolerance=1e-10, final_time=max(final_times)
 )
 
 model.initialise()
@@ -102,25 +102,36 @@ plt.figure()
 filename = model.exports[1].filename
 data = np.genfromtxt(filename, delimiter=",", skip_header=1)
 
-#sort data by the x-column
+# sort data by the x-column
 data = [*zip(*sorted(zip(*(data[:, i] for i in range(len(profile_times) + 1)))))]
 
-#pre-compute exact solution
+# pre-compute exact solution
 t = np.array(profile_times)
-sqrt_term = np.sqrt(4*D*t)
+sqrt_term = np.sqrt(4 * D * t)
 
 x = np.array(data[0])
-exact_solution = C_0/2 * (
-    2*erf(x / sqrt_term[:, None])
-    - erf((x - preloaded_length) / sqrt_term[:, None])
-    - erf((x + preloaded_length) / sqrt_term[:, None])
+exact_solution = (
+    C_0
+    / 2
+    * (
+        2 * erf(x / sqrt_term[:, None])
+        - erf((x - preloaded_length) / sqrt_term[:, None])
+        - erf((x + preloaded_length) / sqrt_term[:, None])
+    )
 )
 
 for i, t in enumerate(profile_times):
     y = data[i + 1]
 
     label = "exact" if i == 0 else ""
-    plt.plot(x, exact_solution[i], linestyle="dashed", color="tab:grey", linewidth=3, label=label)
+    plt.plot(
+        x,
+        exact_solution[i],
+        linestyle="dashed",
+        color="tab:grey",
+        linewidth=3,
+        label=label,
+    )
     plt.plot(x, y, color=cmap(norm(t)))
 
 
@@ -130,7 +141,7 @@ plt.ylabel("Concentration (atom / m^3)")
 # Add colorbar
 sm = cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])  # You can also set this to the range of your data
-plt.colorbar(sm, label='Time (s)', ax=plt.gca())
+plt.colorbar(sm, label="Time (s)", ax=plt.gca())
 
 plt.legend()
 plt.show()
@@ -149,20 +160,22 @@ for i, x in enumerate(test_points):
     # plotting computed data
     computed_solution = derived_quantities[i].data
     t = derived_quantities[i].t
-    plt.plot(t, computed_solution, label="FESTIM", linewidth = 3)
+    plt.plot(t, computed_solution, label="FESTIM", linewidth=3)
 
     # plotting exact solution
-    exact_y = [exact_solution.subs({F.x : x, F.t : time}) for time in t]
+    exact_y = [exact_solution.subs({F.x: x, F.t: time}) for time in t]
     plt.plot(t, exact_y, label="Exact", color="green", linestyle="--")
 
     # plotting TMAP data
-    tmap_data = np.genfromtxt(f"./tmap_1c_data/tmap_point_data_{i}.txt", delimiter=" ", skip_header=1)
+    tmap_data = np.genfromtxt(
+        f"./tmap_1c_data/tmap_point_data_{i}.txt", delimiter=" ", skip_header=1
+    )
     tmap_t = tmap_data[:, 0]
     tmap_solution = tmap_data[:, 1]
     plt.scatter(tmap_t, tmap_solution, label="TMAP7", color="purple")
 
     plt.title(f"x={x}m")
-    if(i == 0):
+    if i == 0:
         plt.ylabel("Concentration (atom / m^3)")
     plt.xlabel("t (s)")
 
