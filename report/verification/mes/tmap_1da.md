@@ -17,7 +17,7 @@ kernelspec:
 ```{tags} 1D, MES, transient
 ```
 
-This verification case {cite}`ambrosek_verification_2008` from TMAP7's V&V document consists of a semi-infinite slab with one trap under the effective diffusivity regime.
+This verification case {cite}`ambrosek_verification_2008` from TMAP7's V&V document consists of a slab of depth $1 \times 10^(-3) \ m$ with one trap under the effective diffusivity regime.
 
 TODO: Add expression for the permeation transient (analytical flux).
 
