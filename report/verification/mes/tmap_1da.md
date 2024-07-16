@@ -108,6 +108,3 @@ plt.legend()
 plt.show()
 ```
 
-```{code-cell} ipython3
-
-```
