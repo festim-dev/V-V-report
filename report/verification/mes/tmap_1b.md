@@ -29,12 +29,13 @@ This verification case {cite}`ambrosek_verification_2008` from TMAP7's V&V docum
 import festim as F
 import numpy as np
 import sympy as sp
+from scipy.special import erf
 from matplotlib import pyplot as plt
 
 C_0 = 1 # atom m^-3
 D = 1 # 1 m^2 s^-1
 profile_time = 25 # s
-exact_solution = C_0 * (1 - sp.erf(F.x / sp.sqrt(4*D*F.t)))
+exact_solution = lambda x, t: C_0 * (1 - erf(x / np.sqrt(4*D*t)))
 
 model = F.Simulation()
 
@@ -95,7 +96,7 @@ computed_solution = computed_data[:, 1]
 plt.plot(computed_x, computed_solution, label="FESTIM", linewidth = 3)
 
 # plotting exact solution
-exact_y = [exact_solution.subs({F.x : x, F.t : profile_time}) for x in computed_x]
+exact_y = exact_solution(np.array(computed_x), profile_time)
 plt.plot(computed_x, exact_y, label="Exact", color="green", linestyle="--")
 
 plt.title(f"Concentration profile at t={profile_time}s")
@@ -115,7 +116,8 @@ t = derived_quantities[0].t
 plt.plot(t, computed_solution, label="FESTIM", linewidth = 3)
 
 # plotting exact solution
-exact_y = [exact_solution.subs({F.x : test_point_x, F.t : time}) for time in t]
+exact_y = exact_solution(test_point_x, np.array(t))
+
 plt.plot(t, exact_y, label="Exact", color="green", linestyle="--")
 
 # plotting TMAP data
