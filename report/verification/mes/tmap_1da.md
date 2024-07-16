@@ -93,10 +93,16 @@ computed_solution = derived_quantities.filter(surfaces=2).data
 plt.plot(t, np.abs(computed_solution) / 2, label="FESTIM", linewidth=3)
 
 # plot exact solution
-exact_solution = np.ones(len(t))
-for m in range(1, 10001):
-    add = 2 * (-1) ** m * np.exp(-(m**2) * np.pi**2 * Deff * t / sample_depth**2)
-    exact_solution += add
+t = np.array(t)
+m = np.arange(1, 10001)
+
+# Calculate the exponential part for all m values at once
+exp_part = np.exp(-m ** 2* np.pi**2 * Deff * t[:, None] / sample_depth**2)
+
+# Calculate the 'add' part for all m values and sum them up for each t
+add = 2 * (-1) ** m * exp_part
+exact_solution = 1 + add.sum(axis=1)  # Sum along the m dimension and add 1 for the initial ones
+
 exact_solution = N_A * exact_solution * c_0 * D / sample_depth / 2
 
 plt.plot(t, exact_solution, linestyle="--", color="green")
@@ -107,4 +113,3 @@ plt.ylabel("Downstream flux (H/m2/s)")
 plt.legend()
 plt.show()
 ```
-
