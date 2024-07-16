@@ -93,7 +93,7 @@ model.run()
 ```{code-cell} ipython3
 :tags: [hide-input]
 
-fig, axs = plt.subplots(1, len(test_points))
+fig, axs = plt.subplots(1, len(test_points), sharey=True)
 
 for i, x in enumerate(test_points):
     plt.sca(axs[i])
