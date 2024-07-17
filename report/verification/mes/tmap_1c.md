@@ -98,45 +98,31 @@ from scipy.special import erf
 norm = Normalize(vmin=0, vmax=max(profile_times))
 cmap = cm.viridis
 
-plt.figure()
-filename = model.exports[1].filename
-data = np.genfromtxt(filename, delimiter=",", skip_header=1)
-data = np.array(data).T
-
-# sort data by the x-row
-data = np.array(data).T
-sorted_column_ind = data[0].argsort() # indices to sort by x
-data = data[:,sorted_column_ind]
-
-# pre-compute exact solution
-def get_exact_solution(x, t):
+def exact_solution(x, t):
     sqrt_term = np.sqrt(4 * D * t)
     return (
     C_0
     / 2
     * (
-        2 * erf(x / sqrt_term[:, None])
-        - erf((x - preloaded_length) / sqrt_term[:, None])
-        - erf((x + preloaded_length) / sqrt_term[:, None])
+        2 * erf(x / sqrt_term)
+        - erf((x - preloaded_length) / sqrt_term)
+        - erf((x + preloaded_length) / sqrt_term)
     )
 )
 
-t = np.array(profile_times)
-x = data[0]
-exact_solution = get_exact_solution(x, t)
-
+plt.figure()
+filename = model.exports[1].filename
+data = np.genfromtxt(filename, delimiter=",", names=True)
 for i, t in enumerate(profile_times):
-    y = data[i + 1]
-
     label = "exact" if i == 0 else ""
-    plt.plot(
-        x,
-        exact_solution[i],
-        linestyle="dashed",
-        color="tab:grey",
-        linewidth=3,
-        label=label,
-    )
+    x = data["x"]
+    y_name = f"t{t:.2e}s".replace("+", "").replace("-", "").replace(".", "")
+    y = data[y_name]
+    x, y = zip(*sorted(zip(x, y)))
+    
+    exact_y = exact_solution(np.array(x), t)
+
+    plt.plot(x, exact_y, linestyle="dashed", color="tab:grey", linewidth=3, label=label)
     plt.plot(x, y, color=cmap(norm(t)))
 
 
@@ -168,7 +154,7 @@ for i, x in enumerate(test_points):
     plt.plot(t, computed_solution, label="FESTIM", linewidth=3)
 
     # plotting exact solution
-    plt.plot(t, get_exact_solution(x, t), label="Exact", color="green", linestyle="--")
+    plt.plot(t, exact_solution(x, t), label="Exact", color="green", linestyle="--")
 
     # plotting TMAP data
     tmap_data = np.genfromtxt(
@@ -178,9 +164,9 @@ for i, x in enumerate(test_points):
     tmap_solution = tmap_data[:, 1]
     plt.scatter(tmap_t, tmap_solution, label="TMAP7", color="purple")
 
-    plt.title(f"x={x}m")
+    plt.title(f"x={x} m")
     if i == 0:
-        plt.ylabel("Concentration (atom / m^3)")
+        plt.ylabel("Concentration (atom / m$^3$)")
     plt.xlabel("t (s)")
 
 fig.tight_layout()
