@@ -12,12 +12,12 @@ kernelspec:
   name: python3
 ---
 
-# TMAP7 V&V Val-1da
+# Effective diffusivity regime
 
 ```{tags} 1D, MES, transient
 ```
 
-This verification case from TMAP7's V&V report {cite}`ambrosek_verification_2008` consists of a slab of depth $l = 1 \times 10^{-3} \ \mathrm{m}$ with one trap under the effective diffusivity regime.
+This verification case consists of a slab of depth $l = 1 \times 10^{-3} \ \mathrm{m}$ with one trap under the effective diffusivity regime.
 
 A trapping parameter $\zeta$ is defined by
 
@@ -43,6 +43,8 @@ Then with a breakthrough time $\tau = \frac{l^2}{2\pi^2 D_\text{eff}}$, the exac
 $$
     J = \frac{}{} \left[ 1 + 2\sum_{m=1}^\infty (-1)^m \exp \left( -m^2 \frac{t}{\tau} \right) \right]
 $$
+
+This analytical solution was obtained from TMAP7's V&V report {cite}`ambrosek_verification_2008`, case Val-1da.
 
 +++
 
