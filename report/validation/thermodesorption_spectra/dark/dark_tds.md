@@ -49,6 +49,7 @@ import festim as F
 import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
+import pandas as pd
 
 # # ### Parameters ###
 D_0 = 1.6e-7  # m^2 s^-1
@@ -183,6 +184,20 @@ def festim_sim(densities):
 dpa_to_quantities = {}
 for dpa, densities in dpa_n_i.items():
     dpa_to_quantities[dpa] = festim_sim(densities)
+```
+
+```{code-cell} ipython3
+### Data Frame for presentation
+dpa_no_zero = dpa_n_i | {}
+dpa_no_zero.pop(0)
+data = {"E_p" : detrapping_energies} | dpa_no_zero
+data_frame = pd.DataFrame(data)
+
+data_frame.style \
+    .relabel_index([f"Trap D{i}" for i in range(1, 6)], axis=0) \
+    .format("{:.2e}".format) \
+
+###
 ```
 
 ## Comparison with experimental data
