@@ -12,12 +12,12 @@ kernelspec:
   name: python3
 ---
 
-# TMAP7 V&V Val-1c
+# Pre-loaded semi-infinite slab
 
 ```{tags} 1D, MES, transient
 ```
 
-This verification case {cite}`ambrosek_verification_2008` from TMAP7's V&V document consists of a semi-infinite slab with no traps under a constant concentration $C_0$ on the first $10 m$ of the slab.
+This verification case {cite}`ambrosek_verification_2008` from case Val-1c of TMAP7's V&V report consists of a semi-infinite slab with no traps under a constant concentration $C_0$ on the first $10 m$ of the slab.
 
 +++
 
