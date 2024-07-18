@@ -122,7 +122,7 @@ t = np.array(t)
 m = np.arange(1, 10001)
 
 # Calculate the exponential part for all m values at once
-tau = sample_depth**2 / (np.pi**2 * D_eff) # missing 2 in the denominator??
+tau = sample_depth**2 / (np.pi**2 * D_eff)
 exp_part = np.exp(-m ** 2 * t[:, None] / tau)
 
 # Calculate the 'add' part for all m values and sum them up for each t
