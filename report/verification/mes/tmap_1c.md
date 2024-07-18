@@ -88,6 +88,18 @@ model.run()
 
 This is a comparison of the computed concentration profiles at different times with the exact analytical solution (shown in dashed lines).
 
+The analytical solution is given by
+
+$$
+    c(x, t) = \frac{c_0}{2}\left[ 
+        2\mathit{erf}\left(\frac{x}{2 \sqrt{Dt}}\right)
+        - \mathit{erf}\left(\frac{x - h}{2 \sqrt{Dt}}\right)
+        - \mathit{erf}\left(\frac{x + h}{2 \sqrt{Dt}}\right)
+     \right]
+$$
+
+where $h$ is the thickness of the pre-loaded region.
+
 ```{code-cell} ipython3
 :tags: [hide-input]
 
