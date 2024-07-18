@@ -129,7 +129,7 @@ exact_solution = 1 + add.sum(axis=1)  # Sum along the m dimension and add 1 for 
 
 exact_solution = N_A * exact_solution * c_m * D / (2 * sample_depth)
 
-plt.plot(t, exact_solution, linestyle="--", color="green")
+plt.plot(t, exact_solution, linestyle="--", color="green", label="exact")
 
 plt.xlabel("Time (s)")
 plt.ylabel("Downstream flux (H/m2/s)")
