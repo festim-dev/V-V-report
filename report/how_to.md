@@ -1,4 +1,4 @@
-# User Guide
+# About this book
 
 ## How to use this book
 
@@ -14,7 +14,9 @@ Press the {fas}`rocket` button on the toolbar, then the {fas}`play` button to ed
 This might take a while to load after new releases of the book.
 ```
 
-## Converting Markdown files to Jupyter notebooks
+## How to contribute
+
+### Converting Markdown files to Jupyter notebooks
 
 All V&V cases are tracked as Markdown files in the [\{MyST\}NB](https://myst-nb.readthedocs.io/en/latest/) format, which allows
 us to use useful [MyST directives](https://myst-parser.readthedocs.io/en/latest/syntax/roles-and-directives.html) and track the code in the same raw text file.
@@ -23,7 +25,7 @@ Running the same command will sync all changes between the files.
 
 You can also download any case as a Jupyter notebook by clicking the {fas}`download` button on the toolbar and selecting the {fas}`code` `.ipynb` option.
 
-## Adding a case
+### Adding a case
 
 1. Create a [Jupyter notebook](https://jupyter-notebook-beginner-guide.readthedocs.io/en/latest/what_is_jupyter.html) for editing the case.
 
@@ -37,11 +39,11 @@ You can also download any case as a Jupyter notebook by clicking the {fas}`downl
 
 You can build the book locally by running `jupyter-book build ./report`.
 
-### Coding Guidelines
+#### Coding Guidelines
 
 TODO
 
-### Final Touches
+#### Final Touches
 
 1. Add category tags by using the [\{tags\}](https://sphinx-tags.readthedocs.io/en/latest/quickstart.html#usage) directive below the case title as follows:
 
