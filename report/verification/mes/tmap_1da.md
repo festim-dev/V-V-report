@@ -20,6 +20,7 @@ kernelspec:
 This verification case from TMAP7's V&V report {cite}`ambrosek_verification_2008` consists of a slab of depth $l = 1 \times 10^{-3} \ \mathrm{m}$ with one trap under the effective diffusivity regime.
 
 A trapping parameter $\zeta$ is defined by
+
 $$
     \zeta = \frac{\lambda ^ 2 \nu}{D_0 \rho} \exp \left(\frac{E_k - E_p}{k_B T}\right) + \frac{c_m}{\rho}
 $$
@@ -32,11 +33,13 @@ $\rho$ is the trapping site fraction, \
 $c_m (\text{atom} \ \mathrm{m}^{-3})$ is the mobile atom concentration,
 
 and the effective diffusivity $\mathrm{D_\text{eff}}$ is defined by
+
 $$
     D_\text{eff} = \frac{D}{1 + \frac{1}{\zeta}}
 $$
 
 Then with a breakthrough time $\tau = \frac{l^2}{2\pi^2 D_\text{eff}}$, the exact solution for flux is
+
 $$
     J = \frac{}{} \left[ 1 + 2\sum_{m=1}^\infty (-1)^m \exp \left( -m^2 \frac{t}{\tau} \right) \right]
 $$
