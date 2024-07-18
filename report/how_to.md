@@ -21,6 +21,8 @@ us to use useful [MyST directives](https://myst-parser.readthedocs.io/en/latest/
 You can run [`jupytext --sync`](https://jupytext.readthedocs.io/en/latest/using-cli.html) on the `.md` MyST-NB file to convert it to a jupytext notebook.
 Running the same command will sync all changes between the files.
 
+You can also download any case as a Jupyter notebook by clicking the {fas}`download` button on the toolbar and selecting the {fas}`code` `.ipynb` option.
+
 ## Adding a case
 
 1. Create a [Jupyter notebook](https://jupyter-notebook-beginner-guide.readthedocs.io/en/latest/what_is_jupyter.html) for editing the case.
