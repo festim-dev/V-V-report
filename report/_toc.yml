@@ -8,6 +8,7 @@ parts:
     chapters:
     - file: intro
     - file: vv
+    - file: how_to
   - caption: Verification
     chapters:
       - file: verification/methods
@@ -15,6 +16,7 @@ parts:
         sections:
         - file: verification/depleting_source
         - file: verification/mms/simple
+        - file: verification/mms/simple_transient
         - file: verification/mms/fluxes
         - file: verification/mms/discontinuity
         - file: verification/mms/trapping
@@ -24,6 +26,7 @@ parts:
         - file: verification/mms/soret
         - file: verification/mms/simple_temperature
         - file: verification/mes/tmap_1c
+        - file: verification/mes/tmap_1da
   - caption: Validation
     chapters:
       - file: validation/plasma-driven-permeation/plasma-driven-permeation
