@@ -170,10 +170,10 @@ for i, x in enumerate(test_points):
 
     # plotting TMAP data
     tmap_data = np.genfromtxt(
-        f"./tmap_1c_data/tmap_point_data_{i}.txt", delimiter=" ", skip_header=1
+        f"./tmap_1c_data/tmap_point_data_{i}.txt", delimiter=" ", names=True
     )
-    tmap_t = tmap_data[:, 0]
-    tmap_solution = tmap_data[:, 1]
+    tmap_t = tmap_data["t"]
+    tmap_solution = tmap_data["tmap"]
     plt.scatter(tmap_t, tmap_solution, label="TMAP7", color="purple")
 
     plt.title(f"x={x} m")
