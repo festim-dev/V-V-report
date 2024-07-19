@@ -12,12 +12,12 @@ kernelspec:
   name: python3
 ---
 
-# TMAP7 V&V Val-1b
+# Diffusion through a semi-infinite slab
 
 ```{tags} 1D, MES, transient
 ```
 
-This verification case {cite}`ambrosek_verification_2008` from TMAP7's V&V document consists of a semi-infinite slab with no traps under a constant concentration $C_0$ boundary condition on the left.
+This verification case from TMAP7's V&V report {cite}`ambrosek_verification_2008` consists of a semi-infinite slab with no traps under a constant concentration $C_0$ boundary condition on the left.
 
 +++
 
@@ -33,7 +33,7 @@ from scipy.special import erf
 from matplotlib import pyplot as plt
 
 C_0 = 1 # atom m^-3
-D = 1 # 1 m^2 s^-1
+D = 1 # m^2 s^-1
 profile_time = 25 # s
 exact_solution = lambda x, t: C_0 * (1 - erf(x / np.sqrt(4*D*t)))
 
