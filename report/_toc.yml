@@ -8,6 +8,7 @@ parts:
     chapters:
     - file: intro
     - file: vv
+    - file: how_to
   - caption: Verification
     chapters:
       - file: verification/methods
