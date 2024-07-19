@@ -14,7 +14,7 @@ kernelspec:
 
 # Effective diffusivity regime
 
-```{tags} 1D, MES, transient
+```{tags} 1D, MES, transient, trapping
 ```
 
 This verification case consists of a slab of depth $l = 1 \times 10^{-3} \ \mathrm{m}$ with one trap under the effective diffusivity regime.
