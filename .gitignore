@@ -1,6 +1,12 @@
 # Build Files
 report/_build
 report/_tags
+*.png
+*.svg
+*.pdf
+*.h5
+*.xdmf
+*.txt
 
 # Jupyter Notebooks
 *.ipynb
