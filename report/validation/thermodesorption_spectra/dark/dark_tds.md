@@ -186,20 +186,6 @@ for dpa, densities in dpa_n_i.items():
     dpa_to_quantities[dpa] = festim_sim(densities)
 ```
 
-```{code-cell} ipython3
-### Data Frame for presentation
-dpa_no_zero = dpa_n_i | {}
-dpa_no_zero.pop(0)
-data = {"E_p" : detrapping_energies} | dpa_no_zero
-data_frame = pd.DataFrame(data)
-
-data_frame.style \
-    .relabel_index([f"Trap D{i}" for i in range(1, 6)], axis=0) \
-    .format("{:.2e}".format) \
-
-###
-```
-
 ## Comparison with experimental data
 
 The results produced by FESTIM are in good agreement with the experimental data. The grey areas represent the contribution of each trap to the global TDS spectrum.
@@ -298,4 +284,24 @@ plt.show()
 
 ```{note}
 The experimental data was taken from {cite}`dark_modelling_2024_code`.
+```
+
+## Trap Parameters
+
+### Damage-induced trap parameters
+
+This table displays the neutron-induced traps' detrapping energy $E_p$ and their density per dpa dose.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+
+dpa_no_zero = dpa_n_i | {}
+dpa_no_zero.pop(0)
+data = {"E_p" : detrapping_energies} | dpa_no_zero
+dpa_frame = pd.DataFrame(data)
+
+dpa_frame.columns = dpa_frame.columns.map(lambda s: f"{s:.1e}" if not isinstance(s, str) else s)
+dpa_frame.style \
+    .relabel_index([f"Trap D{i}" for i in range(1, 6)], axis=0) \
+    .format("{:.2e}".format)
 ```
