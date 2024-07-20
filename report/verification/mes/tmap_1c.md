@@ -17,7 +17,7 @@ kernelspec:
 ```{tags} 1D, MES, transient
 ```
 
-This verification case from case Val-1c of TMAP7's V&V report {cite}`ambrosek_verification_2008` consists of a semi-infinite slab with no traps under a constant concentration $c_0$ on the first $10 m$ of the slab.
+This verification case from case Val-1c of TMAP7's V&V report {cite}`ambrosek_verification_2008` consists of a semi-infinite slab with no traps under a constant concentration $c_0$ on the first $10 \ \mathrm{m}$ of the slab. The concentration at the boundaries is set to zero.
 
 +++
 
