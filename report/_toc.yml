@@ -19,7 +19,7 @@ parts:
         - file: verification/mms/discontinuity
         - file: verification/mms/trapping
         - file: verification/mms/heat_transfer
-        - file: verification/mes/mes_radioactive_decay
+        - file: verification/mes/radioactive_decay
         - file: verification/mms/radioactive_decay
         - file: verification/mms/soret
         - file: verification/mms/simple_temperature
