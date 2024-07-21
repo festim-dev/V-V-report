@@ -86,6 +86,11 @@ model.run()
 
 ## Comparison with exact solution
 
+The exact solution is given by
+$$
+    c(x, t) = c_0 \left( 1 - \mathrf{erf}\left( \frac{x}{2\sqrt{Dt}} \right) \right)
+$$
+
 ```{code-cell}
 :tags: [hide-input]
 
