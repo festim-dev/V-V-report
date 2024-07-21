@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.2
+    jupytext_version: 1.16.3
 kernelspec:
   display_name: vv-festim-report-env
   language: python
@@ -23,7 +23,7 @@ This verification case from TMAP7's V&V report {cite}`ambrosek_verification_2008
 
 ## FESTIM Code
 
-```{code-cell}
+```{code-cell} ipython3
 :tags: [hide-cell]
 
 import festim as F
@@ -91,7 +91,7 @@ $$
     c(x, t) = c_0 \left( 1 - \mathrm{erf}\left( \frac{x}{2\sqrt{Dt}} \right) \right)
 $$
 
-```{code-cell}
+```{code-cell} ipython3
 :tags: [hide-input]
 
 # plotting computed data
@@ -112,7 +112,7 @@ plt.legend()
 plt.show()
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 :tags: [hide-input]
 
 # plotting computed data
@@ -126,9 +126,9 @@ exact_y = exact_solution(test_point_x, np.array(t))
 plt.plot(t, exact_y, label="Exact", color="green", linestyle="--")
 
 # plotting TMAP data
-tmap_data = np.genfromtxt("./tmap_point_data.txt", delimiter=" ")
-tmap_t = tmap_data[:, 0]
-tmap_solution = tmap_data[:, 1]
+tmap_data = np.genfromtxt("./tmap_point_data.txt", delimiter=" ", names=True)
+tmap_t = tmap_data["t"]
+tmap_solution = tmap_data["tmap"]
 plt.scatter(tmap_t, tmap_solution, label="TMAP7", color="purple")
 
 plt.title(f"Concentration profile at x={test_point_x}m")
@@ -137,4 +137,8 @@ plt.xlabel("t (s)")
 
 plt.legend()
 plt.show()
+```
+
+```{code-cell} ipython3
+
 ```
