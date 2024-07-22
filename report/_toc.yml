@@ -25,6 +25,7 @@ parts:
         - file: verification/mms/radioactive_decay
         - file: verification/mms/soret
         - file: verification/mms/simple_temperature
+        - file: verification/mes/tmap_1b
         - file: verification/mes/tmap_1c
         - file: verification/mes/tmap_1da
   - caption: Validation
