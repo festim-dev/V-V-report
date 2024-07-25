@@ -300,7 +300,7 @@ dpa_no_zero.pop(0)
 data = {"E_p" : detrapping_energies} | dpa_no_zero
 dpa_frame = pd.DataFrame(data)
 
-dpa_frame.columns = dpa_frame.columns.map(lambda s: f"{s:.1e}" if not isinstance(s, str) else s)
+dpa_frame.columns = dpa_frame.columns.map(lambda s: f"{s:.1e} dpa" if not isinstance(s, str) else s)
 dpa_frame.style \
     .relabel_index([f"Trap D{i}" for i in range(1, 6)], axis=0) \
     .format("{:.2e}".format)
