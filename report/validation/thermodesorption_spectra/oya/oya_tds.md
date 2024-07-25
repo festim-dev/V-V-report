@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.2
+    jupytext_version: 1.16.3
 kernelspec:
   display_name: vv-festim-report-env
   language: python
@@ -81,40 +81,22 @@ model.sources = [source_term]
 # trap settings
 w_atom_density = 6.3e28  # atom/m3
 k_0 = tungsten.D_0 / (1.1e-10**2 * 6 * w_atom_density)
-density = 3.8e29
 damage_dist = 1 / (1 + sp.exp((F.x - 1e-06) / 2e-07))
 
 trap_1 = F.Trap(
     k_0=k_0,
     E_k=tungsten.E_D,
     p_0=1e13,
-    E_p=0.65,
-    density=density * damage_dist,
+    E_p=0.86,
+    density=1.4e-5 * w_atom_density,
     materials=tungsten,
 )
 
-trap_2 = F.Trap(
-    k_0=k_0,
-    E_k=tungsten.E_D,
-    p_0=1e13,
-    E_p=1.25,
-    density=density * damage_dist,
-    materials=tungsten,
-)
-
-trap_3 = F.Trap(
-    k_0=k_0,
-    E_k=tungsten.E_D,
-    p_0=1e13,
-    E_p=1.55,
-    density=density * damage_dist,
-    materials=tungsten
-)
-
-model.traps = [trap_2, trap_3]
+model.traps = [trap_1]
 
 # boundary conditions
 model.boundary_conditions = [F.DirichletBC(surfaces=[1, 2], value=0, field=0)]
+# model.boundary_conditions = [F.SievertsBC(surfaces=[1, 2], S_0=4.52e21, E_S=0.3, pressure=1e-8)]
 implantation_temp = 300  # K
 temperature_ramp = 0.5  # K/s
 
@@ -132,7 +114,7 @@ min_temp, max_temp = implantation_temp, 1173
 model.dt = F.Stepsize(
     initial_value=0.5,
     stepsize_change_ratio=1.1,
-    max_stepsize=lambda t: 2 if t > start_tds else None,
+    max_stepsize=lambda t: 5 if t >= start_tds else None,
     dt_min=1e-05,
     milestones=[start_tds],
 )
@@ -186,14 +168,14 @@ for cont in contributions:
     plt.fill_between(temp[1:], 0, cont, facecolor="grey", alpha=0.1)
 
 # plotting original data
-""" experimental_tds = np.genfromtxt(experimental_data_path[i], delimiter=",")
-experimental_temp = experimental_tds[:, 0]
-experimental_flux = experimental_tds[:, 1]
-axs[i].scatter(experimental_temp, experimental_flux, color="green", label="original", s=16) """
+experimental_tds = np.genfromtxt("oya_data.csv", delimiter=",", names=True)
+experimental_temp = experimental_tds["T"]
+experimental_flux = experimental_tds["flux"]
+plt.scatter(experimental_temp, experimental_flux, color="green", label="original", s=16)
 
 plt.legend()
 plt.xlim(min_temp, max_temp)
-#plt.ylim(top=2e17)
+plt.ylim(top=2e17)
 plt.ylabel(r"Desorption flux (m$^{-2}$ s$^{-1}$)")
 plt.xlabel(r"Temperature (K)")
 
