@@ -46,9 +46,9 @@ TODO
 #### Final Touches
 
 1. Add category tags by using the [\{tags\}](https://sphinx-tags.readthedocs.io/en/latest/quickstart.html#usage) directive below the case title as follows:
-
+    <!-- the "a" in "{tags}" is a homoglyph of the regular a, so that this page does not appear in the tag index -->
     ``````md
-    ```{tаgs} tag1, tag2    
+    ```{tаgs} tag1, tag2
     ```
     ``````
 
