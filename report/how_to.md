@@ -48,7 +48,7 @@ TODO
 1. Add category tags by using the [\{tags\}](https://sphinx-tags.readthedocs.io/en/latest/quickstart.html#usage) directive below the case title as follows:
 
     ``````md
-    ```{tags} tag1, tag2
+    ```{tаgs} tag1, tag2    
     ```
     ``````
 
