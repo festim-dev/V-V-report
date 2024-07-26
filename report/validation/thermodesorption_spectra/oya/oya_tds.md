@@ -81,9 +81,9 @@ model.sources = [source_term]
 # trap settings
 w_atom_density = 6.3e28  # atom/m3
 k_0 = tungsten.D_0 / (1.1e-10**2 * 6 * w_atom_density)
-damage_dist = 1 / (1 + sp.exp((F.x - 1e-06) / 2e-07))
+damage_dist = 1 / (1 + sp.exp((F.x - 1e-06) / 3e-08))
 
-trap_1 = F.Trap(
+intrinsic_trap = F.Trap(
     k_0=k_0,
     E_k=tungsten.E_D,
     p_0=1e13,
@@ -92,7 +92,21 @@ trap_1 = F.Trap(
     materials=tungsten,
 )
 
-model.traps = [trap_1]
+energies = [0.86, 1.25]
+densities = [2e-5, 7e-6]
+
+damage_induced_traps = [
+    F.Trap(
+        k_0=k_0,
+        E_k=tungsten.E_D,
+        p_0=1e13,
+        E_p=e,
+        density=d * w_atom_density,
+        materials=tungsten,
+    ) for e, d in zip(energies, densities)
+]
+
+model.traps = [intrinsic_trap] + damage_induced_traps
 
 # boundary conditions
 model.boundary_conditions = [F.DirichletBC(surfaces=[1, 2], value=0, field=0)]
@@ -149,6 +163,8 @@ The results produced by FESTIM are in good agreement with the experimental data.
 ```{code-cell} ipython3
 :tags: [hide-input]
 
+dpa_levels = [0, 0.0003] #0.03, 0.3, 1.0]
+
 t = derived_quantities.t
 flux_left = derived_quantities.filter(fields="solute", surfaces=1).data
 flux_right = derived_quantities.filter(fields="solute", surfaces=2).data
@@ -160,18 +176,23 @@ temp = implantation_temp + temperature_ramp * (t - start_tds)
 # plotting simulation data
 plt.plot(temp, flux_total, linewidth=3, label="FESTIM")
 
-# plotting trap contributions
+# color setup
+colors = [(0.9 * (i % 2), 0.2 * (i % 4), 0.4 * (i % 3)) for i in range(1, len(model.traps) + 1)]
+
+""" # plotting trap contributions
 traps = [derived_quantities.filter(fields=f"{i}").data for i in range(1, len(model.traps) + 1)]
 contributions = [-np.diff(trap) / np.diff(t) for trap in traps]
-for cont in contributions:
-    plt.plot(temp[1:], cont, linestyle="--", color="grey")
-    plt.fill_between(temp[1:], 0, cont, facecolor="grey", alpha=0.1)
+for i, cont in enumerate(contributions):
+    plt.plot(temp[1:], cont, linestyle="--", color=colors[i])
+    plt.fill_between(temp[1:], 0, cont, facecolor="grey", alpha=0.1) """
 
 # plotting original data
 experimental_tds = np.genfromtxt("oya_data.csv", delimiter=",", names=True)
-experimental_temp = experimental_tds["T"]
-experimental_flux = experimental_tds["flux"]
-plt.scatter(experimental_temp, experimental_flux, color="green", label="original", s=16)
+data = list(enumerate(zip(experimental_tds["T"], experimental_tds["flux"])))
+experiment_dpa = experimental_tds["dpa"]
+for j, dpa in enumerate(dpa_levels):
+    x, y = list(zip(*((T, flux) for (i, (T, flux)) in data if np.isclose(experiment_dpa[i], dpa))))
+    plt.scatter(x, y, color=colors[j], label=f"{dpa} dpa", s=16)
 
 plt.legend()
 plt.xlim(min_temp, max_temp)
