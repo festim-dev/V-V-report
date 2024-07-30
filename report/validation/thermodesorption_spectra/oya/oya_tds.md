@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.3
+    jupytext_version: 1.16.4
 kernelspec:
   display_name: vv-festim-report-env
   language: python
@@ -47,23 +47,28 @@ import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
 
-model = F.Simulation()
+energies = [0.87, 1, 1.4, 1.8, 1.2, 1.75]
+dpa_to_densities = {
+    0 : [],
+    0.0003 : [2e-4, 3e-5, 8e-5, 1e-7],
+    0.03 : [1.5e-4, 6e-5, 2e-4, 1.1e-4],
+    0.3 : [2.1e-4, 1.2e-4, 1.2e-4, 6e-4],
+    1 : [1e-5, 5e-4, 2.4e-4, 7e-4, 2e-4, 2.6e-4],
+}
 
+sample_depth = 5e-4
 vertices = np.concatenate([
-    np.linspace(0, 30e-9, num=600),
-    np.linspace(30e-9, 3e-6, num=300),
-    np.linspace(3e-6, 5e-4, num=200),
+    np.linspace(0, 30e-9, num=700),
+    np.linspace(30e-9, 3e-6, num=400),
+    np.linspace(3e-6, sample_depth, num=200),
 ])
 
-model.mesh = F.MeshFromVertices(vertices)
-# Material Setup, only W
 tungsten = F.Material(
     id=1,
-    D_0=2.9e-07,  # m2/s
+    D_0=4.2e-07,  # m2/s
     E_D=0.39,  # eV
 )
 
-model.materials = tungsten
 import sympy as sp
 
 imp_fluence = 5e21
@@ -77,83 +82,99 @@ source_term = F.ImplantationFlux(
     flux=ion_flux, imp_depth=10e-9, width=1e-9, volume=1  # H/m2/s  # m  # m
 )
 
-model.sources = [source_term]
-# trap settings
-w_atom_density = 6.3e28  # atom/m3
-k_0 = tungsten.D_0 / (1.1e-10**2 * 6 * w_atom_density)
-damage_dist = 1 / (1 + sp.exp((F.x - 1e-06) / 3e-08))
-
-intrinsic_trap = F.Trap(
-    k_0=k_0,
-    E_k=tungsten.E_D,
-    p_0=1e13,
-    E_p=0.86,
-    density=1.4e-5 * w_atom_density,
-    materials=tungsten,
-)
-
-energies = [0.86, 1.25]
-densities = [2e-5, 7e-6]
-
-damage_induced_traps = [
-    F.Trap(
-        k_0=k_0,
-        E_k=tungsten.E_D,
-        p_0=1e13,
-        E_p=e,
-        density=d * w_atom_density,
-        materials=tungsten,
-    ) for e, d in zip(energies, densities)
-]
-
-model.traps = [intrinsic_trap] + damage_induced_traps
-
-# boundary conditions
-model.boundary_conditions = [F.DirichletBC(surfaces=[1, 2], value=0, field=0)]
-# model.boundary_conditions = [F.SievertsBC(surfaces=[1, 2], S_0=4.52e21, E_S=0.3, pressure=1e-8)]
 implantation_temp = 300  # K
 temperature_ramp = 0.5  # K/s
-
 start_tds = imp_time + 50  # s
-
-model.T = F.Temperature(
-    value=sp.Piecewise(
-        (implantation_temp, F.t < start_tds),
-        (implantation_temp + temperature_ramp * (F.t - start_tds), True),
-    )
-)
 
 min_temp, max_temp = implantation_temp, 1173
 
-model.dt = F.Stepsize(
-    initial_value=0.5,
-    stepsize_change_ratio=1.1,
-    max_stepsize=lambda t: 5 if t >= start_tds else None,
-    dt_min=1e-05,
-    milestones=[start_tds],
-)
+def TDS(dpa):
+    model = F.Simulation()
 
-model.settings = F.Settings(
-    absolute_tolerance=1e10,
-    relative_tolerance=1e-09,
-    final_time=start_tds
-    + (max_temp - implantation_temp) / temperature_ramp,  # time to reach max temp
-)
+    model.mesh = F.MeshFromVertices(vertices)
+    model.materials = tungsten
+    model.sources = [source_term]
 
-derived_quantities = F.DerivedQuantities(
-    [
-        F.TotalVolume("solute", volume=1),
-        F.TotalVolume("retention", volume=1),
-        F.HydrogenFlux(surface=1),
-        F.HydrogenFlux(surface=2),
-    ] + 
-    [F.TotalVolume(f"{i + 1}", volume=1) for i in range(0,len(model.traps))]
-)
+    # trap settings
+    w_atom_density = 6.3e28  # atom/m3
+    k_0 = tungsten.D_0 / (1.1e-10**2 * 6 * w_atom_density)
 
-model.exports = [derived_quantities]
+    damage_depth = 1.1e-6
+    damage_dist = sp.Piecewise(
+        (1 , F.x <= damage_depth),
+        (0, True)
+    )
 
-model.initialise()
-model.run()
+    intrinsic_trap = F.Trap(
+        k_0=k_0,
+        E_k=tungsten.E_D,
+        p_0=1e13,
+        E_p=0.88,
+        density=1e-5 * w_atom_density,
+        materials=tungsten,
+    )
+
+    densities = dpa_to_densities[dpa]
+
+    damage_induced_traps = [
+        F.Trap(
+            k_0=k_0,
+            E_k=tungsten.E_D,
+            p_0=1e13,
+            E_p=e,
+            density=d * w_atom_density * damage_dist,
+            materials=tungsten,
+        ) for e, d in zip(energies, densities)
+    ]
+
+    model.traps = [intrinsic_trap] + damage_induced_traps
+
+    # boundary conditions
+    model.boundary_conditions = [F.DirichletBC(surfaces=[1, 2], value=0, field=0)]
+    model.boundary_conditions = [F.SievertsBC(surfaces=[1, 2], S_0=4.52e21, E_S=0.3, pressure=1e-8)]
+
+    model.T = F.Temperature(
+        value=sp.Piecewise(
+            (implantation_temp, F.t < start_tds),
+            (implantation_temp + temperature_ramp * (F.t - start_tds), True),
+        )
+    )
+
+    model.dt = F.Stepsize(
+        initial_value=0.5,
+        stepsize_change_ratio=1.2,
+        max_stepsize=lambda t: 10 if t >= start_tds else None,
+        dt_min=1e-05,
+        milestones=[start_tds],
+    )
+
+    model.settings = F.Settings(
+        absolute_tolerance=1e6,
+        relative_tolerance=1e-10,
+        final_time=start_tds
+        + (max_temp - implantation_temp) / temperature_ramp,  # time to reach max temp
+    )
+
+    derived_quantities = F.DerivedQuantities(
+        [
+            F.TotalVolume("solute", volume=1),
+            F.TotalVolume("retention", volume=1),
+            F.HydrogenFlux(surface=1),
+            F.HydrogenFlux(surface=2),
+        ] + 
+        [F.TotalVolume(f"{i + 1}", volume=1) for i in range(0,len(model.traps))]
+    )
+
+    model.exports = [derived_quantities]
+
+    model.initialise()
+    model.run()
+
+    return derived_quantities
+
+dpa_to_dq = {}
+for dpa in dpa_to_densities:
+    dpa_to_dq[dpa] = TDS(dpa)
 ```
 
 ## Comparison with experimental data
@@ -163,40 +184,45 @@ The results produced by FESTIM are in good agreement with the experimental data.
 ```{code-cell} ipython3
 :tags: [hide-input]
 
-dpa_levels = [0, 0.0003] #0.03, 0.3, 1.0]
-
-t = derived_quantities.t
-flux_left = derived_quantities.filter(fields="solute", surfaces=1).data
-flux_right = derived_quantities.filter(fields="solute", surfaces=2).data
-flux_total = -np.array(flux_left) - np.array(flux_right)
-
-t = np.array(t)
-temp = implantation_temp + temperature_ramp * (t - start_tds)
-
-# plotting simulation data
-plt.plot(temp, flux_total, linewidth=3, label="FESTIM")
-
-# color setup
-colors = [(0.9 * (i % 2), 0.2 * (i % 4), 0.4 * (i % 3)) for i in range(1, len(model.traps) + 1)]
-
 """ # plotting trap contributions
 traps = [derived_quantities.filter(fields=f"{i}").data for i in range(1, len(model.traps) + 1)]
 contributions = [-np.diff(trap) / np.diff(t) for trap in traps]
 for i, cont in enumerate(contributions):
-    plt.plot(temp[1:], cont, linestyle="--", color=colors[i])
+    plt.plot(temp[1:], cont, linestyle="--", color=colors[i], label=f"trap{i}")
     plt.fill_between(temp[1:], 0, cont, facecolor="grey", alpha=0.1) """
 
-# plotting original data
+dpa_values = dpa_to_densities.keys()
+
+# color setup
+colors = [(0.9 * (i % 2), 0.2 * (i % 4), 0.4 * (i % 3)) for i in range(1, len(dpa_values) + 1)]
+
 experimental_tds = np.genfromtxt("oya_data.csv", delimiter=",", names=True)
 data = list(enumerate(zip(experimental_tds["T"], experimental_tds["flux"])))
 experiment_dpa = experimental_tds["dpa"]
-for j, dpa in enumerate(dpa_levels):
+
+for j, dpa in enumerate(dpa_values):
+
+    # plotting simulation data
+    derived_quantities = dpa_to_dq[dpa]
+
+    t = np.array(derived_quantities.t)
+    
+    flux_left = derived_quantities.filter(fields="solute", surfaces=1).data
+    flux_right = derived_quantities.filter(fields="solute", surfaces=2).data
+    flux_total = -np.array(flux_left) - np.array(flux_right)
+
+    temp = implantation_temp + temperature_ramp * (t - start_tds)
+
+    plt.plot(temp, flux_total, linewidth=3, label="FESTIM", color=colors[j])
+
+
+    # plot experimental
     x, y = list(zip(*((T, flux) for (i, (T, flux)) in data if np.isclose(experiment_dpa[i], dpa))))
     plt.scatter(x, y, color=colors[j], label=f"{dpa} dpa", s=16)
 
 plt.legend()
 plt.xlim(min_temp, max_temp)
-plt.ylim(top=2e17)
+plt.ylim(bottom=0, top=2e17)
 plt.ylabel(r"Desorption flux (m$^{-2}$ s$^{-1}$)")
 plt.xlabel(r"Temperature (K)")
 
