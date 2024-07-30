@@ -297,7 +297,7 @@ This table displays the neutron-induced traps' detrapping energy $E_p$ and their
 
 dpa_no_zero = dpa_n_i | {}
 dpa_no_zero.pop(0)
-data = {"E_p" : detrapping_energies} | dpa_no_zero
+data = {"E_p (eV)" : detrapping_energies} | dpa_no_zero
 dpa_frame = pd.DataFrame(data)
 
 dpa_frame.columns = dpa_frame.columns.map(lambda s: f"{s:.1e} dpa" if not isinstance(s, str) else s)
