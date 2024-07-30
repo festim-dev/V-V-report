@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.2
+    jupytext_version: 1.16.4
 kernelspec:
   display_name: vv-festim-report-env
   language: python
@@ -47,11 +47,14 @@ import matplotlib.pyplot as plt
 
 model = F.Simulation()
 
+sample_depth = 5e-4
+
 vertices = np.concatenate(
     [
         np.linspace(0, 30e-9, num=200),
         np.linspace(30e-9, 3e-6, num=300),
         np.linspace(3e-6, 20e-6, num=200),
+        np.linspace(20e-6, sample_depth, num=100)
     ]
 )
 
