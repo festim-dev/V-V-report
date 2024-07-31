@@ -290,7 +290,7 @@ The experimental data was taken from {cite}`dark_modelling_2024_code`.
 
 ### Damage-induced trap parameters
 
-This table displays the neutron-induced traps' detrapping energy $E_p$ and their density per dpa dose.
+This table displays the neutron-induced traps' detrapping energy $E_p$ and their density per dpa dose in $m^{-3}$.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
