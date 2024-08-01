@@ -14,6 +14,7 @@ dependencies:
   - sphinx
   - sympy
   - fenics
+  - mpich
   - numpy=1.24
   - ipython=8.23
   - scipy
