@@ -14,14 +14,14 @@ parts:
       - file: verification/methods
       - file: verification/cases
         sections:
-        - file: verification/depleting_source
+        - file: verification/mes/depleting_source
         - file: verification/mms/simple
         - file: verification/mms/simple_transient
         - file: verification/mms/fluxes
         - file: verification/mms/discontinuity
         - file: verification/mms/trapping
         - file: verification/mms/heat_transfer
-        - file: verification/mes_radioactive_decay
+        - file: verification/mes/radioactive_decay
         - file: verification/mms/radioactive_decay
         - file: verification/mms/soret
         - file: verification/mms/simple_temperature

@@ -49,6 +49,7 @@ import festim as F
 import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
+import pandas as pd
 
 # # ### Parameters ###
 D_0 = 1.6e-7  # m^2 s^-1
@@ -283,4 +284,24 @@ plt.show()
 
 ```{note}
 The experimental data was taken from {cite}`dark_modelling_2024_code`.
+```
+
+## Trap Parameters
+
+### Damage-induced trap parameters
+
+This table displays the neutron-induced traps' detrapping energy $E_p$ and their density per dpa dose in $m^{-3}$.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+
+dpa_no_zero = dpa_n_i | {}
+dpa_no_zero.pop(0)
+data = {"E_p (eV)" : detrapping_energies} | dpa_no_zero
+dpa_frame = pd.DataFrame(data)
+
+dpa_frame.columns = dpa_frame.columns.map(lambda s: f"{s:.1e} dpa" if not isinstance(s, str) else s)
+dpa_frame.style \
+    .relabel_index([f"Trap D{i}" for i in range(1, 6)], axis=0) \
+    .format("{:.2e}".format)
 ```
