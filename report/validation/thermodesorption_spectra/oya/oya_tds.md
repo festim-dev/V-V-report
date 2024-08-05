@@ -47,13 +47,13 @@ import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
 
-energies = [0.87, 1, 1.4, 1.8, 1.2, 1.75]
+energies = [0.87, 1, 1.15, 1.35, 1.73, 1.9]
 dpa_to_densities = {
     0 : [],
-    0.0003 : [2e-4, 3e-5, 8e-5, 1e-7],
-    0.03 : [1.5e-4, 6e-5, 2e-4, 1.1e-4],
-    0.3 : [2.1e-4, 1.2e-4, 1.2e-4, 6e-4],
-    1 : [1e-5, 5e-4, 2.4e-4, 7e-4, 2e-4, 2.6e-4],
+    0.0003 : [1.8e-4, 0,      2.9e-5, 7.5e-5, 0,      0],
+    0.03   : [8.3e-5, 6.0e-5, 3.8e-5, 1.9e-4, 1.2e-4, 0],
+    0.3    : [6.5e-5, 1.0e-4, 1.2e-4, 1.8e-4, 2.7e-4, 5.1e-4],
+    1      : [1.0e-5, 5.0e-4, 2.3e-4, 1.7e-4, 4.1e-4, 6.1e-4],
 }
 
 sample_depth = 5e-4
@@ -61,12 +61,13 @@ vertices = np.concatenate([
     np.linspace(0, 30e-9, num=700),
     np.linspace(30e-9, 3e-6, num=400),
     np.linspace(3e-6, sample_depth, num=200),
-])
+])      
 
+# TODO: try with James' diffusivity
 tungsten = F.Material(
     id=1,
-    D_0=4.2e-07,  # m2/s
-    E_D=0.39,  # eV
+    D_0=4.1e-07, # m2/s
+    E_D=0.39, # eV
 )
 
 import sympy as sp
@@ -109,8 +110,8 @@ def TDS(dpa):
         k_0=k_0,
         E_k=tungsten.E_D,
         p_0=1e13,
-        E_p=0.88,
-        density=1e-5 * w_atom_density,
+        E_p=0.85,
+        density=1.2e-5* w_atom_density,
         materials=tungsten,
     )
 
@@ -131,8 +132,9 @@ def TDS(dpa):
 
     # boundary conditions
     model.boundary_conditions = [F.DirichletBC(surfaces=[1, 2], value=0, field=0)]
-    model.boundary_conditions = [F.SievertsBC(surfaces=[1, 2], S_0=4.52e21, E_S=0.3, pressure=1e-8)]
-
+    # SiervertsBC doesn't change the result much, and the pressure isn't specified
+    # model.boundary_conditions = [F.SievertsBC(surfaces=[1, 2], S_0=4.52e21, E_S=0.3, pressure=1e-8)]
+    
     model.T = F.Temperature(
         value=sp.Piecewise(
             (implantation_temp, F.t < start_tds),
@@ -162,7 +164,8 @@ def TDS(dpa):
             F.HydrogenFlux(surface=1),
             F.HydrogenFlux(surface=2),
         ] + 
-        [F.TotalVolume(f"{i + 1}", volume=1) for i in range(0,len(model.traps))]
+        [F.TotalVolume(f"{i + 1}", volume=1) for i, _ in enumerate(model.traps)],
+        show_units=True
     )
 
     model.exports = [derived_quantities]
@@ -175,6 +178,17 @@ def TDS(dpa):
 dpa_to_dq = {}
 for dpa in dpa_to_densities:
     dpa_to_dq[dpa] = TDS(dpa)
+```
+
+```{code-cell} ipython3
+for col in range(5):
+    densities = []
+    for dpa in dpa_to_densities:
+        if(dpa==0):
+            continue
+        densities.append(dpa_to_densities[dpa][col])
+    plt.plot(list(dpa_to_densities.keys())[1:],densities, label=col)
+plt.legend()
 ```
 
 ## Comparison with experimental data
@@ -199,7 +213,7 @@ colors = [(0.9 * (i % 2), 0.2 * (i % 4), 0.4 * (i % 3)) for i in range(1, len(dp
 experimental_tds = np.genfromtxt("oya_data.csv", delimiter=",", names=True)
 data = list(enumerate(zip(experimental_tds["T"], experimental_tds["flux"])))
 experiment_dpa = experimental_tds["dpa"]
-
+    
 for j, dpa in enumerate(dpa_values):
 
     # plotting simulation data
