@@ -12,14 +12,14 @@ kernelspec:
   name: python3
 ---
 
-# Deuterium retention in tungsten
+# Deuterium retention in Fe-damaged tungsten
 
 ```{tags} 1D, TDS, trapping, transient
 ```
 
 This validation case is a thermo-desorption spectrum measurement perfomed by Oya et al. {cite}`oya_thermal_2015`.
 
-Deuterium ions at 500 eV were implanted in a 0.5 mm thick sample of tungsten.
+Deuterium ions at 500 eV were implanted in a 0.5 mm thick sample of tungsten damaged by Fe ions at different _dpa_ doses.
 
 The ion beam with an incident flux of $1.0 \times 10^{18} \ \mathrm{D \ m^{-2} \ s^{-1}}$ was turned on for 5000 s which corresponds to a fluence of $5.0 \times 10^{21} \ \mathrm{D \ m^{-2}}$
 
