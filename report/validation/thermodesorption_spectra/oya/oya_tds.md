@@ -47,13 +47,13 @@ import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
 
-energies = [0.87, 1, 1.15, 1.35, 1.73, 1.9]
+energies = [0.87, 1.0, 1.2, 1.35, 1.55, 1.73, 1.9]
 dpa_to_densities = {
     0 : [],
-    0.0003 : [1.8e-4, 0,      2.9e-5, 7.5e-5, 0,      0],
-    0.03   : [8.3e-5, 6.0e-5, 3.8e-5, 1.9e-4, 1.2e-4, 0],
-    0.3    : [6.5e-5, 1.0e-4, 1.2e-4, 1.8e-4, 2.7e-4, 5.1e-4],
-    1      : [1.0e-5, 5.0e-4, 2.3e-4, 1.7e-4, 4.1e-4, 6.1e-4],
+    0.0003 : [1.8e-4, 0,      2.9e-5, 7.5e-5, 0,    0,      0],
+    0.03   : [8.8e-5, 6.0e-5, 3.8e-5, 1.3e-4, 8.0e-5, 1.2e-4, 0],
+    0.3    : [8.4e-5, 2.2e-4, 9.0e-5, 1.5e-4, 1.5e-4, 2.2e-4, 4.8e-4],
+    1      : [8.5e-5, 5.2e-4, 2.8e-4, 2.2e-4, 2.4e-4, 3.4e-4, 5.9e-4],          
 }
 
 sample_depth = 5e-4
@@ -85,7 +85,7 @@ source_term = F.ImplantationFlux(
 
 implantation_temp = 300  # K
 temperature_ramp = 0.5  # K/s
-start_tds = imp_time + 50  # s
+start_tds = imp_time + 60  # s
 
 min_temp, max_temp = implantation_temp, 1173
 
@@ -151,7 +151,7 @@ def TDS(dpa):
     )
 
     model.settings = F.Settings(
-        absolute_tolerance=1e6,
+        absolute_tolerance=1e7,
         relative_tolerance=1e-10,
         final_time=start_tds
         + (max_temp - implantation_temp) / temperature_ramp,  # time to reach max temp
@@ -181,13 +181,13 @@ for dpa in dpa_to_densities:
 ```
 
 ```{code-cell} ipython3
-for col in range(5):
+for col, energy in enumerate(energies):
     densities = []
     for dpa in dpa_to_densities:
-        if(dpa==0):
+        if(dpa == 0):
             continue
         densities.append(dpa_to_densities[dpa][col])
-    plt.plot(list(dpa_to_densities.keys())[1:],densities, label=col)
+    plt.plot(list(dpa_to_densities.keys())[1:],densities, label=energies[col])
 plt.legend()
 ```
 
@@ -210,17 +210,17 @@ dpa_values = dpa_to_densities.keys()
 # color setup
 colors = [(0.9 * (i % 2), 0.2 * (i % 4), 0.4 * (i % 3)) for i in range(1, len(dpa_values) + 1)]
 
-experimental_tds = np.genfromtxt("oya_data.csv", delimiter=",", names=True)
+experimental_tds = np.genfromtxt("oya_data.csv", delimiter=",", names=True)                                     
 data = list(enumerate(zip(experimental_tds["T"], experimental_tds["flux"])))
 experiment_dpa = experimental_tds["dpa"]
     
 for j, dpa in enumerate(dpa_values):
 
     # plotting simulation data
-    derived_quantities = dpa_to_dq[dpa]
+    derived_quantities = dpa_to_dq[dpa]         
 
     t = np.array(derived_quantities.t)
-    
+
     flux_left = derived_quantities.filter(fields="solute", surfaces=1).data
     flux_right = derived_quantities.filter(fields="solute", surfaces=2).data
     flux_total = -np.array(flux_left) - np.array(flux_right)
