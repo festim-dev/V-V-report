@@ -240,3 +240,25 @@ plt.show()
 ```{note}
 The experimental data was taken from Figure 3 of the original experiment paper {cite}`oya_thermal_2015` using [WebPlotDigitizer](https://automeris.io/)
 ```
+
+## Trap Parameters
+
+### Damage-induced trap parameters
+
+This table displays the neutron-induced traps' detrapping energy $E_p$ and their density per dpa dose in $m^{-3}$.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+
+import pandas as pd
+
+dpa_no_zero = dpa_to_densities | {}
+dpa_no_zero.pop(0)
+data = {"E_p (eV)" : energies} | dpa_no_zero
+dpa_frame = pd.DataFrame(data)
+
+dpa_frame.columns = dpa_frame.columns.map(lambda s: f"{s:.1e} dpa" if not isinstance(s, str) else s)
+dpa_frame.style \
+    .relabel_index([f"Trap D{i}" for i,_ in enumerate(energies, 1)], axis=0) \
+    .format("{:.2e}".format)
+```
