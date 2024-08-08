@@ -17,23 +17,15 @@ kernelspec:
 ```{tags} 1D, TDS, trapping, transient
 ```
 
-This validation case is a thermo-desorption spectrum measurement perfomed by Ogorodnikova et al. {cite}`ogorodnikova_deuterium_2003`.
+This validation case is a thermo-desorption spectrum measurement perfomed by Oya et al. {cite}`oya_thermal_2015`.
 
 Deuterium ions at 500 eV were implanted in a 0.5 mm thick sample of tungsten.
 
-For the first case, the ion beam with an incident flux of $2.5 \times 10^{19} \ \mathrm{D \ m^{-2} \ s^{-1}}$ was turned on for 400 s which corresponds to a fluence of $1.0 \times 10^{22} \ \mathrm{D \ m^{-2}}$
-
-For the second case, the ion beam was turned on for 4000 s which corresponds to a fluence of $1.0 \times 10^{23} \ \mathrm{D \ m^{-2}}$
+The ion beam with an incident flux of $1.0 \times 10^{18} \ \mathrm{D \ m^{-2} \ s^{-1}}$ was turned on for 5000 s which corresponds to a fluence of $5.0 \times 10^{21} \ \mathrm{D \ m^{-2}}$
 
 The diffusivity of tungsten in the FESTIM model is as measured by Frauenfelder {cite}`frauenfelder_permeation_1968`.
 
-To reproduce this experiment, three traps are needed: 2 intrinsic traps and 1 extrinsic trap.
-The extrinsic trap represents the defects created during the ion implantation.
-
-The time evolution of extrinsic traps density $n_i$ expressed in $\text{m}^{-3}$ is defined as:
-\begin{equation}
-    \frac{dn_i}{dt} = \varphi_0\:\left[\left(1-\frac{n_i}{n_{a_{max}}}\right)\:\eta_a \:f_a(x)+\left(1-\frac{n_i}{n_{b_{max}}}\right)\:\eta_b \:f_b(x)\right]
-\end{equation}
+To reproduce this experiment, eight traps are needed: 1 intrinsic trap and 7 damage-induced traps.
 
 +++
 
@@ -76,6 +68,8 @@ imp_fluence = 5e21
 incident_flux = 1e18  # beam strength from paper
 
 imp_time = imp_fluence / incident_flux  # s
+
+print(imp_time)
 
 ion_flux = sp.Piecewise((incident_flux, F.t <= imp_time), (0, True))
 
@@ -193,7 +187,7 @@ plt.legend()
 
 ## Comparison with experimental data
 
-The results produced by FESTIM are in good agreement with the experimental data. The grey areas represent the contribution of each trap to the global TDS spectrum.
+The results produced by FESTIM are in good agreement with the experimental data.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
@@ -244,5 +238,5 @@ plt.show()
 ```
 
 ```{note}
-The experimental data was taken from Figure 5 of the original experiment paper {cite}`ogorodnikova_deuterium_2003` using [WebPlotDigitizer](https://automeris.io/)
+The experimental data was taken from Figure 3 of the original experiment paper {cite}`oya_thermal_2015` using [WebPlotDigitizer](https://automeris.io/)
 ```
