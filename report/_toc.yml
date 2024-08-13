@@ -28,6 +28,7 @@ parts:
         - file: verification/mes/tmap_1b
         - file: verification/mes/tmap_1c
         - file: verification/mes/tmap_1da
+        - file: verification/mes/tmap_1db
   - caption: Validation
     chapters:
       - file: validation/plasma-driven-permeation/plasma-driven-permeation
