@@ -52,12 +52,13 @@ This analytical solution was obtained from TMAP7's V&V report {cite}`ambrosek_ve
 
 ```{code-cell} ipython3
 :tags: [hide-cell]
+
 import festim as F
 import numpy as np
 import scipy.constants as const
 import matplotlib.pyplot as plt
 
-l = 1e-3
+l = 0.1e-3
 D_0 = 1.9e-7
 T = 1000
 n_t = 1e-3
@@ -65,42 +66,44 @@ w_atom_density = 6.3382e28
 N_A = const.N_A
 
 my_model = F.Simulation()
-my_model.mesh = F.MeshFromVertices(
-    vertices=np.linspace(0, l, num=1001)
+vertices = np.concatenate(
+    [np.linspace(0, 0.9 * l, num=200), np.linspace(0.9 * l, l, num=100)]
 )
-my_model.materials = [F.Material(id=1, D_0=D_0, E_D=0.2)]
-my_model.T = F.Temperature(value=T)
+my_model.mesh = F.MeshFromVertices(vertices)
+my_model.materials = F.Material(id=1, D_0=D_0, E_D=0.2)
+my_model.T = T
 
 my_model.boundary_conditions = [
-    F.DirichletBC(surfaces=1, value=0.0088*N_A,field=0),
-    F.DirichletBC(surfaces=2, value=0, field=0)
+    F.DirichletBC(surfaces=1, value=0.0088 * N_A, field=0),
+    F.DirichletBC(surfaces=2, value=0, field=0),
 ]
 
 trap = F.Trap(
-    k_0=1.58e7/N_A,
+    k_0=1.58e7 / N_A,
     E_k=0.2,
     p_0=1e13,
     E_p=2.5,
-    density=n_t*w_atom_density,
-    materials=my_model.materials.materials[0]
+    density=n_t * w_atom_density,
+    materials=my_model.materials[0],
 )
 
 my_model.traps = [trap]
 my_model.settings = F.Settings(
     absolute_tolerance=1e10,
     relative_tolerance=1e-10,
-    final_time=1e6  # s
+    final_time=4000,  # s
 )
 
-my_model.dt = F.Stepsize(initial_value=1E-2,
+my_model.dt = F.Stepsize(
+    initial_value=1e-3,
     dt_min=1e-3,
     stepsize_change_ratio=1.1,
-    max_stepsize= lambda t : 250 if t >= 1.5e5 else None
+    max_stepsize=lambda t: 1 if 3250 >= t >= 3100 else None,
 )
 
 derived_quantities = F.DerivedQuantities([F.HydrogenFlux(surface=2)], show_units=True)
 
-my_model.exports = [derived_quantities]
+my_model.exports = [derived_quantities, F.XDMFExport("1", checkpoint=False)]
 
 my_model.initialise()
 my_model.run()
@@ -110,6 +113,7 @@ my_model.run()
 
 ```{code-cell} ipython3
 :tags: [hide-input]
+
 times = derived_quantities.t
 computed_flux = derived_quantities.filter(surfaces=2).data
 
@@ -126,8 +130,9 @@ plt.axvline(x=time_exact, color="r", label="analytical")
 plt.ylim(bottom=0)
 plt.xlabel("Time (s)")
 plt.ylabel("Downstream flux (H2/m2/s)")
-plt.ylim([1e-6, 0.5e17])
-plt.xlim([3e5, 3.4e5])
+# plt.ylim([1e-6, 0.5e17])
+plt.xlim([3000, 3500])
 
 plt.legend()
+plt.show()
 ```
