@@ -12,13 +12,13 @@ kernelspec:
   name: python3
 ---
 
-# Simple non-cartesian diffusion cases
+# Simple cylindrical case
 
-```{tags} 2D, MMS, steady state, cylindrical, spherical
+```{tags} 2D, MMS, steady state, cylindrical
 ```
 
-This is a simple MMS example on both cylindrical and spherical meshes.
-We will only consider diffusion of hydrogen in a unit disk domain $\Omega$ at steady state with an homogeneous diffusion coefficient $D$.
+This is a simple MMS example on a cylindrical mesh.
+We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with an homogeneous diffusion coefficient $D$.
 Moreover, a Dirichlet boundary condition will be assumed on the boundaries $\partial \Omega $.
 
 The problem is therefore:
@@ -62,9 +62,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Create and mark the mesh
-R = 1.0
 nx = ny = 100
-fenics_mesh = f.RectangleMesh(f.Point(0, 0), f.Point(R, 2 * np.pi), nx, ny)
+fenics_mesh = f.UnitSquareMesh(nx, ny)
 
 volume_markers = f.MeshFunction("size_t", fenics_mesh, fenics_mesh.topology().dim())
 volume_markers.set_all(1)
@@ -132,17 +131,14 @@ c_exact = f.Expression(sp.printing.ccode(exact_solution), degree=4)
 c_exact = f.project(c_exact, f.FunctionSpace(fenics_mesh, "CG", 1))
 
 cylindrical_solution = run_model("cylindrical")
-spherical_solution = run_model("spherical")
 
 E_cyl = f.errornorm(cylindrical_solution, c_exact, "L2")
-E_sph = f.errornorm(spherical_solution, c_exact, "L2")
 print(f"L2 error, cylindrical: {E_cyl:.2e}")
-print(f"L2 error, spherical: {E_sph:.2e}")
 
 # plot exact solution and computed solution
 fig, axs = plt.subplots(
     1,
-    4,
+    3,
     figsize=(15, 5),
     sharey=True,
 )
@@ -150,29 +146,21 @@ fig, axs = plt.subplots(
 plt.sca(axs[0])
 plt.title("Exact solution")
 plt.xlabel("r")
-plt.ylabel("$\\theta$")
+plt.ylabel("z")
 CS1 = f.plot(c_exact, cmap="inferno")
-plt.gca().set_aspect(1 / (2 * np.pi)) # TODO: change this
 plt.sca(axs[1])
 plt.xlabel("r")
 plt.title("Cylindrical solution")
 CS2 = f.plot(cylindrical_solution, cmap="inferno")
-plt.gca().set_aspect(1 / (2 * np.pi)) # TODO: change this
-plt.sca(axs[2])
-plt.xlabel("r")
-plt.title("Spherical solution")
-CS3 = f.plot(spherical_solution, cmap="inferno")
-plt.gca().set_aspect(1 / (2 * np.pi)) # TODO: change this
 
 plt.colorbar(CS1, ax=[axs[0]], shrink=0.8)
 plt.colorbar(CS2, ax=[axs[1]], shrink=0.8)
-plt.colorbar(CS3, ax=[axs[2]], shrink=0.8)
 
 # axs[0].sharey(axs[1])
 plt.setp(axs[1].get_yticklabels(), visible=False)
 plt.setp(axs[2].get_yticklabels(), visible=False)
 
-for CS in [CS1, CS2, CS3]:
+for CS in [CS1, CS2]:
     CS.set_edgecolor("face")
 
 
@@ -188,9 +176,9 @@ def compute_arc_length(xs, ys):
 
 # define the profiles
 profiles = [
-    {"start": (0.0, 0.0), "end": (1.0, 2 * np.pi)},
-    {"start": (0.2, 2 * np.pi / 3), "end": (0.7, np.pi)},
-    {"start": (0.5, 1), "end": (0.8, 4)},
+    {"start": (0.0, 0.0), "end": (1.0, 1.0)},
+    {"start": (0.2, 0.8), "end": (0.7, 0.2)},
+    {"start": (0.2, 0.6), "end": (0.8, 0.8)},
 ]
 
 # plot the profiles on the right subplot
