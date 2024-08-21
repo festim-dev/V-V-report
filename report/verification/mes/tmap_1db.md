@@ -119,11 +119,11 @@ computed_flux = derived_quantities.filter(surfaces=2).data
 
 plt.plot(times, np.abs(computed_flux) / 2, label="FESTIM")
 
-D = D_0 * np.exp(-0.2 / F.k_B / T)
+D_eff = D_0 * np.exp(-0.2 / F.k_B / T)
 S = 2.9e-5 * np.exp(-1 / F.k_B / T)
 c0m = np.sqrt(1e5) * S * 1.0525e5
 
-time_exact = l**2 * n_t / (2 * c0m * D) * w_atom_density / N_A
+time_exact = l**2 * n_t / (2 * c0m * D_eff) * w_atom_density / N_A
 
 plt.axvline(x=time_exact, color="r", label="analytical")
 
