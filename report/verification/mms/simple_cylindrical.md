@@ -18,7 +18,7 @@ kernelspec:
 ```
 
 This is a simple MMS example on a cylindrical mesh.
-We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with an homogeneous diffusion coefficient $D$.
+We will only consider diffusion of hydrogen in a unit square domain $\Omega$ s.t. $r \in [1, 2]$ and $z \in [0, 1]$ at steady state with a homogeneous diffusion coefficient $D$.
 Moreover, a Dirichlet boundary condition will be assumed on the boundaries $\partial \Omega $.
 
 The problem is therefore:
@@ -63,7 +63,7 @@ import numpy as np
 
 # Create and mark the mesh
 nx = ny = 100
-fenics_mesh = f.UnitSquareMesh(nx, ny)
+fenics_mesh = f.RectangleMesh(f.Point(1, 0), f.Point(2, 1), nx, ny)
 
 volume_markers = f.MeshFunction("size_t", fenics_mesh, fenics_mesh.topology().dim())
 volume_markers.set_all(1)
@@ -140,7 +140,6 @@ fig, axs = plt.subplots(
     1,
     3,
     figsize=(15, 5),
-    sharey=True,
 )
 
 plt.sca(axs[0])
@@ -176,9 +175,9 @@ def compute_arc_length(xs, ys):
 
 # define the profiles
 profiles = [
-    {"start": (0.0, 0.0), "end": (1.0, 1.0)},
-    {"start": (0.2, 0.8), "end": (0.7, 0.2)},
-    {"start": (0.2, 0.6), "end": (0.8, 0.8)},
+    {"start": (1.0, 0.0), "end": (2.0, 1.0)},
+    {"start": (1.2, 0.8), "end": (1.7, 0.2)},
+    {"start": (1.2, 0.6), "end": (1.8, 0.8)},
 ]
 
 # plot the profiles on the right subplot
