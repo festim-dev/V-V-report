@@ -28,7 +28,7 @@ $$
     & \nabla \cdot (D \ \nabla{c}) = -S  \quad \text{on }  \Omega  \\
     & c = c_0 \quad \text{on }  \partial \Omega
 \end{align}
-$$(problem_simple_cylindrical)
+$$(problem_simple_soret_cylindrical)
 
 The exact solution for mobile concentration is:
 
@@ -36,9 +36,9 @@ $$
 \begin{equation}
     c_\mathrm{exact} = 1 + r^2
 \end{equation}
-$$(c_exact_simple_cylindrical)
+$$(c_exact_simple_soret_cylindrical)
 
-Injecting {eq}`c_exact_simple_cylindrical` in {eq}`problem_simple_cylindrical`, we obtain the expressions of $S$ and $c_0$:
+Injecting {eq}`c_exact_simple_soret_cylindrical` in {eq}`problem_simple_soret_cylindrical`, we obtain the expressions of $S$ and $c_0$:
 
 $$
 \begin{align}
