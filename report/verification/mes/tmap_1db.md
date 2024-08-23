@@ -22,14 +22,14 @@ This verification case consists of a slab of depth $l = 1 \times 10^{-3} \ \math
 A trapping parameter $\zeta$ is defined by
 
 $$
-    \zeta = \frac{\lambda ^ 2 \nu}{D_0 \rho} \exp \left(\frac{E_k - E_p}{k_B T}\right) + \frac{c_m}{\rho}
+    \zeta = \frac{\lambda ^ 2 \nu}{D_0 \rho} \exp \left(\frac{E_k - E_p}{k_B T}\right) + \frac{c_m}{n}
 $$
 
 where
 
 $\lambda \ \mathrm{(m)}$ is the lattice parameter, \
-$\nu \ (\mathrm{s}^{-1})$, \
-$\rho$ is the trapping site fraction, \
+$\nu \ (\mathrm{s}^{-1})$, the Debye frequency \
+$n$ is the trapping site fraction, \
 $c_m (\text{atom} \ \mathrm{m}^{-3})$ is the mobile atom concentration,
 
 and the effective diffusivity $\mathrm{D_\text{eff}}$ is defined by
