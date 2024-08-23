@@ -82,7 +82,7 @@ boundary = Boundary()
 boundary.mark(surface_markers, 1)
 
 r = F.x
-exact_solution = r**2
+exact_solution = 1 + r**2
 D = 2
 
 
