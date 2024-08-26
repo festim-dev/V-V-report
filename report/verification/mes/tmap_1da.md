@@ -28,7 +28,7 @@ $$
 where
 
 $\lambda \ \mathrm{(m)}$ is the lattice parameter, \
-$\nu \ (\mathrm{s}^{-1})$, \
+$\nu \ (\mathrm{s}^{-1})$, the Debye frequency \
 $\rho$ is the trapping site fraction, \
 $c_m (\text{atom} \ \mathrm{m}^{-3})$ is the mobile atom concentration,
 
