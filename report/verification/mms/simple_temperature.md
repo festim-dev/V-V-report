@@ -14,7 +14,7 @@ kernelspec:
 
 # Simple diffusion with varying temperature
 
-```{tags} 2D, MMS
+```{tags} 2D, MMS, steady state
 ```
 
 This is an extension of the [simple MMS](./simple.md) example with a non-homogenous temperature gradient.
