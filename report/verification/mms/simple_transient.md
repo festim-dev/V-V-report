@@ -39,6 +39,10 @@ $$
 \end{equation}
 $$(c_exact_simple_transient)
 
+```{note}
+We use a manufactured solution that varies linearly with time ($t^1$), as the backward Euler scheme provides an exact solution in this case.
+```
+
 Injecting {eq}`c_exact_simple_transient` in {eq}`problem_simple_transient`, we obtain the expressions of $S$, $c_0$, and $c_\mathrm{initial}$:
 
 \begin{align}
