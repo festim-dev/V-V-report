@@ -26,7 +26,10 @@ parts:
         sections:
           - file: verification/mes/radioactive_decay
           - file: verification/mms/radioactive_decay
-      - file: verification/mms/soret
+      - file: verification/soret
+        sections:
+          - file: verification/mms/soret
+          - file: verification/mms/soret_cylindrical
       - file: verification/tmap
         sections:
           - file: verification/mes/depleting_source
