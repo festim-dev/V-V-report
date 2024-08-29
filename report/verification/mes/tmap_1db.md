@@ -29,8 +29,8 @@ where
 
 $\lambda \ \mathrm{(m)}$ is the lattice parameter, \
 $\nu \ (\mathrm{s}^{-1})$, the Debye frequency \
-$n$ is the trapping site fraction, \
-$c_m (\text{atom} \ \mathrm{m}^{-3})$ is the mobile atom concentration,
+$n \ (\mathrm{s}^{-1})$ is the trapping site fraction, \
+$c_\mathrm{m} \ (\text{H} \ \mathrm{m}^{-3})$ is the mobile concentration,
 
 and the effective diffusivity $\mathrm{D_\text{eff}}$ is defined by
 

@@ -15,7 +15,7 @@ kernelspec:
 
 # Diffusion from a Depleting Source
 
-```{tags} 2D, MES, transient
+```{tags} 1D, MES, transient
 ```
 
 This verification case {cite}`ambrosek_verification_2008` consists of an enclosure containing an initial quantity of hydrogen gas (at an initial pressure $P_0$).

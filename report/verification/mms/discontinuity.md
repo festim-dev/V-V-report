@@ -27,7 +27,11 @@ Two exact solutions for mobile concentration of hydrogen are manufactured for bo
     c_\mathrm{right,exact} &= \dfrac{K_{S,\mathrm{right}}}{K_{S,\mathrm{left}}} \ c_\mathrm{left,exact}
 \end{align}
 
-Note that the manufactured solutions were chosen so that the particle flux $J = -D \nabla c_\mathrm{m} \cdot \textbf{n}$ is continuous across the materials interface. 
+````{margin}
+```{note}
+The manufactured solutions were chosen so that the particle flux $J = -D \nabla c_\mathrm{m} \cdot \textbf{n}$ is continuous across the materials interface. 
+```
+````
 
 MMS sources are derived in each material: 
 
