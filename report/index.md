@@ -21,7 +21,7 @@ Welcome to the FESTIM Verification and Validation (V&V) book! This book aims to 
 
 `````{admonition}  How to cite this book
 :class: tip
-INSERT HERE PROPER REFERENCE
+  Remi Delaporte-Mathurin and Jair Santana, *FESTIM V&V Book*, 2024, [https://dspace.mit.edu/handle/1721.1/156690](https://dspace.mit.edu/handle/1721.1/156690)
 
 `````
 
