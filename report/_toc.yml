@@ -17,6 +17,7 @@ parts:
           - file: verification/mms/simple
           - file: verification/mms/simple_transient
           - file: verification/mms/simple_temperature
+          - file: verification/mms/simple_cylindrical
       - file: verification/mms/fluxes
       - file: verification/mms/heat_transfer
       - file: verification/mms/discontinuity
@@ -25,7 +26,10 @@ parts:
         sections:
           - file: verification/mes/radioactive_decay
           - file: verification/mms/radioactive_decay
-      - file: verification/mms/soret
+      - file: verification/soret
+        sections:
+          - file: verification/mms/soret
+          - file: verification/mms/soret_cylindrical
       - file: verification/tmap
         sections:
           - file: verification/mes/depleting_source

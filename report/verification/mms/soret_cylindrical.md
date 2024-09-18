@@ -5,20 +5,20 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.2
+    jupytext_version: 1.16.4
 kernelspec:
   display_name: vv-festim-report-env
   language: python
   name: python3
 ---
 
-# Soret Effect
+# Soret Effect - Cylindrical
 
-```{tags} 2D, MMS, steady state, soret
+```{tags} 2D, MMS, steady state, cylindrical, spherical, soret
 ```
 
-This MMS case verifies the implementation of the Soret effect in FESTIM.
-We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with a homogeneous diffusion coefficient $D$ including the Soret effect.
+This MMS case verifies the implementation of the Soret effect in FESTIM on cylindrical meshes.
+We will only consider diffusion of hydrogen in a unit square domain $\Omega$ s.t. $r \in [1, 2]$ and $z \in [0, 1]$ at steady state with a homogeneous diffusion coefficient $D$.
 Moreover, a Dirichlet boundary condition will be assumed on the boundaries $\partial \Omega $.
 
 The problem is therefore:
@@ -29,25 +29,27 @@ $$
     & \vec{\varphi} = -D \ \nabla{c} - D\frac{Q^* c}{k_B T^2} \ \nabla{T} \\
     & c = c_0 \quad \text{on }  \partial \Omega
 \end{align}
-$$(problem_soret)
+$$(problem_simple_soret_cylindrical)
 
 The manufactured exact solution for mobile concentration is:
 
 $$
 \begin{equation}
-    c_\mathrm{exact} = 1 + 4 x^2 + 2 y^2
+    c_\mathrm{exact} = 1 + 3r + 5z
 \end{equation}
-$$(c_exact_soret)
+$$(c_exact_simple_soret_cylindrical)
 
 For this problem, we choose:
 
+$$
 \begin{align}
-    & T = 300 + 30 \ x + 40 \ y \\
+    & T = 300 + 30r^2 + 50z^2 \\
     & Q^* = 4 \\
     & D = 2
 \end{align}
+$$
 
-Injecting {eq}`c_exact_soret` in {eq}`problem_soret`, we obtain the expressions of $S$ and $c_0$:
+Injecting {eq}`c_exact_simple_soret_cylindrical` in {eq}`problem_simple_soret_cylindrical`, we obtain the expressions of $S$ and $c_0$:
 
 $$
 \begin{align}
@@ -58,9 +60,11 @@ $$
 
 We can then run a FESTIM model with these values and compare the numerical solution with $c_\mathrm{exact}$.
 
-```{code-cell} ipython3
-:tags: [hide-cell]
++++
 
+## FESTIM code
+
+```{code-cell} ipython3
 import festim as F
 import sympy as sp
 import fenics as f
@@ -70,7 +74,7 @@ import numpy as np
 
 # Create and mark the mesh
 nx = ny = 100
-fenics_mesh = f.UnitSquareMesh(nx, ny)
+fenics_mesh = f.RectangleMesh(f.Point(1.0, 0), f.Point(2.0, 1.0), nx, ny)
 
 volume_markers = f.MeshFunction("size_t", fenics_mesh, fenics_mesh.topology().dim())
 volume_markers.set_all(1)
@@ -94,20 +98,22 @@ boundary.mark(surface_markers, 1)
 my_model = F.Simulation()
 
 my_model.mesh = F.Mesh(
-    fenics_mesh, volume_markers=volume_markers, surface_markers=surface_markers
+    fenics_mesh, volume_markers=volume_markers, surface_markers=surface_markers, type="cylindrical"
 )
 
 # Variational formulation
-exact_solution = 1 + 4 * F.x**2 + 2 * F.y**2  # exact solution
+r = F.x
+z = F.y
 
-T = 300 + 30*F.x + 40 * F.y
+exact_solution = 1 + 3 * r + 5 * z # exact solution
+
+T = 300 + 30*r**2 + 50*z**2
 
 D = 2
 Q = 4
 
-
-def grad(u):
-    """Computes the gradient of a function u.
+def grad_cylindrical(u):
+    """Computes the gradient of a function u in cylindrical coordinates.
 
     Args:
         u (sympy.Expr): a sympy function
@@ -115,11 +121,12 @@ def grad(u):
     Returns:
         sympy.Matrix: the gradient of u
     """
-    return sp.Matrix([sp.diff(u, F.x), sp.diff(u, F.y)])
+
+    return sp.Matrix([sp.diff(u, r), sp.diff(u, z)])
 
 
-def div(u):
-    """Computes the divergence of a vector field u.
+def div_cylindrical(u):
+    """Computes the divergence of a vector field u in cylindrical coordinates.
 
     Args:
         u (sympy.Matrix): a sympy vector field
@@ -127,11 +134,13 @@ def div(u):
     Returns:
         sympy.Expr: the divergence of u
     """
-    return sp.diff(u[0], F.x) + sp.diff(u[1], F.y)
 
+    return 1/r * sp.diff(u[0] * r, r) + sp.diff(u[1], z)
 
-mms_source = -D * div((Q * exact_solution) / (F.k_B * T**2) * grad(T)) \
-        - div(grad(exact_solution)) * D
+diffusion_term = -D * grad_cylindrical(exact_solution)
+soret_term = -D * (Q * exact_solution) / (F.k_B * T**2) * grad_cylindrical(T)
+
+mms_source = div_cylindrical( diffusion_term + soret_term )
 
 my_model.sources = [
     F.Source(
@@ -173,11 +182,11 @@ print(f"L2 error: {E:.2e}")
 fig, axs = plt.subplots(1, 3, figsize=(15, 5))
 plt.sca(axs[0])
 plt.title("Exact solution")
-plt.xlabel("x")
-plt.ylabel("y")
+plt.xlabel("r")
+plt.ylabel("z")
 CS1 = f.plot(c_exact, cmap="inferno")
 plt.sca(axs[1])
-plt.xlabel("x")
+plt.xlabel("r")
 plt.title("Computed solution")
 CS2 = f.plot(computed_solution, cmap="inferno")
 
@@ -202,9 +211,9 @@ def compute_arc_length(xs, ys):
 
 # define the profiles
 profiles = [
-    {"start": (0.0, 0.0), "end": (1.0, 1.0)},
-    {"start": (0.2, 0.8), "end": (0.7, 0.2)},
-    {"start": (0.2, 0.6), "end": (0.8, 0.8)},
+    {"start": (1.0, 0.0), "end": (2.0, 1.0)},
+    {"start": (1.2, 0.8), "end": (1.7, 0.2)},
+    {"start": (1.2, 0.6), "end": (1.8, 0.8)},
 ]
 
 # plot the profiles on the right subplot
@@ -258,5 +267,3 @@ plt.grid(alpha=0.3)
 plt.gca().spines[["right", "top"]].set_visible(False)
 plt.show()
 ```
-
-The exact and computed solutions are in excellent agreement.
