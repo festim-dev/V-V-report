@@ -26,6 +26,7 @@ parts:
           - file: verification/mes/radioactive_decay
           - file: verification/mms/radioactive_decay
       - file: verification/mms/soret
+      - file: verification/mms/surface_kinetics
       - file: verification/tmap
         sections:
           - file: verification/mes/depleting_source
