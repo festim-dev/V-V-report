@@ -55,7 +55,7 @@ sphinx:
     tags_create_badges: True
     tags_extension : ["md"]
     tags_page_title : "All Tags"
-    suppress_warnings: ["etoc.toctree"]
+    suppress_warnings: ["etoc.toctree", "mystnb.unknown_mime_type"]
     tags_badge_colors: {
       "MMS": "success",
       "MES": "success",
