@@ -21,7 +21,7 @@ kernelspec:
 
 This validation case reproduces H absorption curves for Ti at different temperatures obtained by Hirooka et al. {cite}`hirooka_1981`. 
 
-Absorption experiments were performed in the vacuum chamber at the base pressure of $1.3 \times 10^4$ Pa with $10 \times 13 \times 1\,\mathrm{mm}^{3}$ cold rolled Ti strips. Absorption curves were acquired at the fixed sample temperature ranging from $450 \degree \mathrm{C}$ to $650 \degree \mathrm{C}$. 
+Absorption experiments were performed in the vacuum chamber at the base pressure of $1.3 \times 10^{4} \mathrm{Pa}$ with $10 \times 13 \times 1 \ \mathrm{mm}^{3} $ cold rolled Ti strips. Absorption curves were acquired at the fixed sample temperature ranging from $450 \ \degree \mathrm{C}$ to $650 \ \degree \mathrm{C}$. 
 
 The FESTIM model is based on the work of Shimohata et al. {cite}`shimohata_2021`. By following the approach, evolution of the surface H concentration is assumed to be driven by adsorption from the gas phase and recombination. Only a half of the sample is simulated for simplicity.
 
@@ -32,6 +32,8 @@ The FESTIM results are compared to the experimental data from {cite}`shimohata_2
 +++
 
 ## FESTIM model
+
++++
 
 ```{code-cell} ipython3
 :tags: [hide-input, hide-output]
@@ -65,12 +67,12 @@ D = htm.diffusivities.filter(material=htm.TITANIUM, author="wille")[0]
 D0 = D.pre_exp.magnitude  # diffusivity pre-factor, m^2 s^-1
 E_diff = D.act_energy.magnitude  # diffusion activation energy, eV
 
-k_sb = 5.1413505e9 # frequency factor of surface-to-bulk transition, s^-1
-E_sb = 1.0087995 # activation energy for surface-to-bulk transition, eV
-k_bs = 1.0012013e10 #  # frequency factor of bulk-to-surface transition, s^-1
-E_bs = 1.0518870 # activation energy for bulk-to-surface transition, eV
-k_des = 3.4115671e-11 # desorption rate, m^2 s^-1
-E_des = 5.6197034e-01 # desorption activation energy, eV
+k_sb = 5.1413505e9  # frequency factor of surface-to-bulk transition, s^-1
+E_sb = 1.0087995  # activation energy for surface-to-bulk transition, eV
+k_bs = 1.0012013e10  #  # frequency factor of bulk-to-surface transition, s^-1
+E_bs = 1.0518870  # activation energy for bulk-to-surface transition, eV
+k_des = 3.4115671e-11  # desorption rate, m^2 s^-1
+E_des = 5.6197034e-01  # desorption activation energy, eV
 
 # Chamber
 V_ch = 2.95e-3  # the chamber volume, m^3
@@ -108,11 +110,15 @@ def J_vs(T, surf_conc, X):
     J_des = 2 * k_des * surf_conc**2 * f.exp(-E_des / F.k_B / T)
     return J_ads - J_des
 
+
 def K_sb(T, surf_conc, X):
     return k_sb * f.exp(-E_sb / F.k_B / T)
 
+
 def K_bs(T, surf_conc, X):
     return k_bs * f.exp(-E_bs / F.k_B / T)
+
+
 ################### CUSTOM MODEL CLASS ###################
 class CustomSimulation(F.Simulation):
     def iterate(self):
@@ -127,7 +133,8 @@ class CustomSimulation(F.Simulation):
 
         # Normalised content parameter
         self.h_transport_problem.boundary_conditions[0].prms["X"].assign(X)
-    
+
+
 def run_sim(T0):
     Ti_model_impl = CustomSimulation()
 
@@ -181,6 +188,7 @@ def run_sim(T0):
 
     return derived_quantities
 
+
 results = {}
 
 for T0 in T_list:
@@ -196,54 +204,45 @@ FESTIM reproduces the experimental data over the whole range of temperatures usi
 ```{code-cell} ipython3
 :tags: [hide-input]
 
-from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import plotly.express as px
 
-titles = [f"T={T} K" for T in T_list]
-fig = make_subplots(rows=1, cols=5, shared_yaxes=True, shared_xaxes=True, subplot_titles=titles)
+fig = go.Figure()
 
-for i in range(len(T_list)):
+for i, T in enumerate(T_list):
+    color = px.colors.qualitative.Plotly[i]
 
-    for j, T in enumerate(T_list):
+    FESTIM_data = results[T]
+    retention = np.array(FESTIM_data[1].data) + np.array(FESTIM_data[0].data)
+    t = np.array(FESTIM_data.t)
 
-        if i == j:
-            color=px.colors.qualitative.Plotly[i]
-            opacity=1
-        else:
-            color='grey'
-            opacity=0.3
+    exp = np.loadtxt(f"./content_data/{T-273}.csv", delimiter=",", skiprows=1)
 
-        FESTIM_data = results[T]
-        retention = np.array(FESTIM_data[1].data) + np.array(
-            FESTIM_data[0].data
+    fig.add_trace(
+        go.Scatter(
+            x=t / 60,
+            y=retention * A / N_Ti,
+            mode="lines",
+            line=dict(color=color, width=3),
+            name=f"FESTIM: T={T} K",
         )
-        t = np.array(FESTIM_data.t)
-        
-        exp = np.loadtxt(f"./content_data/{T-273}.csv", delimiter=",", skiprows=1)
+    )
 
-        fig.add_trace(
-            go.Scatter(x=t / 60, y=retention * A / N_Ti, mode='lines', opacity=opacity, line=dict(color=color)), col=i+1, row=1,
-            )
-        
-        fig.add_trace(go.Scatter(x=exp[:, 0], y=exp[:, 1], mode='markers', opacity=opacity, marker=dict(color=color)), col=i+1, row=1)
+    fig.add_trace(
+        go.Scatter(
+            x=exp[:, 0],
+            y=exp[:, 1],
+            mode="markers",
+            marker=dict(color=color, size=9),
+            name=f"Exp.: T={T} K",
+        )
+    )
 
-    
-fig.update_yaxes(title_text="Content, H/Ti", row=1, col=1)
-fig.update_xaxes(title_text="Time, min", row=1, col=3)
 
-fig.update_layout(
-    height=400,
-    width=1300,
-    showlegend=False,
-    template='simple_white'
-)
-fig.for_each_xaxis(lambda x: x.update(range=[0,25], tick0=0, dtick=5))
-fig.for_each_yaxis(lambda x: x.update(range=[0,0.8], tick0=0, dtick=0.1))
-for i, annotation in enumerate(fig['layout']['annotations']): 
-        annotation['font']=dict(color=px.colors.qualitative.Plotly[i])
-        annotation['xshift']=-60
-        annotation['yshift']=-20
+fig.update_yaxes(title_text="Content, H/Ti", range=[0, 0.8], tick0=0, dtick=0.1)
+fig.update_xaxes(title_text="Time, min", range=[0, 25], tick0=0, dtick=5)
+
+fig.update_layout(template="simple_white")
 
 fig.show()
 ```
@@ -258,13 +257,20 @@ The table below displays the input parameters which were determined during the o
 :tags: [hide-input]
 
 import pandas as pd
-pd.set_option('display.float_format', '{:.3e}'.format)
-prms_list=[k_sb, E_sb, k_bs, E_bs, k_des, E_des]
-col_names=["k_sb (s^-1)", "E_sb (eV)", "k_bs (s^-1)", "E_bs (eV)", "k_des (m^2 s^-1)", "E_des (eV)"]
+
+pd.set_option("display.float_format", "{:.3e}".format)
+prms_list = [k_sb, E_sb, k_bs, E_bs, k_des, E_des]
+col_names = [
+    "k_sb (s^-1)",
+    "E_sb (eV)",
+    "k_bs (s^-1)",
+    "E_bs (eV)",
+    "k_des (m^2 s^-1)",
+    "E_des (eV)",
+]
 
 data = pd.DataFrame(prms_list).T
 data.columns = col_names
-data.style \
-    .relabel_index(["value"], axis=0) \
-    .format("{:.2e}".format)
+data.style.relabel_index(["value"], axis=0).format("{:.2e}".format)
+
 ```
