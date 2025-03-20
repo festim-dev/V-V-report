@@ -21,7 +21,7 @@ kernelspec:
 
 This validation case reproduces H absorption curves for Ti at different temperatures obtained by Hirooka et al. {cite}`hirooka_1981`. 
 
-Absorption experiments were performed in the vacuum chamber at the base pressure of $1.3 \times 10^{4} \mathrm{Pa}$ with $10 \times 13 \times 1 \ \mathrm{mm}^{3} $ cold rolled Ti strips. Absorption curves were acquired at the fixed sample temperature ranging from $450 \ \degree \mathrm{C}$ to $650 \ \degree \mathrm{C}$. 
+Absorption experiments were performed in the vacuum chamber at the base pressure of $1.3 \times 10^{4} \ \mathrm{Pa}$ with $10 \times 13 \times 1 \ \mathrm{mm}^{3}$ cold rolled Ti strips. Absorption curves were acquired at the fixed sample temperature ranging from $450 \ ^{\circ}\mathrm{C}$ to $650 \ ^{\circ}\mathrm{C}$. 
 
 The FESTIM model is based on the work of Shimohata et al. {cite}`shimohata_2021`. By following the approach, evolution of the surface H concentration is assumed to be driven by adsorption from the gas phase and recombination. Only a half of the sample is simulated for simplicity.
 
@@ -206,6 +206,7 @@ FESTIM reproduces the experimental data over the whole range of temperatures usi
 
 import plotly.graph_objects as go
 import plotly.express as px
+import plotly
 
 fig = go.Figure()
 
@@ -241,10 +242,11 @@ for i, T in enumerate(T_list):
 
 fig.update_yaxes(title_text="Content, H/Ti", range=[0, 0.8], tick0=0, dtick=0.1)
 fig.update_xaxes(title_text="Time, min", range=[0, 25], tick0=0, dtick=5)
+fig.update_layout(template="simple_white", height=600)
+fig.write_html("./hirooka_comparison.html")
 
-fig.update_layout(template="simple_white")
-
-fig.show()
+from IPython.display import HTML, display
+display(HTML("./hirooka_comparison.html"))
 ```
 
 ## Fitted parameters
