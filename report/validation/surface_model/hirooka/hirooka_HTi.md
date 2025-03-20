@@ -243,8 +243,12 @@ for i, T in enumerate(T_list):
 fig.update_yaxes(title_text="Content, H/Ti", range=[0, 0.8], tick0=0, dtick=0.1)
 fig.update_xaxes(title_text="Time, min", range=[0, 25], tick0=0, dtick=5)
 fig.update_layout(template="simple_white", height=600)
-fig.write_html("./hirooka_comparison.html")
 
+# The writing-reading block below is needed to avoid the issue with compatibility
+# of Plotly plots and dollarmath syntax extension in Jupyter Book
+# For mode details, see https://github.com/jupyter-book/jupyter-book/issues/1528 
+
+fig.write_html("./hirooka_comparison.html")
 from IPython.display import HTML, display
 display(HTML("./hirooka_comparison.html"))
 ```
