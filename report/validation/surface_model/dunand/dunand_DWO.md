@@ -269,10 +269,10 @@ for i, case in enumerate(cases):
     print(f"Case {case}: RMSPE={error*100:.2f} %")
 
 
-fig.update_yaxes(
-    title_text="Desorption flux, 10<sup>17</sup> m<sup>-2</sup>s<sup>-1</sup>",
-    range=[0, 5],
-)
+# fig.update_yaxes(
+#     title_text="Desorption flux, 10<sup>17</sup> m<sup>-2</sup>s<sup>-1</sup>",
+#     range=[0, 5],
+# )
 fig.update_xaxes(title_text="Temperature, K", range=[300, 800], tick0=300, dtick=100)
 fig.update_layout(template="simple_white", height=600)
 
@@ -330,10 +330,10 @@ for i, case in enumerate(cases):
     print(f"Case {case}: RMSPE={error*100:.2f} %")
 
 
-fig.update_yaxes(
-    title_text="Desorption flux, 10<sup>17</sup> m<sup>-2</sup>s<sup>-1</sup>",
-    range=[0, 5],
-)
+# fig.update_yaxes(
+#     title_text="Desorption flux, 10<sup>17</sup> m<sup>-2</sup>s<sup>-1</sup>",
+#     range=[0, 5],
+# )
 fig.update_xaxes(title_text="Temperature, K", range=[300, 800], tick0=300, dtick=100)
 fig.update_layout(template="simple_white", height=600)
 
