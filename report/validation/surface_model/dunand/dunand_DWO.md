@@ -286,3 +286,63 @@ from IPython.display import HTML, display
 display(HTML("./dunand_comparison_exp.html"))
 ```
 
+## Comparison with MHIMS
+
++++
+
+The FESTIM results correlate perfectly with the MHIMS data.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+
+fig = go.Figure()
+
+for i, case in enumerate(cases):
+    color = px.colors.qualitative.Plotly[i]
+
+    T, desorption_flux = compute_TDS(i, case)
+    MHIMS_data = np.loadtxt(
+        f"./tds_data/{ref_labels[i]}_MHIMS.txt", skiprows=1, delimiter=","
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=T,
+            y=desorption_flux / 1e17,
+            mode="lines",
+            line=dict(color=color, width=3),
+            name="FESTIM: " + case,
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=MHIMS_data[::15, 0],
+            y=MHIMS_data[::15, 1] / 1e17,
+            mode="markers",
+            marker=dict(color=color, size=9),
+            name="MHIMS: " + case,
+        )
+    )
+
+    interp_tds = interp1d(T, desorption_flux, fill_value="extrapolate")
+    error = RMSE(interp_tds(MHIMS_data[:, 0]), MHIMS_data[:, 1])
+    print(f"Case {case}: RMSPE={error*100:.2f} %")
+
+
+fig.update_yaxes(
+    title_text="Desorption flux, 10<sup>17</sup> m<sup>-2</sup>s<sup>-1</sup>",
+    range=[0, 5],
+)
+fig.update_xaxes(title_text="Temperature, K", range=[300, 800], tick0=300, dtick=100)
+fig.update_layout(template="simple_white", height=600)
+
+# The writing-reading block below is needed to avoid the issue with compatibility
+# of Plotly plots and dollarmath syntax extension in Jupyter Book
+# For mode details, see https://github.com/jupyter-book/jupyter-book/issues/1528
+
+fig.write_html("./dunand_comparison_MHIMS.html")
+from IPython.display import HTML, display
+
+display(HTML("./dunand_comparison_MHIMS.html"))
+```
