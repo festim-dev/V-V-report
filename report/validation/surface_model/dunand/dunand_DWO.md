@@ -19,7 +19,7 @@ kernelspec:
 
 +++
 
-This validation case reproduces TDS measurements on oxidised W performed by Dunand et al. {cite}`dunand_2022`.
+This validation case reproduces TDS measurements of D from oxidised W performed by Dunand et al. {cite}`dunand_2022`.
 
 In the experiments, single crystal W samples (2 mm thick) with different O coverages (clean, 0.5 ML of O, 0.75 ML of O) were exposed to the D<sub>2</sub> flux of $\approx 1.52\times10^{18}\,\mathrm{m}^{-2}\mathrm{s}^{-1}$. D<sub>2</sub> exposure lasted for 3000 s followed by the storage phase for 1 h. After that, TDS of samples was performed with 5 K/s ramp up to 800 K.
 
@@ -195,6 +195,13 @@ for i, case in enumerate(cases):
 
 The results produced by FESTIM are in good agreement with the experimental data at different O coverages. The highest discrepancy is observed for high-temperature shoulders, where signals are of the noise level.
 
+
+## Comparison with MHIMS
+
++++
+
+The FESTIM results correlate perfectly with the MHIMS data.
+
 ```{code-cell} ipython3
 :tags: [hide-input]
 
@@ -203,7 +210,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 
 
-def RMSE(x_sim, x_exp):
+def RMSPE(x_sim, x_exp):
     error = np.sqrt(np.mean((x_sim - x_exp) ** 2)) / np.mean(x_exp)
     return error
 
@@ -240,67 +247,6 @@ for i, case in enumerate(cases):
     color = px.colors.qualitative.Plotly[i]
 
     T, desorption_flux = compute_TDS(i, case)
-    exp_data = np.loadtxt(
-        f"./tds_data/{ref_labels[i]}_exp.csv", skiprows=1, delimiter=","
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=T,
-            y=desorption_flux / 1e17,
-            mode="lines",
-            line=dict(color=color, width=3),
-            name="FESTIM: " + case,
-        )
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=exp_data[:, 0],
-            y=exp_data[:, 1] / 1e17,
-            mode="markers",
-            marker=dict(color=color, size=9),
-            name="Exp.: " + case,
-        )
-    )
-
-    interp_tds = interp1d(T, desorption_flux, fill_value="extrapolate")
-    error = RMSE(interp_tds(exp_data[:, 0]), exp_data[:, 1])
-    print(f"Case {case}: RMSPE={error*100:.2f} %")
-
-
-fig.update_yaxes(
-    title_text="Desorption flux, 10<sup>17</sup> m<sup>-2</sup>s<sup>-1</sup>",
-    range=[0, 5],
-)
-fig.update_xaxes(title_text="Temperature, K", range=[300, 800], tick0=300, dtick=100)
-fig.update_layout(template="simple_white", height=600)
-
-# The writing-reading block below is needed to avoid the issue with compatibility
-# of Plotly plots and dollarmath syntax extension in Jupyter Book
-# For mode details, see https://github.com/jupyter-book/jupyter-book/issues/1528
-
-fig.write_html("./dunand_comparison_exp.html")
-from IPython.display import HTML, display
-
-display(HTML("./dunand_comparison_exp.html"))
-```
-
-## Comparison with MHIMS
-
-+++
-
-The FESTIM results correlate perfectly with the MHIMS data.
-
-```{code-cell} ipython3
-:tags: [hide-input]
-
-fig = go.Figure()
-
-for i, case in enumerate(cases):
-    color = px.colors.qualitative.Plotly[i]
-
-    T, desorption_flux = compute_TDS(i, case)
     MHIMS_data = np.loadtxt(
         f"./tds_data/{ref_labels[i]}_MHIMS.txt", skiprows=1, delimiter=","
     )
@@ -326,7 +272,7 @@ for i, case in enumerate(cases):
     )
 
     interp_tds = interp1d(T, desorption_flux, fill_value="extrapolate")
-    error = RMSE(interp_tds(MHIMS_data[:, 0]), MHIMS_data[:, 1])
+    error = RMSPE(interp_tds(MHIMS_data[:, 0]), MHIMS_data[:, 1])
     print(f"Case {case}: RMSPE={error*100:.2f} %")
 
 
