@@ -12,7 +12,7 @@ kernelspec:
   name: python3
 ---
 
-# Isothermal absorption of H in Ti
+# Isothermal absorption of protium in titanium
 
 ```{tags} 1D, kinetic surface model, transient
 ```
@@ -206,7 +206,6 @@ FESTIM reproduces the experimental data over the whole range of temperatures usi
 
 import plotly.graph_objects as go
 import plotly.express as px
-import plotly
 
 fig = go.Figure()
 

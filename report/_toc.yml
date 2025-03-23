@@ -41,6 +41,7 @@ parts:
       - file: validation/thermodesorption_spectra/dark/dark_tds
       - file: validation/thermodesorption_spectra/baldwin/baldwin_tds
       - file: validation/surface_model/hirooka/hirooka_HTi
+      - file: validation/surface_model/dunand/dunand_DWO
   - caption: Appendices
     chapters:
     - file: bibliography
