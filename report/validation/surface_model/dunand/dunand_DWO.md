@@ -189,3 +189,100 @@ for i, case in enumerate(cases):
     results[case] = run_sim(*[inputs[key][i] for key in inputs.keys()])
 ```
 
+## Comparison with experimental data
+
++++
+
+The results produced by FESTIM are in good agreement with the experimental data at different O coverages. The highest discrepancy is observed for high-temperature shoulders, where signals are of the noise level.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+
+from scipy.interpolate import interp1d
+import plotly.graph_objects as go
+import plotly.express as px
+
+
+def RMSE(x_sim, x_exp):
+    error = np.sqrt(np.mean((x_sim - x_exp) ** 2)) / np.mean(x_exp)
+    return error
+
+
+def E_des_pp(surf_conc, n_surf, E0, dE, theta_D0, dtheta_D, alpha, beta):
+    theta_D = surf_conc / n_surf
+    E_FD = E0 + dE / (1 + np.exp((theta_D - theta_D0) / dtheta_D))
+    E_des = E_FD * (1 - alpha * np.exp(-beta * (1 - theta_D)))
+    return E_des
+
+
+def compute_TDS(i, case):
+    time = np.array(results[case].t)
+    surf_conc = np.array(results[case][0].data)[np.where(time > t_imp + t_storage)]
+    T = np.array(results[case][1].data)[np.where(time > t_imp + t_storage)]
+    lamda_des = 1 / np.sqrt(inputs["n_surf"][i])
+
+    desorption_flux = (
+        2
+        * nu0
+        * (lamda_des * surf_conc) ** 2
+        * np.exp(
+            -E_des_pp(surf_conc, *[inputs[key][i] for key in inputs.keys()]) / F.k_B / T
+        )
+    )
+
+    return T, desorption_flux
+
+
+ref_labels = ["clean", "050OML", "075OML"]
+fig = go.Figure()
+
+for i, case in enumerate(cases):
+    color = px.colors.qualitative.Plotly[i]
+
+    T, desorption_flux = compute_TDS(i, case)
+    exp_data = np.loadtxt(
+        f"./tds_data/{ref_labels[i]}_exp.csv", skiprows=1, delimiter=","
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=T,
+            y=desorption_flux / 1e17,
+            mode="lines",
+            line=dict(color=color, width=3),
+            name="FESTIM: " + case,
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=exp_data[:, 0],
+            y=exp_data[:, 1] / 1e17,
+            mode="markers",
+            marker=dict(color=color, size=9),
+            name="Exp.: " + case,
+        )
+    )
+
+    interp_tds = interp1d(T, desorption_flux, fill_value="extrapolate")
+    error = RMSE(interp_tds(exp_data[:, 0]), exp_data[:, 1])
+    print(f"Case {case}: RMSPE={error*100:.2f} %")
+
+
+fig.update_yaxes(
+    title_text="Desorption flux, 10<sup>17</sup> m<sup>-2</sup>s<sup>-1</sup>",
+    range=[0, 5],
+)
+fig.update_xaxes(title_text="Temperature, K", range=[300, 800], tick0=300, dtick=100)
+fig.update_layout(template="simple_white", height=600)
+
+# The writing-reading block below is needed to avoid the issue with compatibility
+# of Plotly plots and dollarmath syntax extension in Jupyter Book
+# For mode details, see https://github.com/jupyter-book/jupyter-book/issues/1528
+
+fig.write_html("./dunand_comparison_exp.html")
+from IPython.display import HTML, display
+
+display(HTML("./dunand_comparison_exp.html"))
+```
+
