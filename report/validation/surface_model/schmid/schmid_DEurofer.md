@@ -22,12 +22,12 @@ kernelspec:
 This validation case reproduces TDS measurements of D from EUROFER performed by Schmid et al. {cite}`schmid_2023a`.
 
 Experiments were conducted with three types of EUROFER samples (0.8 mm thick): undamaged, damaged with 20 MeV W ions, loaded with D and then damaged with 20 MeV W ions. These samples were then loaded with low-energy (5 ev/ion) D flux of $\approx9\times10^{19}\,\mathrm{m}^{-2}\mathrm{s}^{-1}$ at the gas pressure of 1 Pa and $T=370$ K. The exposure time varied between 48 h to 143 h resulting in four cases: 
-1. undamaged sample loaded for 143 h with D (labelled as **143 h plasma**); 
-2. damaged sample loaded for 48 h with D (labelled as **DPA $\rightarrow$ 48 h plasma**); 
-3. damaged sample loaded for 143 h with D (labelled as **DPA $\rightarrow$ 143 h plasma**); 
-4. pre-loaded damaged sample exposed for 48 h with D (labelled as **DPA+D $\rightarrow$ 48 h plasma**). 
+1. undamaged sample loaded for 143 h with D; 
+2. damaged sample loaded for 48 h with D; 
+3. damaged sample loaded for 143 h with D; 
+4. pre-loaded damaged sample exposed for 48 h with D. 
 
-After exposure, the samples were stored for $\approx24$ h at $T=290$ K. Finally, TDS measurements up to 800 K were performed.
+After exposure, the samples were stored for $\approx24$ h at $T=290 \ K$. Finally, TDS measurements up to 800 K were performed.
 
 The FESTIM model is mainly based on the simulations of Schmid et al. {cite}`schmid_2023b`. The D diffusivity in EUROFER is taken from the work of Aiello et al. {cite}`aiello_2002`. In all cases, intrinsic trapping sites are considered with a homogeneous distribution within the sample. For pre-damaged samples, additional extrinsic traps, distributed within the damaged zone, is included in the simulations. The surface kinetics is determined by adsoption from the gas phase, recombination, and desorption due to the incidence of energetic D ions. Only the front surface is assumed to be subjected to the D flux. 
 
