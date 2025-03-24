@@ -341,7 +341,7 @@ display(HTML("./markelj_comparison_ret.html"))
 
 +++
 
-FESTIM reproduces well the experimental NRA measurements and agrees perfectly with MHIMS. Slight differences are due to the use of the precise value of Fernandez's diffusivity.
+FESTIM reproduces well the experimental NRA measurements.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
@@ -351,9 +351,6 @@ fig = go.Figure()
 FESTIM_profiles = np.genfromtxt("./FESTIM_sim.txt", names=True, delimiter=",")
 NRA_exp = np.loadtxt("./reference_data/exp_NRA.csv", delimiter=",", skiprows=1)
 NRA_sto = np.loadtxt("./reference_data/sto_NRA.csv", delimiter=",", skiprows=1)
-MHIMS_profiles = np.loadtxt(
-    "./reference_data/MHIMS_profiles.csv", delimiter=",", skiprows=1
-)
 
 for i, t in enumerate(export_times):
     x = FESTIM_profiles["x"]
@@ -370,16 +367,6 @@ for i, t in enumerate(export_times):
             mode="lines",
             line=dict(width=3, color=px.colors.qualitative.Plotly[i]),
             name=f"FESTIM: {t/3600:.2f} h",
-        )
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=MHIMS_profiles[:, 0],
-            y=MHIMS_profiles[:, i + 1],
-            mode="markers",
-            marker=dict(size=7, color=px.colors.qualitative.Plotly[i]),
-            name=f"MHIMS: {t/3600:.2f} h",
         )
     )
 
@@ -412,7 +399,64 @@ fig.update_layout(template="simple_white", height=600)
 # of Plotly plots and dollarmath syntax extension in Jupyter Book
 # For mode details, see https://github.com/jupyter-book/jupyter-book/issues/1528
 
-fig.write_html("./markelj_comparison_profiles.html")
+fig.write_html("./markelj_profiles_exp.html")
 
-display(HTML("./markelj_comparison_profiles.html"))
+display(HTML("./markelj_profiles_exp.html"))
+```
+
+## Comparison with MHIMS: D depth distribution
+
++++
+
+FESTIM agrees perfectly with MHIMS. Slight differences are due to the use of the precise value of Fernandez's diffusivity.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+
+fig = go.Figure()
+
+FESTIM_profiles = np.genfromtxt("./FESTIM_sim.txt", names=True, delimiter=",")
+MHIMS_profiles = np.loadtxt(
+    "./reference_data/MHIMS_profiles.csv", delimiter=",", skiprows=1
+)
+
+for i, t in enumerate(export_times):
+    x = FESTIM_profiles["x"]
+    y = FESTIM_profiles[f"t{t:.2e}s".replace(".", "").replace("+", "")]
+    # order y by x
+    x, y = zip(*sorted(zip(x, y)))
+
+    color = px.colors.qualitative.Plotly[i]
+
+    fig.add_trace(
+        go.Scatter(
+            x=np.array(x) / 1e-6,
+            y=np.array(y) / rho_W * 100,
+            mode="lines",
+            line=dict(width=3, color=px.colors.qualitative.Plotly[i]),
+            name=f"FESTIM: {t/3600:.2f} h",
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=MHIMS_profiles[:, 0],
+            y=MHIMS_profiles[:, i + 1],
+            mode="markers",
+            marker=dict(size=7, color=px.colors.qualitative.Plotly[i]),
+            name=f"MHIMS: {t/3600:.2f} h",
+        )
+    )
+
+fig.update_yaxes(title_text="D concentration, at.%", range=[0, 0.5], tick0=0, dtick=0.1)
+fig.update_xaxes(title_text="Depth, &#181;m", range=[0, 5], tick0=0, dtick=1)
+fig.update_layout(template="simple_white", height=600)
+
+# The writing-reading block below is needed to avoid the issue with compatibility
+# of Plotly plots and dollarmath syntax extension in Jupyter Book
+# For mode details, see https://github.com/jupyter-book/jupyter-book/issues/1528
+
+fig.write_html("./markelj_profiles_MHIMS.html")
+
+display(HTML("./markelj_profiles_MHIMS.html"))
 ```

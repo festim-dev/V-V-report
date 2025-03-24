@@ -422,18 +422,20 @@ for i, prms in enumerate(params):
     )
 ```
 
-## Comparison with experimental and TESSIM-X data
+## Comparison with experiment
 
 +++
 
-FESTIM reproduces general trends of experimental TDS curves and correlates moderately with the TESSIM-X data. Minor discrepancy could be due to the differences in some input parameters and the kinetic surface model.
+FESTIM reproduces general trends of experimental TDS curves.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
 
 import json
+from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import plotly.express as px
+from itertools import product
 
 
 def total_flux(data):
@@ -447,9 +449,26 @@ def total_flux(data):
     return T, total_flux
 
 
-fig = go.Figure()
+fig = make_subplots(
+    rows=2,
+    cols=2,
+    vertical_spacing=0.1,
+    horizontal_spacing=0.05,
+    shared_yaxes=True,
+    shared_xaxes=True,
+    x_title="Temperature, K",
+    y_title="Desorption flux, 10<sup>17</sup> m<sup>-2</sup>s<sup>-1</sup>",
+    subplot_titles=(
+        "143 h. plasma",
+        "DPA &#8594; 48 h. plasma",
+        "DPA &#8594; 143 h. plasma",
+        "DPA+D &#8594; 48 h plasma",
+    ),
+)
 
-for i, prms in enumerate(params):
+for i, (row, col) in enumerate(product(range(1, 3), range(1, 3))):
+    prms = params[i]
+
     T, FESTIM_flux = total_flux(results[i])
 
     # Experimental data
@@ -461,8 +480,86 @@ for i, prms in enumerate(params):
             y=FESTIM_flux / 1e17,
             mode="lines",
             line=dict(width=3, color=px.colors.qualitative.Plotly[i]),
-            name=f"FESTIM: Case {i+1}",
+            name=f"FESTIM",
+            showlegend=False,
         ),
+        row=row,
+        col=col,
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=exp_data["temptab"][::5],
+            y=np.array(exp_data["experiment"][::5]) / 1e5,
+            mode="markers",
+            marker=dict(size=7, color=px.colors.qualitative.Plotly[i], opacity=0.5),
+            name=f"Experiment",
+            showlegend=False,
+        ),
+        row=row,
+        col=col,
+    )
+
+    fig.update_yaxes(range=[0, 1.5], tick0=0, dtick=0.5, col=col, row=row)
+    fig.update_xaxes(range=[300, 800], tick0=0, dtick=100, col=col, row=row)
+
+fig.update_layout(template="simple_white", height=600)
+
+# The writing-reading block below is needed to avoid the issue with compatibility
+# of Plotly plots and dollarmath syntax extension in Jupyter Book
+# For mode details, see https://github.com/jupyter-book/jupyter-book/issues/1528
+
+fig.write_html("./schmid_comparison_exp.html")
+from IPython.display import HTML, display
+
+display(HTML("./schmid_comparison_exp.html"))
+```
+
+## Comparison with TESSIM-X
+
++++
+
+ FESTIM correlates moderately with the TESSIM-X data. Minor discrepancy could be due to the differences in some input parameters and the kinetic surface model.
+
+```{code-cell} ipython3
+:tags: [hide-input]
+
+fig = make_subplots(
+    rows=2,
+    cols=2,
+    vertical_spacing=0.1,
+    horizontal_spacing=0.05,
+    shared_yaxes=True,
+    shared_xaxes=True,
+    x_title="Temperature, K",
+    y_title="Desorption flux, 10<sup>17</sup> m<sup>-2</sup>s<sup>-1</sup>",
+    subplot_titles=(
+        "143 h. plasma",
+        "DPA &#8594; 48 h. plasma",
+        "DPA &#8594; 143 h. plasma",
+        "DPA+D &#8594; 48 h plasma",
+    ),
+)
+
+for i, (row, col) in enumerate(product(range(1, 3), range(1, 3))):
+    prms = params[i]
+
+    T, FESTIM_flux = total_flux(results[i])
+
+    # Experimental data
+    exp_data = json.load(open(f"./reference_data/{prms['exp_data']}.json"))
+
+    fig.add_trace(
+        go.Scatter(
+            x=T,
+            y=FESTIM_flux / 1e17,
+            mode="lines",
+            line=dict(width=3, color=px.colors.qualitative.Plotly[i]),
+            name=f"FESTIM",
+            showlegend=False,
+        ),
+        row=row,
+        col=col,
     )
 
     fig.add_trace(
@@ -471,35 +568,23 @@ for i, prms in enumerate(params):
             y=np.array(exp_data["simflux"]) / 1e5,
             mode="lines",
             line=dict(width=3, color=px.colors.qualitative.Plotly[i], dash="dash"),
-            name=f"TESSIM-X: Case {i+1}",
+            name=f"TESSIM-X",
+            showlegend=False,
         ),
+        row=row,
+        col=col,
     )
 
-    fig.add_trace(
-        go.Scatter(
-            x=exp_data["temptab"][::5],
-            y=np.array(exp_data["experiment"][::5]) / 1e5,
-            mode="markers",
-            marker=dict(size=9, color=px.colors.qualitative.Plotly[i]),
-            name=f"Exp.: Case {i+1}",
-        ),
-    )
+    fig.update_yaxes(range=[0, 1.5], tick0=0, dtick=0.5, col=col, row=row)
+    fig.update_xaxes(range=[300, 800], tick0=0, dtick=100, col=col, row=row)
 
-fig.update_yaxes(
-    title_text="Desorption flux, 10<sup>17</sup> m<sup>-2</sup>s<sup>-1</sup>",
-    range=[0, 1.5],
-    tick0=0,
-    dtick=0.5,
-)
-fig.update_xaxes(title_text="Temperature, K", range=[300, 800], tick0=0, dtick=100)
 fig.update_layout(template="simple_white", height=600)
 
 # The writing-reading block below is needed to avoid the issue with compatibility
 # of Plotly plots and dollarmath syntax extension in Jupyter Book
 # For mode details, see https://github.com/jupyter-book/jupyter-book/issues/1528
 
-fig.write_html("./schmid_comparison.html")
-from IPython.display import HTML, display
+fig.write_html("./schmid_comparison_TESSIM.html")
 
-display(HTML("./schmid_comparison.html"))
+display(HTML("./schmid_comparison_TESSIM.html"))
 ```
