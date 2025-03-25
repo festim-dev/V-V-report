@@ -112,7 +112,7 @@ W_model = F.Simulation(log_level=40)
 vertices = np.concatenate(
     [
         np.linspace(0, 5e-8, num=100),
-        np.linspace(5e-8, 5e-6, num=200),
+        np.linspace(5e-8, 5e-6, num=400),
         np.linspace(5e-6, L, num=500),
     ]
 )
@@ -292,7 +292,7 @@ fig.add_trace(
         x=t / 3600,
         y=retention / 1e20,
         mode="lines",
-        line=dict(width=3, color=px.colors.qualitative.Plotly[0]),
+        line=dict(width=4, color=px.colors.qualitative.Plotly[1]),
         name="FESTIM",
     )
 )
@@ -303,7 +303,7 @@ fig.add_trace(
         y=MHIMS_ret[::100, 1] / 1e20,
         mode="markers",
         marker_symbol="square",
-        marker=dict(size=9, color=px.colors.qualitative.Plotly[2]),
+        marker=dict(size=10, color=px.colors.qualitative.Plotly[2], opacity=0.6),
         name="MHIMS",
     )
 )
@@ -313,7 +313,7 @@ fig.add_trace(
         x=exp_ret[:, 0],
         y=exp_ret[:, 1] / 1e20,
         mode="markers",
-        marker=dict(size=10, color=px.colors.qualitative.Plotly[1]),
+        marker=dict(size=10, color=px.colors.qualitative.Plotly[0], opacity=0.6),
         name="Exp.",
     )
 )
@@ -337,7 +337,7 @@ from IPython.display import HTML, display
 display(HTML("./markelj_comparison_ret.html"))
 ```
 
-## Comparison with experimental data and MHIMS: D depth distribution
+## Comparison with experimental data: D depth distribution
 
 +++
 
@@ -352,6 +352,29 @@ FESTIM_profiles = np.genfromtxt("./FESTIM_sim.txt", names=True, delimiter=",")
 NRA_exp = np.loadtxt("./reference_data/exp_NRA.csv", delimiter=",", skiprows=1)
 NRA_sto = np.loadtxt("./reference_data/sto_NRA.csv", delimiter=",", skiprows=1)
 
+
+def create_slider(fig):
+    steps = []
+    for i in range(0, len(fig.data), 2):
+        step = dict(
+            method="update",
+            args=[
+                {"visible": [False] * len(fig.data)},
+                {"title": "Time: " + f"{export_times[int(i/2)]/3600:.2f}"},
+            ],  # layout attribute
+            label=f"{export_times[int(i/2)]/3600:.2f} h",
+        )
+        step["args"][0]["visible"][i] = True  # Toggle i'th trace to "visible"
+        step["args"][0]["visible"][i + 1] = True  # Toggle i+1'th trace to "visible"
+        steps.append(step)
+
+    sliders = [
+        dict(active=0, currentvalue={"prefix": "Time: "}, pad={"t": 50}, steps=steps)
+    ]
+
+    return sliders
+
+
 for i, t in enumerate(export_times):
     x = FESTIM_profiles["x"]
     y = FESTIM_profiles[f"t{t:.2e}s".replace(".", "").replace("+", "")]
@@ -365,8 +388,9 @@ for i, t in enumerate(export_times):
             x=np.array(x) / 1e-6,
             y=np.array(y) / rho_W * 100,
             mode="lines",
-            line=dict(width=3, color=px.colors.qualitative.Plotly[i]),
-            name=f"FESTIM: {t/3600:.2f} h",
+            line=dict(width=3.5, color=px.colors.qualitative.Plotly[i]),
+            name="FESTIM",
+            visible=False,
         )
     )
 
@@ -376,8 +400,11 @@ for i, t in enumerate(export_times):
                 x=NRA_exp[:, 0],
                 y=NRA_exp[:, i + 1],
                 mode="lines",
-                line=dict(width=3, color=px.colors.qualitative.Plotly[i], dash="dash"),
-                name=f"NRA: {t/3600:.2f} h",
+                line=dict(
+                    width=3.5, color=px.colors.qualitative.Plotly[i], dash="dash"
+                ),
+                name="NRA",
+                visible=False,
             )
         )
     else:
@@ -386,14 +413,20 @@ for i, t in enumerate(export_times):
                 x=NRA_sto[:, 0],
                 y=NRA_sto[:, i - 4],
                 mode="lines",
-                line=dict(width=3, color=px.colors.qualitative.Plotly[i], dash="dash"),
-                name=f"NRA: {t/3600:.2f} h",
+                line=dict(
+                    width=3.5, color=px.colors.qualitative.Plotly[i], dash="dash"
+                ),
+                name="NRA",
+                visible=False,
             )
         )
 
+fig.data[0].visible = True
+fig.data[1].visible = True
+
 fig.update_yaxes(title_text="D concentration, at.%", range=[0, 0.5], tick0=0, dtick=0.1)
 fig.update_xaxes(title_text="Depth, &#181;m", range=[0, 5], tick0=0, dtick=1)
-fig.update_layout(template="simple_white", height=600)
+fig.update_layout(template="simple_white", sliders=create_slider(fig), height=600)
 
 # The writing-reading block below is needed to avoid the issue with compatibility
 # of Plotly plots and dollarmath syntax extension in Jupyter Book
@@ -408,7 +441,7 @@ display(HTML("./markelj_profiles_exp.html"))
 
 +++
 
-FESTIM agrees perfectly with MHIMS. Slight differences are due to the use of the precise value of Fernandez's diffusivity.
+FESTIM agrees with MHIMS. Slight differences are due to the use of the precise value of Fernandez's diffusivity pre-factor. FESTIM uses the value from [HTM](https://github.com/RemDelaporteMathurin/h-transport-materials) divided by $\sqrt{2}$: $1.93 \times 10^{-7} \sqrt{2}$, whereas the presented diffusivity pre-factor in {cite}`hodille_2017` is $1.9 \times 10^{-7} \sqrt{2}$.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
@@ -433,8 +466,9 @@ for i, t in enumerate(export_times):
             x=np.array(x) / 1e-6,
             y=np.array(y) / rho_W * 100,
             mode="lines",
-            line=dict(width=3, color=px.colors.qualitative.Plotly[i]),
-            name=f"FESTIM: {t/3600:.2f} h",
+            line=dict(width=3.5, color=px.colors.qualitative.Plotly[i]),
+            name="FESTIM",
+            visible=False,
         )
     )
 
@@ -443,14 +477,18 @@ for i, t in enumerate(export_times):
             x=MHIMS_profiles[:, 0],
             y=MHIMS_profiles[:, i + 1],
             mode="markers",
-            marker=dict(size=7, color=px.colors.qualitative.Plotly[i]),
-            name=f"MHIMS: {t/3600:.2f} h",
+            marker=dict(size=10, color=px.colors.qualitative.Plotly[i], opacity=0.4),
+            name="MHIMS",
+            visible=False,
         )
     )
 
+fig.data[0].visible = True
+fig.data[1].visible = True
+
 fig.update_yaxes(title_text="D concentration, at.%", range=[0, 0.5], tick0=0, dtick=0.1)
 fig.update_xaxes(title_text="Depth, &#181;m", range=[0, 5], tick0=0, dtick=1)
-fig.update_layout(template="simple_white", height=600)
+fig.update_layout(template="simple_white", sliders=create_slider(fig), height=600)
 
 # The writing-reading block below is needed to avoid the issue with compatibility
 # of Plotly plots and dollarmath syntax extension in Jupyter Book
