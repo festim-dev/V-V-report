@@ -448,6 +448,12 @@ def total_flux(data):
 
     return T, total_flux
 
+titles = [
+    "Case 1: 143 h plasma",
+    "Case 2: DPA &#8594; 48 h plasma",
+    "Case 3: DPA &#8594; 143 h plasma",
+    "Case 4: DPA+D &#8594; 48 h plasma",
+]
 
 fig = make_subplots(
     rows=2,
@@ -458,12 +464,7 @@ fig = make_subplots(
     shared_xaxes=True,
     x_title="Temperature, K",
     y_title="Desorption flux, 10<sup>17</sup> m<sup>-2</sup>s<sup>-1</sup>",
-    subplot_titles=(
-        "143 h. plasma",
-        "DPA &#8594; 48 h. plasma",
-        "DPA &#8594; 143 h. plasma",
-        "DPA+D &#8594; 48 h plasma",
-    ),
+    subplot_titles=titles,
 )
 
 for i, (row, col) in enumerate(product(range(1, 3), range(1, 3))):
@@ -480,7 +481,7 @@ for i, (row, col) in enumerate(product(range(1, 3), range(1, 3))):
             y=FESTIM_flux / 1e17,
             mode="lines",
             line=dict(width=3, color=px.colors.qualitative.Plotly[i]),
-            name=f"FESTIM",
+            name="FESTIM",
             showlegend=False,
         ),
         row=row,
@@ -493,7 +494,7 @@ for i, (row, col) in enumerate(product(range(1, 3), range(1, 3))):
             y=np.array(exp_data["experiment"][::5]) / 1e5,
             mode="markers",
             marker=dict(size=7, color=px.colors.qualitative.Plotly[i], opacity=0.5),
-            name=f"Experiment",
+            name="Experiment",
             showlegend=False,
         ),
         row=row,
@@ -533,12 +534,7 @@ fig = make_subplots(
     shared_xaxes=True,
     x_title="Temperature, K",
     y_title="Desorption flux, 10<sup>17</sup> m<sup>-2</sup>s<sup>-1</sup>",
-    subplot_titles=(
-        "143 h. plasma",
-        "DPA &#8594; 48 h. plasma",
-        "DPA &#8594; 143 h. plasma",
-        "DPA+D &#8594; 48 h plasma",
-    ),
+    subplot_titles=titles,
 )
 
 for i, (row, col) in enumerate(product(range(1, 3), range(1, 3))):
@@ -555,7 +551,7 @@ for i, (row, col) in enumerate(product(range(1, 3), range(1, 3))):
             y=FESTIM_flux / 1e17,
             mode="lines",
             line=dict(width=3, color=px.colors.qualitative.Plotly[i]),
-            name=f"FESTIM",
+            name="FESTIM",
             showlegend=False,
         ),
         row=row,
@@ -568,7 +564,7 @@ for i, (row, col) in enumerate(product(range(1, 3), range(1, 3))):
             y=np.array(exp_data["simflux"]) / 1e5,
             mode="lines",
             line=dict(width=3, color=px.colors.qualitative.Plotly[i], dash="dash"),
-            name=f"TESSIM-X",
+            name="TESSIM-X",
             showlegend=False,
         ),
         row=row,
