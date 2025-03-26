@@ -441,7 +441,7 @@ display(HTML("./markelj_profiles_exp.html"))
 
 +++
 
-FESTIM agrees with MHIMS. Slight differences are due to the use of the precise value of Fernandez's diffusivity pre-factor. FESTIM uses the value from [HTM](https://github.com/RemDelaporteMathurin/h-transport-materials) divided by $\sqrt{2}$: $1.93 \times 10^{-7} \sqrt{2}$, whereas the presented diffusivity pre-factor in {cite}`hodille_2017` is $1.9 \times 10^{-7} \sqrt{2}$.
+FESTIM agrees with MHIMS. Slight differences are due to the use of the precise value of Fernandez's diffusivity pre-factor. FESTIM uses the value from [HTM](https://github.com/RemDelaporteMathurin/h-transport-materials) divided by $\sqrt{2}$: $1.93 \times 10^{-7} / \sqrt{2}$, whereas the presented diffusivity pre-factor in {cite}`hodille_2017` is $1.9 \times 10^{-7} / \sqrt{2}$.
 
 ```{code-cell} ipython3
 :tags: [hide-input]
