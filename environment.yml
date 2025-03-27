@@ -1,4 +1,4 @@
-name: vv-festim-report-env-festim-2
+name: vv-festim-report-env
 
 channels:
   - conda-forge
