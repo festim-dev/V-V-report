@@ -5,8 +5,8 @@ build:
   tools:
     python: "miniconda-latest"
   apt_packages:
-    - libgl1-mesa-dev
-    - libxrender1
+    - libglx-mesa0
+    - libgl1
     - xvfb
   jobs:
     pre_build:

@@ -23,3 +23,4 @@ dependencies:
   - pip
   - pip:
     - h_transport_materials
+    - pyvista[all,trame]  # trame cannot be installed on conda
