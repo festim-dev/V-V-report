@@ -5,9 +5,9 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.2
+    jupytext_version: 1.16.7
 kernelspec:
-  display_name: vv-festim-report-env
+  display_name: vv-festim-report-env-festim-2
   language: python
   name: python3
 ---
@@ -51,63 +51,51 @@ We can then run a FESTIM model with these values and compare the numerical solut
 
 ## FESTIM code
 
-```{code-cell}
+```{code-cell} ipython3
 import festim as F
-import sympy as sp
-import fenics as f
+import ufl
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import dolfinx
+from mpi4py import MPI
 
 # Create and mark the mesh
-nx = ny = 100
-fenics_mesh = f.UnitSquareMesh(nx, ny)
-
-
-volume_markers = f.MeshFunction("size_t", fenics_mesh, fenics_mesh.topology().dim())
-volume_markers.set_all(1)
-
-surface_markers = f.MeshFunction(
-    "size_t", fenics_mesh, fenics_mesh.topology().dim() - 1
-)
-surface_markers.set_all(0)
-
-class Boundary(f.SubDomain):
-    def inside(self, x, on_boundary):
-        return on_boundary
-
-boundary = Boundary()
-boundary.mark(surface_markers, 1)
+nx = ny = 10
+fenics_mesh = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, nx, ny)
 
 # Create the FESTIM model
-my_model = F.Simulation()
+my_model = F.HydrogenTransportProblem()
 
-my_model.mesh = F.Mesh(
-    fenics_mesh, volume_markers=volume_markers, surface_markers=surface_markers
-)
+H = F.Species("H")
+my_model.species = [H]
+my_model.mesh = F.Mesh(fenics_mesh)
 
-# Variational formulation
-exact_solution = (
-    1 + 2 * F.x**2 + 3 * F.y**2
-)  # exact solution
+D = 2.0
+material = F.Material(D_0=D, E_D=0)
 
-D = 2
+volume = F.VolumeSubdomain(id=1, material=material)
+boundary = F.SurfaceSubdomain(id=1)
+
+my_model.subdomains = [boundary, volume]
+
+
+exact_solution = lambda x: 1 + 2 * x[0] ** 2 + 3 * x[1] ** 2
 
 my_model.sources = [
-    F.Source(-10 * D, volume=1, field="solute"),
+    F.ParticleSource(-10 * D, volume=volume, species=H),
 ]
 
 my_model.boundary_conditions = [
-    F.DirichletBC(surfaces=[1], value=exact_solution, field="solute"),
+    F.FixedConcentrationBC(subdomain=boundary, value=exact_solution, species=H),
 ]
 
-my_model.materials = F.Material(id=1, D_0=D, E_D=0)
 
-my_model.T = F.Temperature(500)  # ignored in this problem
+my_model.temperature = 500
 
 my_model.settings = F.Settings(
-    absolute_tolerance=1e-10,
-    relative_tolerance=1e-10,
+    atol=1e-10,
+    rtol=1e-10,
     transient=False,
 )
 
@@ -117,101 +105,78 @@ my_model.run()
 
 ## Comparison with exact solution
 
-```{code-cell}
+```{code-cell} ipython3
+def error_L2(u_computed, u_exact, degree_raise=3):
+    # Create higher order function space
+    degree = u_computed.function_space.ufl_element().degree
+    family = u_computed.function_space.ufl_element().family_name
+    mesh = u_computed.function_space.mesh
+    W = dolfinx.fem.functionspace(mesh, (family, degree + degree_raise))
+    # Interpolate approximate solution
+    u_W = dolfinx.fem.Function(W)
+    u_W.interpolate(u_computed)
+
+    # Interpolate exact solution, special handling if exact solution
+    # is a ufl expression or a python lambda function
+    u_ex_W = dolfinx.fem.Function(W)
+    if isinstance(u_exact, ufl.core.expr.Expr):
+        u_expr = dolfinx.fem.Expression(u_exact, W.element.interpolation_points)
+        u_ex_W.interpolate(u_expr)
+    else:
+        u_ex_W.interpolate(u_exact)
+
+    # Compute the error in the higher order function space
+    e_W = dolfinx.fem.Function(W)
+    e_W.x.array[:] = u_W.x.array - u_ex_W.x.array
+
+    # Integrate the error
+    error = dolfinx.fem.form(ufl.inner(e_W, e_W) * ufl.dx)
+    error_local = dolfinx.fem.assemble_scalar(error)
+    error_global = mesh.comm.allreduce(error_local, op=MPI.SUM)
+    return np.sqrt(error_global)
+```
+
+```{code-cell} ipython3
 :tags: [hide-input]
 
-c_exact = f.Expression(sp.printing.ccode(exact_solution), degree=4)
-c_exact = f.project(c_exact, f.FunctionSpace(my_model.mesh.mesh, "CG", 1))
+computed_solution = H.solution
 
-computed_solution = my_model.h_transport_problem.mobile.post_processing_solution
-E = f.errornorm(computed_solution, c_exact, "L2")
+E = error_L2(computed_solution, exact_solution)
 print(f"L2 error: {E:.2e}")
+```
 
-# plot exact solution and computed solution
-fig, axs = plt.subplots(1, 3, figsize=(15, 5))
-plt.sca(axs[0])
-plt.title("Exact solution")
-plt.xlabel("x")
-plt.ylabel("y")
-CS1 = f.plot(c_exact, cmap="inferno")
-plt.sca(axs[1])
-plt.xlabel("x")
-plt.title("Computed solution")
-CS2 = f.plot(computed_solution, cmap="inferno")
+```{code-cell} ipython3
+import pyvista
+from dolfinx.plot import vtk_mesh
 
-plt.colorbar(CS1, ax=[axs[0]], shrink=0.8)
-plt.colorbar(CS2, ax=[axs[1]], shrink=0.8)
+u_topology, u_cell_types, u_geometry = vtk_mesh(computed_solution.function_space)
 
-axs[0].sharey(axs[1])
-plt.setp(axs[1].get_yticklabels(), visible=False)
+u_grid = pyvista.UnstructuredGrid(u_topology, u_cell_types, u_geometry)
+u_grid.point_data["c"] = computed_solution.x.array.real
+u_grid.set_active_scalars("c")
+u_plotter = pyvista.Plotter()
+u_plotter.add_mesh(u_grid, show_edges=False)
+contours = u_grid.contour(50)
+u_plotter.add_mesh(contours)
+u_plotter.view_xy()
+if not pyvista.OFF_SCREEN:
+    u_plotter.show()
+```
 
-for CS in [CS1, CS2]:
-    CS.set_edgecolor("face")
+```{code-cell} ipython3
+exact_solution_function = dolfinx.fem.Function(computed_solution.function_space)
+exact_solution_function.interpolate(exact_solution)
 
-
-def compute_arc_length(xs, ys):
-    """Computes the arc length of x,y points based
-    on x and y arrays
-    """
-    points = np.vstack((xs, ys)).T
-    distance = np.linalg.norm(points[1:] - points[:-1], axis=1)
-    arc_length = np.insert(np.cumsum(distance), 0, [0.0])
-    return arc_length
-
-
-# define the profiles
-profiles = [
-    {"start": (0.0, 0.0), "end": (1.0, 1.0)},
-    {"start": (0.2, 0.8), "end": (0.7, 0.2)},
-    {"start": (0.2, 0.6), "end": (0.8, 0.8)},
-]
-
-# plot the profiles on the right subplot
-for i, profile in enumerate(profiles):
-    start_x, start_y = profile["start"]
-    end_x, end_y = profile["end"]
-    plt.sca(axs[1])
-    (l,) = plt.plot([start_x, end_x], [start_y, end_y])
-
-    plt.sca(axs[2])
-
-    points_x_exact = np.linspace(start_x, end_x, num=30)
-    points_y_exact = np.linspace(start_y, end_y, num=30)
-    arc_length_exact = compute_arc_length(points_x_exact, points_y_exact)
-    u_values = [c_exact(x, y) for x, y in zip(points_x_exact, points_y_exact)]
-
-    points_x = np.linspace(start_x, end_x, num=100)
-    points_y = np.linspace(start_y, end_y, num=100)
-    arc_lengths = compute_arc_length(points_x, points_y)
-    computed_values = [computed_solution(x, y) for x, y in zip(points_x, points_y)]
-
-    (exact_line,) = plt.plot(
-        arc_length_exact, u_values, color=l.get_color(), marker="o", linestyle="None", alpha=0.3
-    )
-    (computed_line,) = plt.plot(arc_lengths, computed_values, color=l.get_color())
-
-plt.sca(axs[2])
-plt.xlabel("Arc length")
-plt.ylabel("Solution")
-
-legend_marker = mpl.lines.Line2D(
-    [],
-    [],
-    color="black",
-    marker=exact_line.get_marker(),
-    linestyle="None",
-    label="Exact",
-)
-legend_line = mpl.lines.Line2D([], [], color="black", label="Computed")
-plt.legend(
-    [legend_marker, legend_line], [legend_marker.get_label(), legend_line.get_label()]
-)
-
-plt.grid(alpha=0.3)
-plt.gca().spines[["right", "top"]].set_visible(False)
-for ext in ["png", "svg", "pdf"]:
-    plt.savefig(f"mms_heat_transfer.{ext}")
-plt.show()
+u_grid = pyvista.UnstructuredGrid(u_topology, u_cell_types, u_geometry)
+u_grid.point_data["c_exact"] = exact_solution_function.x.array.real
+u_grid.set_active_scalars("c_exact")
+u_plotter = pyvista.Plotter()
+u_plotter.add_mesh(u_grid, show_edges=False)
+contours = u_grid.contour(50)
+u_plotter.add_mesh(contours)
+u_plotter.view_xy()
+if not pyvista.OFF_SCREEN:
+    u_plotter.show()
 ```
 
 ## Compute convergence rates
@@ -220,7 +185,7 @@ It is also possible to compute how the numerical error decreases as we increase 
 By iteratively refining the mesh, we find that the error exhibits a second order convergence rate.
 This is expected for this particular problem as first order finite elements are used.
 
-```{code-cell}
+```{code-cell} ipython3
 :tags: [hide-input]
 
 errors = []
@@ -228,32 +193,24 @@ ns = [5, 10, 20, 30, 50, 100, 150]
 
 for n in ns:
     nx = ny = n
-    fenics_mesh = f.UnitSquareMesh(nx, ny)
+    fenics_mesh = fenics_mesh = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, nx, ny)
 
-    volume_markers = f.MeshFunction("size_t", fenics_mesh, fenics_mesh.topology().dim())
-    volume_markers.set_all(1)
+    new_model = F.HydrogenTransportProblem()
+    new_model.mesh = F.Mesh(fenics_mesh)
 
-    surface_markers = f.MeshFunction(
-        "size_t", fenics_mesh, fenics_mesh.topology().dim() - 1
-    )
-    surface_markers.set_all(0)
+    new_model.species = my_model.species
+    new_model.subdomains = my_model.subdomains
+    new_model.sources = my_model.sources
+    new_model.boundary_conditions = my_model.boundary_conditions
+    new_model.temperature = my_model.temperature
+    new_model.settings = my_model.settings
 
-    class Boundary(f.SubDomain):
-        def inside(self, x, on_boundary):
-            return on_boundary
 
-    boundary = Boundary()
-    boundary.mark(surface_markers, 1)
+    new_model.initialise()
+    new_model.run()
 
-    my_model.mesh = F.Mesh(
-        fenics_mesh, volume_markers=volume_markers, surface_markers=surface_markers
-    )
-
-    my_model.initialise()
-    my_model.run()
-    
-    computed_solution = my_model.h_transport_problem.mobile.post_processing_solution
-    errors.append(f.errornorm(computed_solution, c_exact, "L2"))
+    computed_solution = H.solution
+    errors.append(error_L2(computed_solution, exact_solution))
 
 h = 1 / np.array(ns)
 
@@ -262,7 +219,9 @@ plt.xlabel("Element size")
 plt.ylabel("L2 error")
 
 plt.loglog(h, 2 * h**2, linestyle="--", color="black")
-plt.annotate("2nd order", (h[0], 2 * h[0]**2), textcoords="offset points", xytext=(10, 0))
+plt.annotate(
+    "2nd order", (h[0], 2 * h[0] ** 2), textcoords="offset points", xytext=(10, 0)
+)
 
 plt.grid(alpha=0.3)
 plt.gca().spines[["right", "top"]].set_visible(False)
