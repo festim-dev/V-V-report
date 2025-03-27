@@ -145,7 +145,7 @@ E = error_L2(computed_solution, exact_solution)
 print(f"L2 error: {E:.2e}")
 ```
 
-```{code-cell} ipython3
+<!-- ```{code-cell} ipython3
 import pyvista
 from dolfinx.plot import vtk_mesh
 
@@ -183,7 +183,7 @@ if not pyvista.OFF_SCREEN:
     u_plotter.show()
 else:
     figure = u_plotter.show(screenshot="simple_exact.png")
-```
+``` -->
 
 ## Compute convergence rates
 
