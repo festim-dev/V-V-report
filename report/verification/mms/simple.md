@@ -149,6 +149,8 @@ print(f"L2 error: {E:.2e}")
 import pyvista
 from dolfinx.plot import vtk_mesh
 
+pyvista.OFF_SCREEN = True
+
 u_topology, u_cell_types, u_geometry = vtk_mesh(computed_solution.function_space)
 
 u_grid = pyvista.UnstructuredGrid(u_topology, u_cell_types, u_geometry)
@@ -161,6 +163,8 @@ u_plotter.add_mesh(contours)
 u_plotter.view_xy()
 if not pyvista.OFF_SCREEN:
     u_plotter.show()
+else:
+    figure = u_plotter.show(screenshot="simple_concentration.png")
 ```
 
 ```{code-cell} ipython3
@@ -177,6 +181,8 @@ u_plotter.add_mesh(contours)
 u_plotter.view_xy()
 if not pyvista.OFF_SCREEN:
     u_plotter.show()
+else:
+    figure = u_plotter.show(screenshot="simple_exact.png")
 ```
 
 ## Compute convergence rates
