@@ -21,7 +21,7 @@ dependencies:
   - ipython=8.23
   - scipy
   - plotly
+  - festim~=1.4
   - pip
   - pip:
-    - festim==1.4
     - h_transport_materials
