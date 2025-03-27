@@ -145,7 +145,7 @@ E = error_L2(computed_solution, exact_solution)
 print(f"L2 error: {E:.2e}")
 ```
 
-<!-- ```{code-cell} ipython3
+```{code-cell} ipython3
 import pyvista
 from dolfinx.plot import vtk_mesh
 
@@ -164,8 +164,10 @@ u_plotter.view_xy()
 if not pyvista.OFF_SCREEN:
     u_plotter.show()
 else:
-    figure = u_plotter.show(screenshot="simple_concentration.png")
+    figure = u_plotter.screenshot("simple_concentration.png")
 ```
+
+![Computed concentration](simple_concentration.png)
 
 ```{code-cell} ipython3
 exact_solution_function = dolfinx.fem.Function(computed_solution.function_space)
@@ -182,8 +184,12 @@ u_plotter.view_xy()
 if not pyvista.OFF_SCREEN:
     u_plotter.show()
 else:
-    figure = u_plotter.show(screenshot="simple_exact.png")
-``` -->
+    figure = u_plotter.screenshot("simple_exact.png")
+```
+
+![Computed concentration](simple_exact.png)
+
++++
 
 ## Compute convergence rates
 
