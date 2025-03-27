@@ -14,14 +14,12 @@ dependencies:
   - sphinx
   - sympy
   - pandas
-  - fenics
   - mpi4py<4
   - mpich
-  - numpy=1.24
   - ipython=8.23
   - scipy
   - plotly
+  - festim=2.0a2
   - pip
   - pip:
-    - festim==1.3
     - h_transport_materials
