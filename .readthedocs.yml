@@ -4,6 +4,10 @@ build:
   os: ubuntu-22.04
   tools:
     python: "miniconda-latest"
+  apt_packages:
+    - libgl1-mesa-dev
+    - libxrender1
+    - xvfb
   jobs:
     pre_build:
       # Generate the Sphinx configuration for this Jupyter Book so it builds.
