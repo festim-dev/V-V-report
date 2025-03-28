@@ -136,7 +136,9 @@ def error_L2(u_computed, u_exact, degree_raise=3):
         u_ex_W.interpolate(u_exact)
 
     # Integrate the error
-    error = dolfinx.fem.form(ufl.inner(u_computed - u_ex_W, u_computed - u_ex_W) * ufl.dx)
+    error = dolfinx.fem.form(
+        ufl.inner(u_computed - u_ex_W, u_computed - u_ex_W) * ufl.dx
+    )
     error_local = dolfinx.fem.assemble_scalar(error)
     error_global = mesh.comm.allreduce(error_local, op=MPI.SUM)
     return np.sqrt(error_global)
@@ -149,7 +151,7 @@ E_l2 = error_L2(computed_solution, exact_solution)
 
 exact_solution_function = dolfinx.fem.Function(computed_solution.function_space)
 exact_solution_function.interpolate(exact_solution)
-E_max = np.max(np.abs(exact_solution_function.x.array-computed_solution.x.array))
+E_max = np.max(np.abs(exact_solution_function.x.array - computed_solution.x.array))
 
 print(f"L2 error: {E_l2:.2e}")
 print(f"Max error: {E_max:.2e}")
@@ -216,7 +218,6 @@ for n in ns:
     new_model.boundary_conditions = my_model.boundary_conditions
     new_model.temperature = my_model.temperature
     new_model.settings = my_model.settings
-
 
     new_model.initialise()
     new_model.run()
