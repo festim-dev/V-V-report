@@ -14,36 +14,36 @@ parts:
       - file: verification/methods
       - file: verification/simple_cases
         sections:
-          - file: verification/mms/simple
-          - file: verification/mms/simple_transient
-          - file: verification/mms/simple_temperature
-      - file: verification/mms/fluxes
-      - file: verification/mms/heat_transfer
-      - file: verification/mms/discontinuity
-      - file: verification/mms/trapping
-      - file: verification/decay
-        sections:
-          - file: verification/mes/radioactive_decay
-          - file: verification/mms/radioactive_decay
-      - file: verification/mms/soret
-      - file: verification/mms/surface_kinetics
-      - file: verification/tmap
-        sections:
-          - file: verification/mes/depleting_source
-          - file: verification/mes/tmap_1b
-          - file: verification/mes/tmap_1c
-          - file: verification/mes/tmap_1da
-          - file: verification/mes/tmap_1db
-  - caption: Validation
-    chapters:
-      - file: validation/plasma-driven-permeation/plasma-driven-permeation
-      - file: validation/thermodesorption_spectra/ogorodnikova/ogorodnikova-tds
-      - file: validation/thermodesorption_spectra/dark/dark_tds
-      - file: validation/thermodesorption_spectra/baldwin/baldwin_tds
-      - file: validation/surface_model/hirooka/hirooka_HTi
-      - file: validation/surface_model/dunand/dunand_DWO
-      - file: validation/surface_model/markelj/markelj_DdamagedW
-      - file: validation/surface_model/schmid/schmid_DEurofer
+          - file: verification/mms/simple.md
+          # - file: verification/mms/simple_transient
+          # - file: verification/mms/simple_temperature
+      # - file: verification/mms/fluxes
+      # - file: verification/mms/heat_transfer
+      # - file: verification/mms/discontinuity
+      # - file: verification/mms/trapping
+      # - file: verification/decay
+      #   sections:
+      #     - file: verification/mes/radioactive_decay
+      #     - file: verification/mms/radioactive_decay
+      # - file: verification/mms/soret
+      # - file: verification/mms/surface_kinetics
+      # - file: verification/tmap
+      #   sections:
+      #     - file: verification/mes/depleting_source
+      #     - file: verification/mes/tmap_1b
+      #     - file: verification/mes/tmap_1c
+      #     - file: verification/mes/tmap_1da
+      #     - file: verification/mes/tmap_1db
+  # - caption: Validation
+  #   chapters:
+  #     - file: validation/plasma-driven-permeation/plasma-driven-permeation
+  #     - file: validation/thermodesorption_spectra/ogorodnikova/ogorodnikova-tds
+  #     - file: validation/thermodesorption_spectra/dark/dark_tds
+  #     - file: validation/thermodesorption_spectra/baldwin/baldwin_tds
+  #     - file: validation/surface_model/hirooka/hirooka_HTi
+  #     - file: validation/surface_model/dunand/dunand_DWO
+  #     - file: validation/surface_model/markelj/markelj_DdamagedW
+  #     - file: validation/surface_model/schmid/schmid_DEurofer
   - caption: Appendices
     chapters:
     - file: bibliography

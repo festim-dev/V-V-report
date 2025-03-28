@@ -1,4 +1,4 @@
-name: vv-festim-report-env-festim-2
+name: vv-festim-report-env
 
 channels:
   - conda-forge
@@ -9,6 +9,7 @@ dependencies:
   - jupyter-book
   - jupytext # necessary to open MyST files using BinderHub https://jupyterbook.org/en/stable/interactive/launchbuttons.html#launchbuttons-binder
   - sphinx-tags
+  - pyvista
   - numpy
   - matplotlib
   - sphinx
@@ -22,3 +23,4 @@ dependencies:
   - pip
   - pip:
     - h_transport_materials
+    - pyvista[all,trame]  # trame cannot be installed on conda
