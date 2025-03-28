@@ -381,7 +381,7 @@ times = np.linspace(0, my_model.settings.final_time, 1000)
 analytical = analytical_expression_fractional_release_TMAP7(
     t=times,
     P_0=initial_pressure,
-    D=my_model.materials.materials[0].D_0,
+    D=my_model.materials[0].D_0,
     S=left_bc.H_0,
     V=encl_vol,
     T=temperature,
@@ -401,7 +401,7 @@ plt.plot(
     analytical_expression_flux(
         t=times,
         P_0=initial_pressure,
-        D=my_model.materials.materials[0].D_0,
+        D=my_model.materials[0].D_0,
         S=left_bc.H_0,
         V=encl_vol,
         T=temperature,

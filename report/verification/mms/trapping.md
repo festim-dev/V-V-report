@@ -127,7 +127,7 @@ my_trap = F.Trap(
     p_0=0.2,
     E_p=0,
     density=density,
-    materials=my_model.materials.materials[0],
+    materials=my_model.materials[0],
 )
 my_model.traps = [my_trap]
 
