@@ -34,7 +34,7 @@ The exact solution for mobile concentration is:
 
 $$
 \begin{equation}
-    c_\mathrm{exact} = 1 + 2 x^2
+    c_\mathrm{exact} = 10 + 2 x^2
 \end{equation}
 $$(c_exact_fluxes)
 
