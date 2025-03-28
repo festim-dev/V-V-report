@@ -151,7 +151,6 @@ from dolfinx.plot import vtk_mesh
 
 pyvista.start_xvfb()
 pyvista.set_jupyter_backend('html')
-# pyvista.OFF_SCREEN = True
 
 u_topology, u_cell_types, u_geometry = vtk_mesh(computed_solution.function_space)
 
@@ -163,13 +162,6 @@ u_plotter.add_mesh(u_grid, show_edges=False)
 contours = u_grid.contour(50)
 u_plotter.add_mesh(contours)
 u_plotter.view_xy()
-
-import os
-
-# Print the value of the environment variable
-print(os.getenv("PYVISTA_TRAME_SERVER_PROXY_PREFIX", "Environment variable not set"))
-print(os.getenv("PYVISTA_TRAME_SERVER_PROXY_ENABLED", "Environment variable not set"))
-print(os.getenv("PYVISTA_JUPYTER_BACKEND", "Environment variable not set"))
 
 if not pyvista.OFF_SCREEN:
     u_plotter.show()
