@@ -168,6 +168,8 @@ import os
 
 # Print the value of the environment variable
 print(os.getenv("PYVISTA_TRAME_SERVER_PROXY_PREFIX", "Environment variable not set"))
+print(os.getenv("PYVISTA_TRAME_SERVER_PROXY_ENABLED", "Environment variable not set"))
+print(os.getenv("PYVISTA_JUPYTER_BACKEND", "Environment variable not set"))
 
 if not pyvista.OFF_SCREEN:
     u_plotter.show()
