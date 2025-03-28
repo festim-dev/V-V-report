@@ -12,37 +12,37 @@ kernelspec:
   name: python3
 ---
 
-# Simple diffusion case
+# Diffusion with dissociation flux
 
-```{tags} 2D, MMS, steady state
+```{tags} 2D, MMS, DissociationFlux, steady state
 ```
 
-This is a simple MMS example.
-We will only consider diffusion of hydrogen in a unit square domain $\Omega$ at steady state with an homogeneous diffusion coefficient $D$.
-Moreover, a Dirichlet boundary condition will be assumed on the boundaries $\partial \Omega $.
+This example is a diffusion problem with one boundary under a dissociation flux (`DissociationFlux`).
 
-The problem is therefore:
-```{math}
-:label: problem_simple
+The problem is:
+
+$$
 \begin{align}
-    &\nabla \cdot (D \ \nabla{c}) = -S  \quad \text{on }  \Omega  \\
-    & c = c_0 \quad \text{on }  \partial \Omega
+    \nabla \cdot (D \ \nabla{c}) = -S &  \quad \text{on }  \Omega  \\
+    c = c_0 & \quad \text{on }  x = 0 \\
+    -D \ \nabla c \cdot \mathbf{n} = 2 K_\mathrm{d} \ P & \quad \text{on }  x = 1 \\
 \end{align}
-```
+$$(problem_fluxes)
 
 The exact solution for mobile concentration is:
 
 $$
 \begin{equation}
-    c_\mathrm{exact} = 1 + 2 x^2 + 3 y^2
+    c_\mathrm{exact} = 10 + 2 x^2
 \end{equation}
-$$(c_exact_simple)
+$$(c_exact_fluxes)
 
-Injecting {eq}`c_exact_simple` in {eq}`problem_simple`, we obtain the expressions of $S$ and $c_0$:
+Injecting {eq}`c_exact_fluxes` in {eq}`problem_fluxes`, we obtain the expressions of $S$, $c_0$, and $K_\mathrm{d}$:
 
 \begin{align}
-    & S = -10 D \\
-    & c_0 = c_\mathrm{exact}
+    & S = -4 D \\
+    & c_0 = c_\mathrm{exact}\\
+    & P = \frac{2D}{K_\mathrm{d}} 
 \end{align}
 
 We can then run a FESTIM model with these values and compare the numerical solution with $c_\mathrm{exact}$.
@@ -53,15 +53,31 @@ We can then run a FESTIM model with these values and compare the numerical solut
 
 ```{code-cell} ipython3
 import festim as F
-import ufl
 import matplotlib.pyplot as plt
 import numpy as np
+import ufl
 import dolfinx
+
 from mpi4py import MPI
 
 # Create and mark the mesh
 nx = ny = 10
-fenics_mesh = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, nx, ny)
+fenics_mesh = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, nx, ny, cell_type=dolfinx.mesh.CellType.quadrilateral)
+
+
+class LefSurface(F.SurfaceSubdomain):
+    def locate_boundary_facet_indices(self, mesh):
+        return dolfinx.mesh.locate_entities_boundary(
+            mesh, mesh.topology.dim - 1, lambda x: np.isclose(x[0], 0)
+        )
+
+
+class RightSurface(F.SurfaceSubdomain):
+    def locate_boundary_facet_indices(self, mesh):
+        return dolfinx.mesh.locate_entities_boundary(
+            mesh, mesh.topology.dim - 1, lambda x: np.isclose(x[0], 1)
+        )
+
 
 # Create the FESTIM model
 my_model = F.HydrogenTransportProblem()
@@ -70,27 +86,40 @@ H = F.Species("H")
 my_model.species = [H]
 my_model.mesh = F.Mesh(fenics_mesh)
 
-D = 2.0
+left_surface = LefSurface(id=1)
+right_surface = RightSurface(id=2)
+
+D = 20
+K_d = 10
 material = F.Material(D_0=D, E_D=0)
 
 volume = F.VolumeSubdomain(id=1, material=material)
-boundary = F.SurfaceSubdomain(id=1)
-
-my_model.subdomains = [boundary, volume]
-
-
-exact_solution = lambda x: 1 + 2 * x[0] ** 2 + 3 * x[1] ** 2
-
-my_model.sources = [
-    F.ParticleSource(-10 * D, volume=volume, species=H),
+my_model.subdomains = [
+    left_surface,
+    right_surface,
+    volume,
 ]
+
+# Variational formulation
+exact_solution = lambda x: 10 + 2 * x[0] ** 2  # exact solution
+
+
+my_model.sources = [F.ParticleSource(-4 * D, volume=volume, species=H)]
 
 my_model.boundary_conditions = [
-    F.FixedConcentrationBC(subdomain=boundary, value=exact_solution, species=H),
+    F.FixedConcentrationBC(subdomain=left_surface, value=exact_solution, species=H),
+    F.SurfaceReactionBC(
+        reactant=[H, H],
+        gas_pressure=2 * D / K_d,
+        k_d0=K_d,
+        E_kd=0,
+        k_r0=0,
+        E_kr=0,
+        subdomain=right_surface,
+    ),
 ]
 
-
-my_model.temperature = 500
+my_model.temperature = 500.0  # ignored in this problem
 
 my_model.settings = F.Settings(
     atol=1e-10,
@@ -133,6 +162,8 @@ def error_L2(u_computed, u_exact, degree_raise=3):
 ```
 
 ```{code-cell} ipython3
+:tags: [hide-input]
+
 computed_solution = H.solution
 
 E_l2 = error_L2(computed_solution, exact_solution)
@@ -162,15 +193,13 @@ u_grid = pyvista.UnstructuredGrid(u_topology, u_cell_types, u_geometry)
 u_grid.point_data["c"] = computed_solution.x.array.real
 u_grid.set_active_scalars("c")
 u_plotter = pyvista.Plotter()
-u_plotter.add_mesh(u_grid, show_edges=False)
-contours = u_grid.contour(50)
-u_plotter.add_mesh(contours)
+u_plotter.add_mesh(u_grid, show_edges=True)
 u_plotter.view_xy()
 
 if not pyvista.OFF_SCREEN:
     u_plotter.show()
 else:
-    figure = u_plotter.screenshot("simple_concentration.png")
+    figure = u_plotter.screenshot("diss_concentration.png")
 ```
 
 ```{code-cell} ipython3
@@ -180,14 +209,12 @@ u_grid = pyvista.UnstructuredGrid(u_topology, u_cell_types, u_geometry)
 u_grid.point_data["c_exact"] = exact_solution_function.x.array.real
 u_grid.set_active_scalars("c_exact")
 u_plotter = pyvista.Plotter()
-u_plotter.add_mesh(u_grid, show_edges=False)
-contours = u_grid.contour(50)
-u_plotter.add_mesh(contours)
+u_plotter.add_mesh(u_grid, show_edges=True)
 u_plotter.view_xy()
 if not pyvista.OFF_SCREEN:
     u_plotter.show()
 else:
-    figure = u_plotter.screenshot("simple_exact.png")
+    figure = u_plotter.screenshot("diss_exact.png")
 ```
 
 ## Compute convergence rates
@@ -202,7 +229,7 @@ ns = [5, 10, 20, 30, 50, 100, 150]
 
 for n in ns:
     nx = ny = n
-    fenics_mesh = fenics_mesh = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, nx, ny)
+    fenics_mesh = fenics_mesh = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, nx, ny, cell_type=dolfinx.mesh.CellType.quadrilateral)
 
     new_model = F.HydrogenTransportProblem()
     new_model.mesh = F.Mesh(fenics_mesh)
