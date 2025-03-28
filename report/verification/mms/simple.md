@@ -163,6 +163,12 @@ u_plotter.add_mesh(u_grid, show_edges=False)
 contours = u_grid.contour(50)
 u_plotter.add_mesh(contours)
 u_plotter.view_xy()
+
+import os
+
+# Print the value of the environment variable
+print(os.getenv("PYVISTA_TRAME_SERVER_PROXY_PREFIX", "Environment variable not set"))
+
 if not pyvista.OFF_SCREEN:
     u_plotter.show()
 else:
