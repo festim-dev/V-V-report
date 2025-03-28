@@ -19,7 +19,7 @@ parts:
           # - file: verification/mms/simple_temperature
       - file: verification/mms/fluxes
       # - file: verification/mms/heat_transfer
-      # - file: verification/mms/discontinuity
+      - file: verification/mms/discontinuity
       - file: verification/mms/trapping
       # - file: verification/decay
       #   sections:
