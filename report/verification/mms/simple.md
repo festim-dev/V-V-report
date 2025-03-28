@@ -105,16 +105,17 @@ my_model.run()
 
 ## Comparison with exact solution
 
+First, we compute the $L^2$-norm of the error, defined by $E=\sqrt{\int_\Omega (c-c_\mathrm{exact})^2\mathrm{d} x}$. Secondly, we compute the maximum error at any degree of freedom.
+
 ```{code-cell} ipython3
+:tags: [hide-input]
+
 def error_L2(u_computed, u_exact, degree_raise=3):
     # Create higher order function space
     degree = u_computed.function_space.ufl_element().degree
     family = u_computed.function_space.ufl_element().family_name
     mesh = u_computed.function_space.mesh
     W = dolfinx.fem.functionspace(mesh, (family, degree + degree_raise))
-    # Interpolate approximate solution
-    u_W = dolfinx.fem.Function(W)
-    u_W.interpolate(u_computed)
 
     # Interpolate exact solution, special handling if exact solution
     # is a ufl expression or a python lambda function
@@ -125,27 +126,31 @@ def error_L2(u_computed, u_exact, degree_raise=3):
     else:
         u_ex_W.interpolate(u_exact)
 
-    # Compute the error in the higher order function space
-    e_W = dolfinx.fem.Function(W)
-    e_W.x.array[:] = u_W.x.array - u_ex_W.x.array
-
     # Integrate the error
-    error = dolfinx.fem.form(ufl.inner(e_W, e_W) * ufl.dx)
+    error = dolfinx.fem.form(ufl.inner(u_computed - u_ex_W, u_computed - u_ex_W) * ufl.dx)
     error_local = dolfinx.fem.assemble_scalar(error)
     error_global = mesh.comm.allreduce(error_local, op=MPI.SUM)
     return np.sqrt(error_global)
 ```
 
 ```{code-cell} ipython3
-:tags: [hide-input]
-
 computed_solution = H.solution
 
-E = error_L2(computed_solution, exact_solution)
-print(f"L2 error: {E:.2e}")
+E_l2 = error_L2(computed_solution, exact_solution)
+
+exact_solution_function = dolfinx.fem.Function(computed_solution.function_space)
+exact_solution_function.interpolate(exact_solution)
+E_max = np.max(np.abs(exact_solution_function.x.array-computed_solution.x.array))
+
+print(f"L2 error: {E_l2:.2e}")
+print(f"Max error: {E_max:.2e}")
 ```
 
+The concentration fields can be visualised using `pyvista`.
+
 ```{code-cell} ipython3
+:tags: [hide-input]
+
 import pyvista
 from dolfinx.plot import vtk_mesh
 
@@ -170,8 +175,7 @@ else:
 ```
 
 ```{code-cell} ipython3
-exact_solution_function = dolfinx.fem.Function(computed_solution.function_space)
-exact_solution_function.interpolate(exact_solution)
+:tags: [hide-input]
 
 u_grid = pyvista.UnstructuredGrid(u_topology, u_cell_types, u_geometry)
 u_grid.point_data["c_exact"] = exact_solution_function.x.array.real
@@ -194,8 +198,6 @@ By iteratively refining the mesh, we find that the error exhibits a second order
 This is expected for this particular problem as first order finite elements are used.
 
 ```{code-cell} ipython3
-:tags: [hide-input]
-
 errors = []
 ns = [5, 10, 20, 30, 50, 100, 150]
 
