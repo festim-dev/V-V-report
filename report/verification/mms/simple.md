@@ -54,7 +54,6 @@ We can then run a FESTIM model with these values and compare the numerical solut
 ```{code-cell} ipython3
 import festim as F
 import ufl
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import dolfinx
