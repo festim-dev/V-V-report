@@ -150,7 +150,7 @@ import pyvista
 from dolfinx.plot import vtk_mesh
 
 pyvista.start_xvfb()
-pyvista.set_jupyter_backend('trame')
+pyvista.set_jupyter_backend('html')
 # pyvista.OFF_SCREEN = True
 
 u_topology, u_cell_types, u_geometry = vtk_mesh(computed_solution.function_space)
