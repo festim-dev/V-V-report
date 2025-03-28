@@ -20,7 +20,7 @@ parts:
       - file: verification/mms/fluxes
       # - file: verification/mms/heat_transfer
       # - file: verification/mms/discontinuity
-      # - file: verification/mms/trapping
+      - file: verification/mms/trapping
       - file: verification/decay
         sections:
           # - file: verification/mes/radioactive_decay
