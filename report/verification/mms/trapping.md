@@ -41,48 +41,41 @@ Again, the computed solution agrees very well with the exact solution.
 ## FESTIM code
 
 ```{code-cell} ipython3
-:tags: [hide-input, hide-output]
-
 import festim as F
-import matplotlib.pyplot as plt
 import numpy as np
 
 import dolfinx
 from mpi4py import MPI
 import ufl
 
-# Create and mark the mesh
-nx = ny = 20
-fenics_mesh = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, nx, ny, cell_type=dolfinx.mesh.CellType.quadrilateral)
 
-
-boundary = F.SurfaceSubdomain(id=1)
 # Create the FESTIM model
 my_model = F.HydrogenTransportProblem()
 
-
-
-my_model.mesh = F.Mesh(
-    fenics_mesh
+# Create and mark the mesh
+nx = ny = 20
+fenics_mesh = dolfinx.mesh.create_unit_square(
+    MPI.COMM_WORLD, nx, ny, cell_type=dolfinx.mesh.CellType.quadrilateral
 )
+my_model.mesh = F.Mesh(fenics_mesh)
 
 my_mat = F.Material(D_0=5, E_D=0)
 volume = F.VolumeSubdomain(id=1, material=my_mat)
+boundary = F.SurfaceSubdomain(id=1)
 
 my_model.subdomains = [volume, boundary]
 
-# Variational formulation
 
 def exact_solution_mobile(mod=np):
     return lambda x: 5 + mod.sin(2 * mod.pi * x[0]) + mod.cos(2 * mod.pi * x[1])
 
+
 def exact_solution_trapped(mod=np):
-    return lambda x: 5 + mod.cos(2 * mod.pi * x[0]) + mod.sin(2 * mod.pi *  x[1])
+    return lambda x: 5 + mod.cos(2 * mod.pi * x[0]) + mod.sin(2 * mod.pi * x[1])
+
 
 exact_solution_mobile_ufl = exact_solution_mobile(mod=ufl)
 exact_solution_trapped_ufl = exact_solution_trapped(mod=ufl)
-exact_solution_mobile_np = exact_solution_mobile(mod=np)
-exact_solution_trapped_np = exact_solution_trapped(mod=np)
 
 my_model.temperature = 500.0
 
@@ -110,15 +103,22 @@ k = trapping_reaction.k_0 * ufl.exp(-trapping_reaction.E_k / my_model.temperatur
 p = trapping_reaction.p_0 * ufl.exp(-trapping_reaction.E_p / my_model.temperature)
 D = my_mat.D_0 * ufl.exp(-my_mat.E_D / my_model.temperature)
 
-f_mobile = lambda x: (
-    -ufl.div(D * ufl.grad(exact_solution_mobile_ufl(x)))
-    + k * exact_solution_mobile_ufl(x) * (trap_density(x) - exact_solution_trapped_ufl(x))
-    - p * exact_solution_trapped_ufl(x)
-)
-f_trap = lambda x:(
-    -k * exact_solution_mobile_ufl(x) * (trap_density(x) - exact_solution_trapped_ufl(x))
-    + p * exact_solution_trapped_ufl(x)
-)
+
+def f_mobile(x):
+    return (
+        -ufl.div(D * ufl.grad(exact_solution_mobile_ufl(x)))
+        + k
+        * exact_solution_mobile_ufl(x)
+        * (trap_density(x) - exact_solution_trapped_ufl(x))
+        - p * exact_solution_trapped_ufl(x)
+    )
+
+
+def f_trap(x):
+    return -k * exact_solution_mobile_ufl(x) * (
+        trap_density(x) - exact_solution_trapped_ufl(x)
+    ) + p * exact_solution_trapped_ufl(x)
+
 
 my_model.sources = [
     F.ParticleSource(f_mobile, volume=volume, species=H),
@@ -126,15 +126,15 @@ my_model.sources = [
 ]
 
 my_model.boundary_conditions = [
-    F.FixedConcentrationBC(subdomain=boundary, value=exact_solution_mobile_ufl, species=H),
-    F.FixedConcentrationBC(subdomain=boundary, value=exact_solution_trapped_ufl, species=trapped_H),
+    F.FixedConcentrationBC(
+        subdomain=boundary, value=exact_solution_mobile_ufl, species=H
+    ),
+    F.FixedConcentrationBC(
+        subdomain=boundary, value=exact_solution_trapped_ufl, species=trapped_H
+    ),
 ]
 
-my_model.settings = F.Settings(
-    atol=1e-10,
-    rtol=1e-10,
-    transient=False,
-)
+my_model.settings = F.Settings(atol=1e-10, rtol=1e-10, transient=False)
 
 my_model.initialise()
 my_model.run()
@@ -164,16 +164,25 @@ def error_L2(u_computed, u_exact, degree_raise=3):
         u_ex_W.interpolate(u_exact)
 
     # Integrate the error
-    error = dolfinx.fem.form(ufl.inner(u_computed - u_ex_W, u_computed - u_ex_W) * ufl.dx)
+    error = dolfinx.fem.form(
+        ufl.inner(u_computed - u_ex_W, u_computed - u_ex_W) * ufl.dx
+    )
     error_local = dolfinx.fem.assemble_scalar(error)
     error_global = mesh.comm.allreduce(error_local, op=MPI.SUM)
     return np.sqrt(error_global)
 ```
 
 ```{code-cell} ipython3
+exact_solution_mobile_np = exact_solution_mobile(mod=np)
+exact_solution_trapped_np = exact_solution_trapped(mod=np)
+
 exact_functions = {}
 
-for species, exact_solution, label in zip([H, trapped_H], [exact_solution_mobile_np, exact_solution_trapped_np], ["Mobile", "Trapped"]):
+for species, exact_solution, label in zip(
+    [H, trapped_H],
+    [exact_solution_mobile_np, exact_solution_trapped_np],
+    ["Mobile", "Trapped"],
+):
     computed_solution = species.post_processing_solution
 
     E_l2 = error_L2(computed_solution, exact_solution)
@@ -182,7 +191,7 @@ for species, exact_solution, label in zip([H, trapped_H], [exact_solution_mobile
     exact_solution_function.interpolate(exact_solution)
 
     exact_functions[label] = exact_solution_function
-    E_max = np.max(np.abs(exact_solution_function.x.array-computed_solution.x.array))
+    E_max = np.max(np.abs(exact_solution_function.x.array - computed_solution.x.array))
 
     print(f"{label}:")
     print(f"L2 error: {E_l2:.2e}")
@@ -196,7 +205,8 @@ import pyvista
 from dolfinx.plot import vtk_mesh
 
 pyvista.start_xvfb()
-pyvista.set_jupyter_backend('html')
+pyvista.set_jupyter_backend("html")
+
 
 def get_u_grid(computed_solution: dolfinx.fem.Function, label: str):
     u_topology, u_cell_types, u_geometry = vtk_mesh(computed_solution.function_space)
@@ -205,9 +215,9 @@ def get_u_grid(computed_solution: dolfinx.fem.Function, label: str):
     u_grid.set_active_scalars(label)
     return u_grid
 
+
 u_grid_mobile = get_u_grid(H.post_processing_solution, "c_mobile")
 u_grid_trapped = get_u_grid(trapped_H.post_processing_solution, "c_trapped")
-
 
 u_grid_mobile_exact = get_u_grid(exact_functions["Mobile"], "c_mobile_exact")
 u_grid_trapped_exact = get_u_grid(exact_functions["Trapped"], "c_trapped_exact")
