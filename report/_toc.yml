@@ -16,7 +16,7 @@ parts:
         sections:
           - file: verification/mms/simple.md
           # - file: verification/mms/simple_transient
-          # - file: verification/mms/simple_temperature
+          - file: verification/mms/simple_temperature
       - file: verification/mms/fluxes
       # - file: verification/mms/heat_transfer
       # - file: verification/mms/discontinuity
