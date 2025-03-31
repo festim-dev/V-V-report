@@ -135,6 +135,8 @@ my_model.run()
 import pyvista
 from dolfinx.plot import vtk_mesh
 from dolfinx import fem
+import adios4dolfinx
+import ufl
 
 def read_function_from_file(
     filename: str, name: str, timestamp: int | float, family="P", order: int = 1
