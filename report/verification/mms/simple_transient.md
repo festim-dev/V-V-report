@@ -134,70 +134,8 @@ my_model.run()
 import pyvista
 from dolfinx.plot import vtk_mesh
 from dolfinx import fem
-import adios4dolfinx
 import ufl
-
-def read_function_from_file(
-    filename: str, name: str, timestamp: int | float, family="P", order: int = 1
-) -> fem.Function:
-    """
-    Read a function from a file
-
-    note::
-        The function is read from a file using adios4dolfinx. For more information
-        see the [adios4dolfinx documentation](https://jsdokken.com/adios4dolfinx/README.html).
-
-    Args:
-        filename: the filename
-        name: the name of the function
-        timestamp: the timestamp of the function
-        family: the family of the function space
-        order: the order of the function space
-
-    Returns:
-        the function
-    """
-    mesh_in = adios4dolfinx.read_mesh(filename, MPI.COMM_WORLD)
-    V_in = fem.functionspace(mesh_in, (family, order))
-    u_in = fem.Function(V_in)
-    adios4dolfinx.read_function(
-        filename=filename,
-        u=u_in,
-        name=name,
-        time=timestamp,
-    )
-    return u_in
-
-
-def error_L2(u_computed, u_exact, degree_raise=3):
-    # Create higher order function space
-    degree = u_computed.function_space.ufl_element().degree
-    family = u_computed.function_space.ufl_element().family_name
-    mesh = u_computed.function_space.mesh
-    W = fem.functionspace(mesh, (family, degree + degree_raise))
-    # Interpolate approximate solution
-    u_W = fem.Function(W)
-    u_W.interpolate(u_computed)
-
-    # Interpolate exact solution, special handling if exact solution
-    # is a ufl expression or a python lambda function
-    u_ex_W = fem.Function(W)
-    if isinstance(u_exact, ufl.core.expr.Expr):
-        u_expr = fem.Expression(u_exact, W.element.interpolation_points)
-        u_ex_W.interpolate(u_expr)
-    else:
-        u_ex_W.interpolate(u_exact)
-
-    # Compute the error in the higher order function space
-    e_W = fem.Function(W)
-    e_W.x.array[:] = u_W.x.array - u_ex_W.x.array
-
-    # Integrate the error
-    error = fem.form(ufl.inner(e_W, e_W) * ufl.dx)
-    error_local = fem.assemble_scalar(error)
-    error_global = mesh.comm.allreduce(error_local, op=MPI.SUM)
-    return np.sqrt(error_global)
-
+from festim import read_function_from_file
 
 def get_u_grid(computed_solution: fem.Function, label: str):
     u_topology, u_cell_types, u_geometry = vtk_mesh(computed_solution.function_space)
@@ -207,35 +145,37 @@ def get_u_grid(computed_solution: fem.Function, label: str):
     return u_grid
 
 
-pyvista.start_xvfb()
-pyvista.set_jupyter_backend('html')
-
-computed_solution = read_function_from_file(
-    "simple_transient_mobile.bp", "mobile", my_milestones[0]
-)
-u_grid_mobile_computed = get_u_grid(computed_solution, "c_mobile")
-
-c_exact = fem.Function(computed_solution.function_space)
+c_exact = fem.Function(my_model.function_space)
 c_exact.interpolate(lambda x: exact_solution(x, my_milestones[0]))
 u_grid_mobile_exact = get_u_grid(c_exact, "c_mobile_exact")
 
-# Get the range of values for both computed and exact solutions
-combined_range = [
-    min(u_grid_mobile_computed.point_data["c_mobile"].min(), u_grid_mobile_exact.point_data["c_mobile_exact"].min()),
-    max(u_grid_mobile_computed.point_data["c_mobile"].max(), u_grid_mobile_exact.point_data["c_mobile_exact"].max()),
-]
+pyvista.start_xvfb()
+pyvista.set_jupyter_backend('html')
 
+u_plotter = pyvista.Plotter(shape=(4, 3))
 
+for i, time in enumerate(my_milestones):
 
-u_plotter = pyvista.Plotter(shape=(1, 2))
+    computed_solution = read_function_from_file(
+        "simple_transient_mobile.bp", "mobile", time
+    )
+    u_grid_mobile_computed = get_u_grid(computed_solution, "c_mobile")
 
-u_plotter.subplot(0, 0)
-u_plotter.add_mesh(u_grid_mobile_exact, show_edges=False, cmap="inferno", clim=combined_range)
-u_plotter.view_xy()
+    c_exact = fem.Function(computed_solution.function_space)
+    c_exact.interpolate(lambda x: exact_solution(x, time))
+    u_grid_mobile_exact = get_u_grid(c_exact, "c_mobile_exact")
 
-u_plotter.subplot(0, 1)
-u_plotter.add_mesh(u_grid_mobile_computed, show_edges=False, cmap="inferno", clim=combined_range)
-u_plotter.view_xy()
+    u_plotter.subplot(i, 0)
+    u_plotter.add_text(f"Time: {time:.2f}", position="lower_left", font_size=10, color="black")
+    u_plotter.view_xy()
+
+    u_plotter.subplot(i, 1)
+    u_plotter.add_mesh(u_grid_mobile_exact, show_edges=False, cmap="inferno", scalar_bar_args={"title": "Exact"})
+    u_plotter.view_xy()
+
+    u_plotter.subplot(i, 2)
+    u_plotter.add_mesh(u_grid_mobile_computed, show_edges=False, cmap="inferno", scalar_bar_args={"title": "Computed"})
+    u_plotter.view_xy()
 
 
 if not pyvista.OFF_SCREEN:
