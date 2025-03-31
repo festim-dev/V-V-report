@@ -7,7 +7,7 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.16.7
 kernelspec:
-  display_name: vv-festim-report-env-festim-2
+  display_name: vv-festim-report-env
   language: python
   name: python3
 ---
@@ -58,7 +58,6 @@ We can then run a FESTIM model with these values and compare the numerical solut
 ## FESTIM code
 
 ```{code-cell} ipython3
-
 from mpi4py import MPI
 import festim as F
 from dolfinx.mesh import create_unit_square
@@ -103,7 +102,7 @@ my_settings = F.Settings(
         milestones=my_milestones,
     ),
 )
-my_exports = [F.VTXSpeciesExport(filename="simple_transient_mobile.bp", field=H, subdomain=volume)]
+my_exports = [F.VTXSpeciesExport(filename="simple_transient_mobile.bp", field=H, subdomain=volume, checkpoint=True)]
 
 my_model = F.HydrogenTransportProblem()
 my_model.mesh = F.Mesh(fenics_mesh)
@@ -113,6 +112,7 @@ my_model.sources = my_sources
 my_model.boundary_conditions = my_boundary_conditions
 my_model.temperature = 500
 my_model.settings=my_settings
+my_model.exports = my_exports
 
 my_model.initialise()
 my_model.run()
@@ -145,7 +145,7 @@ u_grid_mobile_exact = get_u_grid(c_exact, "c_mobile_exact")
 pyvista.start_xvfb()
 pyvista.set_jupyter_backend('html')
 
-u_plotter = pyvista.Plotter(shape=(4, 3))
+u_plotter = pyvista.Plotter(shape=(4, 2))
 
 for i, time in enumerate(my_milestones):
 
@@ -159,15 +159,11 @@ for i, time in enumerate(my_milestones):
     u_grid_mobile_exact = get_u_grid(c_exact, "c_mobile_exact")
 
     u_plotter.subplot(i, 0)
-    u_plotter.add_text(f"Time: {time:.2f}", position="lower_left", font_size=10, color="black")
+    u_plotter.add_mesh(u_grid_mobile_exact, show_edges=False, cmap="inferno")
     u_plotter.view_xy()
 
     u_plotter.subplot(i, 1)
-    u_plotter.add_mesh(u_grid_mobile_exact, show_edges=False, cmap="inferno", scalar_bar_args={"title": "Exact"})
-    u_plotter.view_xy()
-
-    u_plotter.subplot(i, 2)
-    u_plotter.add_mesh(u_grid_mobile_computed, show_edges=False, cmap="inferno", scalar_bar_args={"title": "Computed"})
+    u_plotter.add_mesh(u_grid_mobile_computed, show_edges=False, cmap="inferno")
     u_plotter.view_xy()
 
 
