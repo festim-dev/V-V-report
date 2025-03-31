@@ -129,6 +129,7 @@ from dolfinx import fem
 import ufl
 from festim import read_function_from_file
 
+
 def get_u_grid(computed_solution: fem.Function, label: str):
     u_topology, u_cell_types, u_geometry = vtk_mesh(computed_solution.function_space)
     u_grid = pyvista.UnstructuredGrid(u_topology, u_cell_types, u_geometry)
