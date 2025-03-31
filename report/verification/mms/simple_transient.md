@@ -103,24 +103,16 @@ my_settings = F.Settings(
         milestones=my_milestones,
     ),
 )
+my_exports = [F.VTXSpeciesExport(filename="simple_transient_mobile.bp", field=H, subdomain=volume)]
 
-my_model = F.HydrogenTransportProblem(
-    mesh=F.Mesh(fenics_mesh),
-    subdomains=my_subdomains,
-    species=my_species,
-    sources=my_sources,
-    boundary_conditions=my_boundary_conditions,
-    temperature=500,
-    settings=my_settings,
-    exports=[
-        F.VTXSpeciesExport(
-            field=H,
-            filename="simple_transient_mobile.bp",
-            subdomain=volume,
-            checkpoint=True,
-        )
-    ],
-)
+my_model = F.HydrogenTransportProblem()
+my_model.mesh = F.Mesh(fenics_mesh)
+my_model.subdomains = my_subdomains
+my_model.species = my_species
+my_model.sources = my_sources
+my_model.boundary_conditions = my_boundary_conditions
+my_model.temperature = 500
+my_model.settings=my_settings
 
 my_model.initialise()
 my_model.run()
