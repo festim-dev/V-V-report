@@ -58,7 +58,6 @@ We can then run a FESTIM model with these values and compare the numerical solut
 ## FESTIM code
 
 ```{code-cell} ipython3
-:tags: [hide-cell]
 
 from mpi4py import MPI
 import festim as F
@@ -76,14 +75,14 @@ boundary = F.SurfaceSubdomain(id=1)
 
 exact_solution = (
     lambda x, t: 1 + 2 * x[0] ** 2 + 3 * t * x[1] ** 2 + 2 * t
-)  # exact solution
+)
 
 f = lambda x, t: 2 + 3 * x[1] ** 2 - (4 + 6 * t) * D
 
 final_time = 17
 slices = 4
 slice_size = final_time / slices
-my_milestones = list(np.linspace(slice_size, final_time, slices))
+my_milestones = np.linspace(slice_size, final_time, slices).tolist()
 
 
 my_subdomains = [volume, boundary]
@@ -227,8 +226,6 @@ combined_range = [
 ]
 
 
-pyvista.start_xvfb()
-pyvista.set_jupyter_backend('html')
 
 u_plotter = pyvista.Plotter(shape=(1, 2))
 
