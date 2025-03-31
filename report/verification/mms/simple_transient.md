@@ -33,11 +33,10 @@ $$(problem_simple_transient)
 
 The exact solution for mobile concentration is:
 
-$$
-\begin{equation}
-    c_\mathrm{exact} = 1 + 2 x^2 + 3 y^2 t + 2t
-\end{equation}
-$$(c_exact_simple_transient)
+
+```{glue:math} c_exact_sym
+:label: c_exact_simple_transient
+```
 
 ```{note}
 We use a manufactured solution that varies linearly with time ($t^1$), as the backward Euler scheme provides an exact solution in this case.
@@ -46,10 +45,12 @@ We use a manufactured solution that varies linearly with time ($t^1$), as the ba
 Injecting {eq}`c_exact_simple_transient` in {eq}`problem_simple_transient`, we obtain the expressions of $S$, $c_0$, and $c_\mathrm{initial}$:
 
 \begin{align}
-    & S = 2 + 3 y^2 - (4 + 6t) D \\
     & c_0 = c_\mathrm{exact} \\
     & c_\mathrm{initial} = c_\mathrm{exact}(t=0)
 \end{align}
+
+```{glue:math} source_eq
+```
 
 We can then run a FESTIM model with these values and compare the numerical solution with $c_\mathrm{exact}$.
 
@@ -63,34 +64,33 @@ import festim as F
 from dolfinx.mesh import create_unit_square
 import numpy as np
 
+my_model = F.HydrogenTransportProblem()
+
 fenics_mesh = create_unit_square(MPI.COMM_WORLD, 100, 100)
+my_model.mesh = F.Mesh(fenics_mesh)
 
 boundary = F.SurfaceSubdomain(id=1)
+
 H = F.Species("mobile", mobile=True)
+my_model.species = [H]
+
+my_model.temperature = 500
+
 D = 2
 my_mat = F.Material(D_0=D, E_D=0)
 volume = F.VolumeSubdomain(id=1, material=my_mat)
 boundary = F.SurfaceSubdomain(id=1)
+my_model.subdomains = [volume, boundary]
 
-exact_solution = (
-    lambda x, t: 1 + 2 * x[0] ** 2 + 3 * t * x[1] ** 2 + 2 * t
-)
+exact_solution = lambda x, t: 1 + 2 * x[0] ** 2 + 3 * t * x[1] ** 2 + 2 * t
 
-f = lambda x, t: 2 + 3 * x[1] ** 2 - (4 + 6 * t) * D
+S = lambda x, t: 2 + 3 * x[1] ** 2 - (4 + 6 * t) * D
 
 final_time = 17
 slices = 4
 slice_size = final_time / slices
 my_milestones = np.linspace(slice_size, final_time, slices).tolist()
-
-
-my_subdomains = [volume, boundary]
-my_species = [H]
-my_sources = [F.ParticleSource(value=f, volume=volume, species=H)]
-my_boundary_conditions = [
-    F.FixedConcentrationBC(subdomain=boundary, value=exact_solution, species=H)
-]
-my_settings = F.Settings(
+my_model.settings = F.Settings(
     atol=1e-10,
     rtol=1e-10,
     transient=True,
@@ -102,23 +102,36 @@ my_settings = F.Settings(
         milestones=my_milestones,
     ),
 )
-my_exports = [F.VTXSpeciesExport(filename="simple_transient_mobile.bp", field=H, subdomain=volume, checkpoint=True)]
 
-my_model = F.HydrogenTransportProblem()
-my_model.mesh = F.Mesh(fenics_mesh)
-my_model.subdomains = my_subdomains
-my_model.species = my_species
-my_model.sources = my_sources
-my_model.boundary_conditions = my_boundary_conditions
-my_model.temperature = 500
-my_model.settings=my_settings
-my_model.exports = my_exports
+my_model.sources = [F.ParticleSource(value=S, volume=volume, species=H)]
+my_model.boundary_conditions = [
+    F.FixedConcentrationBC(subdomain=boundary, value=exact_solution, species=H)
+]
+
+my_model.exports = [
+    F.VTXSpeciesExport(
+        filename="simple_transient_mobile.bp",
+        field=H,
+        subdomain=volume,
+        checkpoint=True,
+    )
+]
 
 my_model.initialise()
 my_model.run()
 ```
 
+```{code-cell} ipython3
+:tags: [hide-cell]
+
+from myst_nb import glue
+
+glue("milestones", my_milestones, display=False)
+```
+
 ## Comparison with exact solution
+
+We compare the solution with the exact solution at times {glue:}`milestones`
 
 ```{code-cell} ipython3
 :tags: [hide-input]
@@ -143,12 +156,11 @@ c_exact.interpolate(lambda x: exact_solution(x, my_milestones[0]))
 u_grid_mobile_exact = get_u_grid(c_exact, "c_mobile_exact")
 
 pyvista.start_xvfb()
-pyvista.set_jupyter_backend('html')
+pyvista.set_jupyter_backend("html")
 
 u_plotter = pyvista.Plotter(shape=(4, 2))
 
 for i, time in enumerate(my_milestones):
-
     computed_solution = read_function_from_file(
         "simple_transient_mobile.bp", "mobile", time
     )
@@ -159,11 +171,11 @@ for i, time in enumerate(my_milestones):
     u_grid_mobile_exact = get_u_grid(c_exact, "c_mobile_exact")
 
     u_plotter.subplot(i, 0)
-    u_plotter.add_mesh(u_grid_mobile_exact, show_edges=False, cmap="inferno")
+    u_plotter.add_mesh(u_grid_mobile_exact, show_edges=False)
     u_plotter.view_xy()
 
     u_plotter.subplot(i, 1)
-    u_plotter.add_mesh(u_grid_mobile_computed, show_edges=False, cmap="inferno")
+    u_plotter.add_mesh(u_grid_mobile_computed, show_edges=False)
     u_plotter.view_xy()
 
 
@@ -211,6 +223,7 @@ def error_L2(u_computed, u_exact, degree_raise=3):
     error_global = mesh.comm.allreduce(error_local, op=MPI.SUM)
     return np.sqrt(error_global)
 
+
 errors = []
 ns = np.geomspace(5, 150, num=7, dtype=int)
 
@@ -218,12 +231,12 @@ for n in ns:
     new_model = F.HydrogenTransportProblem()
 
     new_model.mesh = F.Mesh(create_unit_square(MPI.COMM_WORLD, n, n))
-    new_model.subdomains = my_subdomains
-    new_model.species = my_species
-    new_model.sources = my_sources
-    new_model.boundary_conditions = my_boundary_conditions
-    new_model.temperature = 500
-    new_model.settings = my_settings
+    new_model.subdomains = my_model.subdomains
+    new_model.species = my_model.species
+    new_model.sources = my_model.sources
+    new_model.boundary_conditions = my_model.boundary_conditions
+    new_model.temperature = my_model.temperature
+    new_model.settings = my_model.settings
 
     new_model.initialise()
     new_model.run()
@@ -252,4 +265,18 @@ plt.annotate(
 
 plt.grid(alpha=0.3)
 plt.gca().spines[["right", "top"]].set_visible(False)
+```
+
+```{code-cell} ipython3
+import sympy as sym
+
+t_sym = sym.Symbol("t")
+x_sym = sym.Symbol("x")
+y_sym = sym.Symbol("y")
+c_exact_sym = sym.Symbol("c_\mathrm{exact}")
+c_exact_eq = sym.Eq(c_exact_sym, exact_solution([x_sym, y_sym], t_sym))
+
+source_eq = sym.Eq(sym.Symbol("S"), S([x_sym, y_sym], t_sym))
+glue("c_exact_sym", c_exact_eq, display=False)
+glue("source_eq", source_eq, display=False)
 ```
