@@ -61,14 +61,14 @@ sample_area = 12e-03 * 15e-03
 
 detrapping_energies = [1.15, 1.35, 1.65, 1.85, 2.05]
 dpa_n_i = {
-    0: [],
-    0.001: [1e24, 2.5e24, 1e24, 1e24, 2e23],
+    # 0: [],
+    # 0.001: [1e24, 2.5e24, 1e24, 1e24, 2e23],
     0.005: [3.5e24, 5e24, 2.5e24, 1.9e24, 1.6e24],
     0.023: [2.2e25, 1.5e25, 6.5e24, 2.1e25, 6e24],
-    0.1: [4.8e25, 3.8e25, 2.6e25, 3.6e25, 1.1e25],
-    0.23: [5.4e25, 4.4e25, 3.6e25, 3.9e25, 1.4e25],
-    0.5: [5.5e25, 4.6e25, 4e25, 4.5e25, 1.7e25],
-    2.5: [5.8e25, 6.5e25, 4.5e25, 5.5e25, 2e25],  # re-fit
+    # 0.1: [4.8e25, 3.8e25, 2.6e25, 3.6e25, 1.1e25],
+    # 0.23: [5.4e25, 4.4e25, 3.6e25, 3.9e25, 1.4e25],
+    # 0.5: [5.5e25, 4.6e25, 4e25, 4.5e25, 1.7e25],
+    # 2.5: [5.8e25, 6.5e25, 4.5e25, 5.5e25, 2e25],  # re-fit
 }
 
 # Table 2 from Dark et al 10.1088/1741-4326/ad56a0
@@ -106,36 +106,51 @@ def festim_sim(densities):
     # ### Material ###
     damaged_tungsten = F.Material(D_0, E_D)
 
-    volume = F.VolumeSubdomain1D(id=1, borders=[0, sample_thickness], material=damaged_tungsten)
+    volume = F.VolumeSubdomain1D(
+        id=1, borders=[0, sample_thickness], material=damaged_tungsten
+    )
     left_boundary = F.SurfaceSubdomain1D(id=1, x=0)
     right_boundary = F.SurfaceSubdomain1D(id=2, x=sample_thickness)
     model.subdomains = [volume, left_boundary, right_boundary]
 
-
     H = F.Species("H")
-    trapped_species = [F.Species(f"trapped_{i+1}", mobile=False) for i in range(len(densities) + 1)]
-
-    damage_dist = lambda x: 1 / (1 + ufl.exp((x[0] - 2.5e-06) / 5e-07))
-    empty_traps = [F.ImplicitSpecies(n=2.4e22, others=[trapped_species[0]])] + [
-        F.ImplicitSpecies(
-            n=lambda x: densities[i] * damage_dist(x),
-            others=[spe],
-        )
-        for i, spe in enumerate(trapped_species[1:])
+    instrinsic_trapped_H = F.Species(f"Trapped 1", mobile=False)
+    neutron_induced_trapped_species = [
+        F.Species(f"Trapped D{i+1}", mobile=False) for i in range(len(densities))
     ]
 
-    assert len(empty_traps) == len(trapped_species)
+    damage_dist = lambda x: 1 / (1 + ufl.exp((x[0] - 2.5e-06) / 5e-07))
+    empty_neutron_induced_traps = []
+    for i, (density, trapped_spe) in enumerate(
+        zip(densities, neutron_induced_trapped_species)
+    ):
+        empty_neutron_induced_traps.append(
+            F.ImplicitSpecies(
+                n=lambda x, density=density: density * damage_dist(x),
+                others=[trapped_spe],
+                name=f"empty {i+2}",
+            )
+        )
+        
 
-    model.species = [H] + trapped_species
+    empty_intrinsic_traps = F.ImplicitSpecies(
+        n=2.4e22, others=[instrinsic_trapped_H], name="empty 1"
+    )
 
-    # # ### Source ###
-    # # Deuterium Beam Profile (S = flux * f(x))
-    # distribution = (
-    #     1 / (sigma * (2 * np.pi) ** 0.5) * sp.exp(-0.5 * ((F.x - R_p) / sigma) ** 2)
-    # )
-    # ion_flux = sp.Piecewise((flux * distribution, F.t < t_imp), (0, True))
-    # source_term = F.Source(value=ion_flux, volume=1, field=0)
-    # model.sources = [source_term]
+    assert len([empty_intrinsic_traps] + empty_neutron_induced_traps) == len(
+        neutron_induced_trapped_species + [instrinsic_trapped_H]
+    )
+
+    model.species = [H] + [instrinsic_trapped_H] + neutron_induced_trapped_species
+
+    # ### Source ###
+    # Deuterium Beam Profile (S = flux * f(x))
+    distribution = lambda x: (
+        1 / (sigma * (2 * ufl.pi) ** 0.5) * ufl.exp(-0.5 * ((x[0] - R_p) / sigma) ** 2)
+    )
+    ion_flux = lambda x, t: ufl.conditional(t < t_imp, flux * distribution(x), 0)
+    source_term = F.ParticleSource(value=ion_flux, volume=volume, species=H)
+    model.sources = [source_term]
     # ### Boundary Conditions ###
     model.boundary_conditions = [
         F.FixedConcentrationBC(subdomain=left_boundary, value=0, species=H),
@@ -147,17 +162,18 @@ def festim_sim(densities):
         if t < t_imp:
             return T_imp
         elif t < start_tds:
-            return T_rest + (T_imp - T_rest) * (t - t_imp) / (start_tds - t_imp)
+            return T_rest
         else:
             return min_temp + Beta * (t - start_tds)
+
     model.temperature = temp_fun
 
     # ### Trap Settings ###
     k_0 = D_0 / (1.1e-10**2 * 6 * w_atom_density)
 
     trapping_reaction_1 = F.Reaction(
-        reactant=[H, empty_traps[0]],
-        product=[trapped_species[0]],
+        reactant=[H, empty_intrinsic_traps],
+        product=[instrinsic_trapped_H],
         k_0=k_0,
         E_k=damaged_tungsten.E_D,
         p_0=1e13,
@@ -165,13 +181,13 @@ def festim_sim(densities):
         volume=volume,
     )
 
-    model.reactions = [trapping_reaction_1]
+    reactions = [trapping_reaction_1]
 
     for i, _ in enumerate(densities):
-        model.reactions.append(
+        reactions.append(
             F.Reaction(
-                reactant=[H, empty_traps[i+1]],
-                product=[trapped_species[i + 1]],
+                reactant=[H, empty_neutron_induced_traps[i]],
+                product=[neutron_induced_trapped_species[i]],
                 k_0=k_0,
                 E_k=damaged_tungsten.E_D,
                 p_0=1e13,
@@ -179,12 +195,11 @@ def festim_sim(densities):
                 volume=volume,
             )
         )
-    
+    model.reactions = reactions
 
-    
     model.settings = F.Settings(
-        atol=1e10,
-        rtol=1e-10,
+        atol=1e9,
+        rtol=1e-9,
         final_time=start_tds + (max_temp - min_temp) / Beta,  # time to reach max temp
     )
     model.settings.stepsize = F.Stepsize(
@@ -194,12 +209,24 @@ def festim_sim(densities):
         target_nb_iterations=4,
         max_stepsize=lambda t: 50 if t > t_imp + t_rest * 0.5 else None,
     )
-    derived_quantities = [F.TotalVolume(field=spe, volume=volume) for spe in model.species]
-            # F.HydrogenFlux(surface=1),
-            # F.HydrogenFlux(surface=2),
-        
-    
-    model.exports = derived_quantities
+    derived_quantities = [
+        F.TotalVolume(field=spe, volume=volume) for spe in model.species[1:]
+    ]
+
+    flux_left = F.SurfaceFlux(field=H, surface=left_boundary)
+    flux_right = F.SurfaceFlux(field=H, surface=right_boundary)
+    derived_quantities.append(flux_left)
+    derived_quantities.append(flux_right)
+
+    vtx_exports = [
+        F.VTXSpeciesExport(filename=spe.name, field=spe) for spe in model.species
+    ]
+
+    model.exports = vtx_exports + derived_quantities
+
+    import dolfinx
+
+    dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
     model.initialise()
     model.run()
 
@@ -220,15 +247,20 @@ The results produced by FESTIM are in good agreement with the experimental data.
 :tags: [hide-input]
 
 from matplotlib import cm, colors
-norm = colors.LogNorm(vmin=min(list(dpa_n_i.keys())[1:]), vmax=max(dpa_n_i.keys())) #using [1:] indexing to ignore 0
+
+norm = colors.LogNorm(
+    vmin=min(list(dpa_n_i.keys())[1:]), vmax=max(dpa_n_i.keys())
+)  # using [1:] indexing to ignore 0
 colorbar = cm.viridis
 sm = plt.cm.ScalarMappable(cmap=colorbar, norm=norm)
 
-def plot_tds(derived_quantities, trap_contributions=False, **kwargs):
-    t = np.array(derived_quantities.t)
-    flux_left = np.array(derived_quantities.filter(fields="solute", surfaces=1).data)
-    flux_right = np.array(derived_quantities.filter(fields="solute", surfaces=2).data)
-    flux_total = -flux_left - flux_right
+
+def plot_tds(derived_quantities: list, trap_contributions=False, **kwargs):
+    t = np.array(derived_quantities[0].t)
+    flux_left = np.array(derived_quantities[-2].data)
+    flux_right = np.array(derived_quantities[-1].data)
+    flux_total = flux_left + flux_right
+
     temp = min_temp + Beta * (t - start_tds)
 
     idx = np.where(t > start_tds)
@@ -236,19 +268,17 @@ def plot_tds(derived_quantities, trap_contributions=False, **kwargs):
 
     if trap_contributions:
         colors = [(0.9 * (i % 2), 0.2 * (i % 4), 0.4 * (i % 3)) for i in range(6)]
-        trap_data = [derived_quantities.filter(fields=f"{i}").data for i in range(1, 7)]
+        trap_data = [derived_quantities[i].data for i in range(6)]
         contributions = [
             -np.diff(np.array(trap)[idx]) / np.diff(t[idx]) for trap in trap_data
         ]
 
         for i, cont in enumerate(contributions):
-            if i == 0:
-                label = "Trap 1"
-            else:
-                label = f"Trap D{i}"
+            label = derived_quantities[i].field.name
 
             plt.plot(temp[idx][1:], cont, linestyle="--", color=colors[i], label=label)
             plt.fill_between(temp[idx][1:], 0, cont, facecolor="grey", alpha=0.1)
+
 
 for dpa, derived_quantities in dpa_to_quantities.items():
     filename = f"tds_data/{dpa}_dpa.csv"
@@ -256,16 +286,20 @@ for dpa, derived_quantities in dpa_to_quantities.items():
     experimental_temp = experimental_tds[:, 0]
     experimental_flux = experimental_tds[:, 1] / sample_area
 
-    if dpa == 0.1:
+    if dpa == 0.001:
         plt.figure(1)
-        plt.title("Damage = 0.1 dpa")
+        plt.title(f"Damage = {dpa} dpa")
         plt.ylabel(r"Desorption flux (m$^{-2}$ s$^{-1}$)")
         plt.xlabel(r"Temperature (K)")
         plot_tds(
             derived_quantities, linewidth=3, label="FESTIM", trap_contributions=True
         )
         plt.scatter(
-            experimental_temp, experimental_flux, color="black", label="experiment", s=16
+            experimental_temp,
+            experimental_flux,
+            color="black",
+            label="experiment",
+            s=16,
         )
 
     plt.figure(2)
@@ -283,7 +317,9 @@ for dpa, derived_quantities in dpa_to_quantities.items():
             "undamaged",
             xy=(max_curve_x, max_curve_y),  # Point to annotate
             xytext=(300, 0.4e17),  # Location of text
-            arrowprops=dict(arrowstyle="->", connectionstyle="arc3", facecolor='black'),  # Arrow properties
+            arrowprops=dict(
+                arrowstyle="->", connectionstyle="arc3", facecolor="black"
+            ),  # Arrow properties
         )
 
 for i in [1, 2]:
@@ -300,6 +336,7 @@ plt.legend()
 
 # Plotting color bar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 plt.figure(2)
 divider = make_axes_locatable(ax)
 cax = divider.append_axes("right", size="5%", pad=0.1)
@@ -323,11 +360,13 @@ This table displays the neutron-induced traps' detrapping energy $E_p$ and their
 
 dpa_no_zero = dpa_n_i | {}
 dpa_no_zero.pop(0)
-data = {"E_p (eV)" : detrapping_energies} | dpa_no_zero
+data = {"E_p (eV)": detrapping_energies} | dpa_no_zero
 dpa_frame = pd.DataFrame(data)
 
-dpa_frame.columns = dpa_frame.columns.map(lambda s: f"{s:.1e} dpa" if not isinstance(s, str) else s)
-dpa_frame.style \
-    .relabel_index([f"Trap D{i}" for i in range(1, 6)], axis=0) \
-    .format("{:.2e}".format)
+dpa_frame.columns = dpa_frame.columns.map(
+    lambda s: f"{s:.1e} dpa" if not isinstance(s, str) else s
+)
+dpa_frame.style.relabel_index([f"Trap D{i}" for i in range(1, 6)], axis=0).format(
+    "{:.2e}".format
+)
 ```
