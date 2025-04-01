@@ -131,7 +131,7 @@ glue("milestones", my_milestones, display=False)
 
 ## Comparison with exact solution
 
-We compare the solution with the exact solution at times {glue:}`milestones`
+We compare the solution with the exact solution at times {glue:}`milestones` in seconds, with the exact solutions on the left and the computed on the right
 
 ```{code-cell} ipython3
 :tags: [hide-input]
