@@ -198,15 +198,15 @@ def festim_sim(densities):
     model.reactions = reactions
 
     model.settings = F.Settings(
-        atol=1e9,
-        rtol=1e-9,
+        atol=1e10,
+        rtol=1e-10,
         final_time=start_tds + (max_temp - min_temp) / Beta,  # time to reach max temp
     )
     model.settings.stepsize = F.Stepsize(
-        initial_value=1,
+        initial_value=2,
         growth_factor=1.1,
         cutback_factor=0.9,
-        target_nb_iterations=4,
+        target_nb_iterations=5,
         max_stepsize=lambda t: 50 if t > t_imp + t_rest * 0.5 else None,
     )
     derived_quantities = [
@@ -219,15 +219,16 @@ def festim_sim(densities):
     derived_quantities.append(flux_right)
 
     vtx_exports = [
-        F.VTXSpeciesExport(filename=spe.name, field=spe) for spe in model.species
+        # F.VTXSpeciesExport(filename=spe.name, field=spe) for spe in model.species
     ]
 
     model.exports = vtx_exports + derived_quantities
 
-    import dolfinx
+    # import dolfinx
 
-    dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
+    # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
     model.initialise()
+    # model.solver.convergence_criterion = "incremental"
     model.run()
 
     return derived_quantities
