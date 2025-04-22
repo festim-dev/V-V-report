@@ -428,37 +428,6 @@ from pypalettes import load_cmap
 
 cmap = load_cmap("Acadia")
 
-plt.scatter(exp_data["H2_X"], exp_data["H2_Y"], marker="o", label="H2", color=cmap(0))
-plt.scatter(exp_data["D2_X"], exp_data["D2_Y"], marker="^", label="D2", color=cmap(1))
-plt.scatter(exp_data["HD_X"], exp_data["HD_Y"], marker="s", label="HD", color=cmap(2))
-
-plt.plot(upstream_d_pressures, hh_desorption_fluxes, label="HH (FESTIM)", color=cmap(0))
-plt.plot(upstream_d_pressures, dd_desorption_fluxes, label="DD (FESTIM)", color=cmap(1))
-plt.plot(upstream_d_pressures, hd_desorption_fluxes, label="HD (FESTIM)", color=cmap(2))
-
-plt.xlabel("Upstream D pressure (Pa)")
-plt.ylabel("Desorption flux (mol/m^2/s)")
-plt.xscale("log")
-plt.yscale("log")
-plt.ylim(1e-8, 1e-3)
-plt.legend()
-plt.show()
-```
-
-```python
-import pandas as pd
-
-# read experimental data
-exp_data = pd.read_csv(
-    "co_permeation_exp_data.csv",
-    names=["H2_X", "H2_Y", "D2_X", "D2_Y", "HD_X", "HD_Y"],
-    skiprows=2,
-)
-
-from pypalettes import load_cmap
-
-cmap = load_cmap("Acadia")
-
 # Create a Plotly figure
 fig = go.Figure()
 
