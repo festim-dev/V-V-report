@@ -113,20 +113,12 @@ my_model.exports = [
         filename="simple_transient_mobile.bp",
         field=H,
         subdomain=volume,
-        checkpoint=True,  # checkpoint needed to read it back
+        checkpoint=True,
     )
 ]
 
 my_model.initialise()
 my_model.run()
-```
-
-```{code-cell} ipython3
-:tags: [hide-cell]
-
-from myst_nb import glue
-
-glue("milestones", my_milestones, display=False)
 ```
 
 ## Comparison with exact solution
@@ -268,8 +260,8 @@ plt.gca().spines[["right", "top"]].set_visible(False)
 ```
 
 ```{code-cell} ipython3
-:tags: [hide-cell]
 import sympy as sym
+from myst_nb import glue
 
 t_sym = sym.Symbol("t")
 x_sym = sym.Symbol("x")
@@ -280,4 +272,5 @@ c_exact_eq = sym.Eq(c_exact_sym, exact_solution([x_sym, y_sym], t_sym))
 source_eq = sym.Eq(sym.Symbol("S"), S([x_sym, y_sym], t_sym))
 glue("c_exact_sym", c_exact_eq, display=False)
 glue("source_eq", source_eq, display=False)
+glue("milestones", my_milestones, display=False)
 ```
