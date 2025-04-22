@@ -113,7 +113,7 @@ my_model.exports = [
         filename="simple_transient_mobile.bp",
         field=H,
         subdomain=volume,
-        checkpoint=True,
+        checkpoint=True,  # checkpoint needed to read it back
     )
 ]
 
@@ -268,6 +268,7 @@ plt.gca().spines[["right", "top"]].set_visible(False)
 ```
 
 ```{code-cell} ipython3
+:tags: [hide-cell]
 import sympy as sym
 
 t_sym = sym.Symbol("t")
