@@ -23,29 +23,8 @@ jupyter:
 
 ```python
 import festim as F
-import dolfinx.fem as fem
-
-
-class FluxFromSurfaceReaction(F.SurfaceFlux):
-    def __init__(self, reaction: F.SurfaceReactionBC):
-        super().__init__(
-            F.Species(),  # just a dummy species here
-            reaction.subdomain,
-        )
-        self.reaction = reaction.flux_bcs[0]
-
-    def compute(self, ds):
-        self.value = fem.assemble_scalar(
-            fem.form(self.reaction.value_fenics * ds(self.surface.id))
-        )
-        self.data.append(self.value)
-```
-
-```python
-import festim as F
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def make_festim_model_dlr(pd_thickness, temperature, upstream_d2_pressure):
@@ -102,6 +81,7 @@ upstream_d_pressures = np.geomspace(1e-4, 3, num=6)
 thicknesses = [0.025e-3, 0.05e-3]
 
 prms = [
+    # Pd thickness, temperature
     (0.025e-3, 825),
     (0.05e-3, 825),
     (0.025e-3, 865),
@@ -157,6 +137,8 @@ for pd_thickness, temperature in prms:
         }
     )
 ```
+
+### Results
 
 ```python
 import pandas as pd
@@ -237,9 +219,25 @@ display(HTML("./co_permeation.html"))
 
 ```python
 import festim as F
-import numpy as np
-import matplotlib.pyplot as plt
+import dolfinx.fem as fem
 
+
+class FluxFromSurfaceReaction(F.SurfaceFlux):
+    def __init__(self, reaction: F.SurfaceReactionBC):
+        super().__init__(
+            F.Species(),  # just a dummy species here
+            reaction.subdomain,
+        )
+        self.reaction = reaction.flux_bcs[0]
+
+    def compute(self, ds):
+        self.value = fem.assemble_scalar(
+            fem.form(self.reaction.value_fenics * ds(self.surface.id))
+        )
+        self.data.append(self.value)
+```
+
+```python
 pd_thickness = 0.025e-3  # m
 temperature = 870  # K
 upstream_effective_H_pressure = 0.063  # Pa
@@ -414,17 +412,55 @@ for effective_d_pressure in upstream_d_pressures:
     dd_desorption_fluxes.append(np.abs(DD_flux.data)[-1])
 ```
 
-```python
-import pandas as pd
+### Results
 
+```python tags=["hide-cell"]
+from scipy.interpolate import interp1d
+
+
+def RMSE(exp, sim):
+    """
+    Calculate the Root Mean Square Error (RMSE) between experimental and simulated data.
+
+    Parameters:
+    exp (array-like): Experimental data.
+    sim (array-like): Simulated data.
+
+    Returns:
+    float: RMSE value.
+    """
+    return np.sqrt(np.mean((np.array(exp) - np.array(sim)) ** 2)) / np.mean(
+        np.array(exp)
+    )
+
+errors = {}
+
+for label, flux in zip(
+    ["H2", "D2", "HD"],
+    [hh_desorption_fluxes, dd_desorption_fluxes, hd_desorption_fluxes],
+):
+    fluxes_exp = exp_data[f"{label}_Y"]
+    pressures_exp = exp_data[f"{label}_X"]
+
+    sim_interp = interp1d(
+        upstream_d_pressures,
+        flux,
+        kind="linear",
+        fill_value="extrapolate",
+    )
+
+    RMSE_value = RMSE(np.log10(fluxes_exp), np.log10(sim_interp(pressures_exp)))
+
+    errors[label] = RMSE_value
+```
+
+```python
 # read experimental data
 exp_data = pd.read_csv(
     "co_permeation_exp_data.csv",
     names=["H2_X", "H2_Y", "D2_X", "D2_Y", "HD_X", "HD_Y"],
     skiprows=2,
 )
-
-from pypalettes import load_cmap
 
 cmap = load_cmap("Acadia")
 
@@ -488,6 +524,18 @@ fig.add_trace(
         line=dict(color=cmap.hex[2][:-2]),
     )
 )
+
+# annotate the RMSE
+
+for (label, RMSE_value), y in zip(errors.items(), [5e-6, 5e-5, 4e-4]):
+    fig.add_annotation(
+        x=upstream_d_pressures[-1],
+        # y=y,
+        y=np.mean(hd_desorption_fluxes),
+        text=f"{label} RMSE: {RMSE_value:.2e}",
+        showarrow=True,
+        # font=dict(size=12),
+    )
 
 # Update layout for log scale, labels, and legend
 fig.update_layout(
