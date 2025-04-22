@@ -15,6 +15,9 @@ jupyter:
 
 # Co-permeation
 
+
+
+
 ```python
 import festim as F
 import numpy as np
@@ -40,21 +43,47 @@ class FluxFromSurfaceReaction(F.SurfaceFlux):
 
 
 pd_thickness = 0.025e-3  # m
-upstream_h2_pressure = 0.063  # Pa
-upstream_d2_pressure = 0.1  # Pa
 temperature = 870  # K
 
 pd_diffusion_coeff = htm.diffusivities.filter(material=htm.PALLADIUM).mean()
+```
 
+```python
+upstream_effective_H_pressure = 0.063  # Pa
+
+
+def pressure_h2(p_H, p_D):
+    return p_H**2 / (p_H + p_D)
+
+
+def pressure_d2(p_H, p_D):
+    return p_D**2 / (p_H + p_D)
+
+
+def pressure_hd(p_H, p_D):
+    p_h2 = pressure_h2(p_H, p_D)
+    p_d2 = pressure_d2(p_H, p_D)
+    return (4 * p_h2 * p_d2) ** 0.5
 ```
 
 ```python
 my_model = F.HydrogenTransportProblem()
+
+H = F.Species("H")
+D = F.Species("D")
+my_model.species = [H, D]
+
 my_model.mesh = F.Mesh1D(vertices=np.linspace(0, pd_thickness, 100))
 my_mat = F.Material(
     name="Pd",
-    D_0=pd_diffusion_coeff.pre_exp.magnitude,
-    E_D=pd_diffusion_coeff.act_energy.magnitude,
+    D_0={
+        H: 3.728e-4,
+        D: 2.636e-4,
+    },
+    E_D={
+        H: 1315.8 * F.k_B,
+        D: 1315.8 * F.k_B,
+    },
 )
 vol = F.VolumeSubdomain1D(id=1, borders=[0, pd_thickness], material=my_mat)
 left = F.SurfaceSubdomain1D(id=1, x=0)
@@ -62,70 +91,69 @@ right = F.SurfaceSubdomain1D(id=2, x=pd_thickness)
 
 my_model.subdomains = [vol, left, right]
 
-H = F.Species("H")
-D = F.Species("D")
-my_model.species = [H, D]
+
 
 my_model.temperature = temperature
 
+E_kr = 11836 * F.k_B
 
 surface_reaction_hd_left = F.SurfaceReactionBC(
     reactant=[H, D],
-    gas_pressure=0,
-    k_r0=3e-27,
-    E_kr=0.48,
-    k_d0=1.17e22,
-    E_kd=0.25,
+    gas_pressure=0,  # free parameter
+    k_r0=2.502e-24 / (3 * temperature) ** 0.5,
+    E_kr=E_kr,
+    k_d0=2.1897e22 / (3 * temperature) ** 0.5,
+    E_kd=0,
     subdomain=left,
 )
 
 surface_reaction_hh_left = F.SurfaceReactionBC(
     reactant=[H, H],
-    gas_pressure=upstream_h2_pressure,
-    k_r0=3e-27,
-    E_kr=0.48,
-    k_d0=1.16e+22,
-    E_kd=0.25,
+    gas_pressure=0,  # free parameter
+    k_r0=2.502e-24 / (2 * temperature) ** 0.5,
+    E_kr=E_kr,
+    k_d0=2.1897e22 / (2 * temperature) ** 0.5,
+    E_kd=0,
     subdomain=left,
 )
 
 surface_reaction_dd_left = F.SurfaceReactionBC(
     reactant=[D, D],
-    gas_pressure=upstream_d2_pressure,
-    k_r0=1.8e-27,
-    E_kr=0.48,
-    k_d0=6.99e21,
-    E_kd=0.25,
+    gas_pressure=0,  # free parameter
+    k_r0=2.502e-24 / (4 * temperature) ** 0.5,
+    E_kr=E_kr,
+    k_d0=2.1897e22 / (4 * temperature) ** 0.5,
+    E_kd=0,
     subdomain=left,
 )
 
 surface_reaction_hd_right = F.SurfaceReactionBC(
     reactant=[H, D],
     gas_pressure=0,
-    k_r0=3e-27,
-    E_kr=0.48,
-    k_d0=1.17e22,
-    E_kd=0.25,
+    k_r0=2.502e-24 / (3 * temperature) ** 0.5,
+    E_kr=E_kr,
+    k_d0=2.1897e22 / (3 * temperature) ** 0.5,
+    E_kd=0,
     subdomain=right,
 )
 
 surface_reaction_hh_right = F.SurfaceReactionBC(
     reactant=[H, H],
     gas_pressure=0,
-    k_r0=3e-27,
-    E_kr=0.48,
-    k_d0=1.16e+22,
-    E_kd=0.25,
+    k_r0=2.502e-24 / (2 * temperature) ** 0.5,
+    E_kr=E_kr,
+    k_d0=2.1897e22 / (2 * temperature) ** 0.5,
+    E_kd=0,
     subdomain=right,
 )
 
 surface_reaction_dd_right = F.SurfaceReactionBC(
     reactant=[D, D],
     gas_pressure=0,
-    k_r0=1.8e-27,
-    E_kr=0.48,
-    k_d0=6.99e21,
-    E_kd=0.25,
+    k_r0=2.502e-24 / (4 * temperature) ** 0.5,
+    E_kr=E_kr,
+    k_d0=2.1897e22 / (4 * temperature) ** 0.5,
+    E_kd=0,
     subdomain=right,
 )
 
@@ -147,6 +175,11 @@ HH_flux = FluxFromSurfaceReaction(surface_reaction_hh_right)
 DD_flux = FluxFromSurfaceReaction(surface_reaction_dd_right)
 
 
+# needed to compute D_global even if not used
+for flux in [HH_flux, HD_flux, DD_flux]:
+    flux.field = H
+
+
 my_model.exports = [
     H_flux_left,
     H_flux_right,
@@ -158,7 +191,7 @@ my_model.exports = [
 ]
 
 
-my_model.settings = F.Settings(atol=1e11, rtol=1e-10, final_time=10, transient=True)
+my_model.settings = F.Settings(atol=1e11, rtol=1e-6, final_time=10, transient=True)
 
 my_model.settings.stepsize = 0.2
 
@@ -168,9 +201,20 @@ hd_desorption_fluxes = []
 dd_desorption_fluxes = []
 upstream_d_pressures = np.geomspace(4e-3, 1, num=5)
 
-for upstream_d_pressure in upstream_d_pressures:
+# import dolfinx.log
+# dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
+for effective_d_pressure in upstream_d_pressures:
+    upstream_d2_pressure = effective_d_pressure
+    upstream_h2_pressure = upstream_effective_H_pressure
+
+    print(f"Upstream D2 pressure: {upstream_d2_pressure:.2e} Pa")
+    print(f"Upstream H2 pressure: {upstream_h2_pressure:.2e} Pa")
+
     for flux_bc in surface_reaction_dd_left.flux_bcs:
-        flux_bc.gas_pressure = upstream_d_pressure
+        flux_bc.gas_pressure = effective_d_pressure
+
+    for flux_bc in surface_reaction_hh_left.flux_bcs:
+        flux_bc.gas_pressure = upstream_h2_pressure
 
     my_model.initialise()
     my_model.run()
@@ -184,13 +228,12 @@ for upstream_d_pressure in upstream_d_pressures:
 
     all_d_desorption_fluxes.append(np.abs(D_flux_right.data)[-1])
     print(
-        f"Desorption flux at {upstream_d_pressure:.2e} Pa: {all_d_desorption_fluxes[-1]:.2e} molecules/m^2/s"
+        f"Desorption flux at {effective_d_pressure:.2e} Pa: {all_d_desorption_fluxes[-1]:.2e} molecules/m^2/s"
     )
 
     hh_desorption_fluxes.append(np.abs(HH_flux.data)[-1])
     hd_desorption_fluxes.append(np.abs(HD_flux.data)[-1])
     dd_desorption_fluxes.append(np.abs(DD_flux.data)[-1])
-
 ```
 
 ```python
@@ -256,5 +299,4 @@ plt.xlabel("Time (s)")
 plt.ylabel("Flux (molecule/m^2/s)")
 
 plt.show()
-
 ```
