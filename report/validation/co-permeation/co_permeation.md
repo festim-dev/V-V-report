@@ -18,12 +18,11 @@ jupyter:
 
 
 
+
+## Calibration with pure D2
+
 ```python
 import festim as F
-import numpy as np
-import matplotlib.pyplot as plt
-import h_transport_materials as htm
-
 import dolfinx.fem as fem
 
 
@@ -40,30 +39,210 @@ class FluxFromSurfaceReaction(F.SurfaceFlux):
             fem.form(self.reaction.value_fenics * ds(self.surface.id))
         )
         self.data.append(self.value)
-
-
-pd_thickness = 0.025e-3  # m
-temperature = 870  # K
-
-pd_diffusion_coeff = htm.diffusivities.filter(material=htm.PALLADIUM).mean()
 ```
 
 ```python
+import festim as F
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def make_festim_model_dlr(pd_thickness, temperature, upstream_d2_pressure):
+    my_model = F.HydrogenTransportProblem()
+
+    D = F.Species("D")
+    my_model.species = [D]
+
+    my_model.mesh = F.Mesh1D(vertices=np.linspace(0, pd_thickness, 100))
+    my_mat = F.Material(
+        name="Pd",
+        D_0=2.636e-4,
+        E_D=1315.8 * F.k_B,
+    )
+    vol = F.VolumeSubdomain1D(id=1, borders=[0, pd_thickness], material=my_mat)
+    left = F.SurfaceSubdomain1D(id=1, x=0)
+    right = F.SurfaceSubdomain1D(id=2, x=pd_thickness)
+
+    my_model.subdomains = [vol, left, right]
+
+    my_model.temperature = temperature
+
+    n = 0.9297
+    K_S_0 = 1.511e23
+    K_S_E = 5918 * F.k_B
+    surface_reaction_dd_left = F.FixedConcentrationBC(
+        subdomain=left,
+        species=D,
+        value=K_S_0 * np.exp(-K_S_E / F.k_B / temperature) * upstream_d2_pressure**n,
+    )
+
+    my_model.boundary_conditions = [
+        surface_reaction_dd_left,
+        F.FixedConcentrationBC(
+            species=D,
+            value=0.0,
+            subdomain=right,
+        ),
+    ]
+
+    D_flux_right = F.SurfaceFlux(D, right)
+    D_flux_left = F.SurfaceFlux(D, left)
+
+    my_model.exports = [D_flux_left, D_flux_right]
+
+    my_model.settings = F.Settings(atol=1e8, rtol=1e-10, transient=False)
+
+    return my_model
+```
+
+```python
+upstream_d_pressures = np.geomspace(1e-4, 3, num=6)
+
+thicknesses = [0.025e-3, 0.05e-3]
+
+prms = [
+    (0.025e-3, 825),
+    (0.05e-3, 825),
+    (0.025e-3, 865),
+]
+results = []
+
+# import dolfinx.log
+# dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
+for pd_thickness, temperature in prms:
+    print(f"Pd thickness: {pd_thickness:.2e} m")
+    print(f"Temperature: {temperature:.2f} K")
+    dd_desorption_fluxes = []
+    models = []
+
+    # ------ Model ------ #
+    for d2_pressure in upstream_d_pressures:
+        # create the model
+        my_model = make_festim_model_dlr(
+            pd_thickness=pd_thickness,
+            temperature=temperature,
+            upstream_d2_pressure=d2_pressure,
+        )
+
+        # initialise the model
+        my_model.initialise()
+
+        # run the model
+        my_model.run()
+
+        # ------ Post processsing ------ #
+        models.append(my_model)
+
+        # convert all data to mol
+        for export in my_model.exports:
+            avogadro = 6.022e23
+            # convert from particles to moles
+            export.data = np.array(export.data) / avogadro
+
+            # convert from atoms to molecules
+            export.data *= 1 / 2
+
+        DD_flux = my_model.exports[1]
+
+        dd_desorption_fluxes.append(np.abs(DD_flux.data)[-1])
+
+    results.append(
+        {
+            "thickness": pd_thickness,
+            "temperature": temperature,
+            "upstream_d_pressures": upstream_d_pressures,
+            "dd_desorption_fluxes": dd_desorption_fluxes,
+            "models": models,
+        }
+    )
+```
+
+```python
+import pandas as pd
+import plotly.graph_objects as go
+from pypalettes import load_cmap
+
+cmap = load_cmap("Acadia")
+
+data_thick_825 = pd.read_csv(
+    "https://raw.githubusercontent.com/idaholab/TMAP8/dc0bfc4cb3114a2c3159f5f18a0d441c4ce78b13/test/tests/val-2e/gold/experiment_thick_825K.csv"
+)
+data_thin_825 = pd.read_csv(
+    "https://raw.githubusercontent.com/idaholab/TMAP8/dc0bfc4cb3114a2c3159f5f18a0d441c4ce78b13/test/tests/val-2e/gold/experiment_thin_825K.csv"
+)
+data_thin_865 = pd.read_csv(
+    "https://raw.githubusercontent.com/idaholab/TMAP8/dc0bfc4cb3114a2c3159f5f18a0d441c4ce78b13/test/tests/val-2e/gold/experiment_thin_865K.csv"
+)
+
+exp_data = [
+    data_thin_825,
+    data_thick_825,
+    data_thin_865,
+]
+
+fig = go.Figure()
+
+for i, result_dict in enumerate(results):
+    # Add line plot for simulation results
+    fig.add_trace(
+        go.Scatter(
+            x=result_dict["upstream_d_pressures"],
+            y=result_dict["dd_desorption_fluxes"],
+            mode="lines",
+            name=f"{result_dict['thickness']:.2e} m, {result_dict['temperature']} K (model)",
+            line=dict(color=cmap.hex[i][:-2]),
+        )
+    )
+
+    # Add scatter plot for experimental data
+    fig.add_trace(
+        go.Scatter(
+            x=exp_data[i]["Pressure [Pa]"],
+            y=exp_data[i]["Flux [mol/m^2/s]"],
+            mode="markers",
+            name=f"{result_dict['thickness']:.2e} m, {result_dict['temperature']} K (exp)",
+            marker=dict(color=cmap.hex[i][:-2], symbol="x"),
+        )
+    )
+
+# Update layout for log scale and labels
+fig.update_layout(
+    xaxis=dict(
+        title="Upstream D pressure (Pa)",
+        type="log",
+        exponentformat="power",
+        showexponent="last",
+    ),
+    yaxis=dict(
+        title="Desorption flux (mol/m^2/s)",
+        type="log",
+        range=[-8, -3],  # Corresponds to 1e-8 to 1e-3
+        exponentformat="power",
+        showexponent="last",
+    ),
+    legend=dict(title="Legend"),
+    template="plotly_white",
+    width=1000,  # Set the width of the figure
+    height=600,  # Set the height of the figure
+)
+
+fig.write_html("./co_permeation.html")
+from IPython.display import HTML, display
+
+display(HTML("./co_permeation.html"))
+```
+
+## Co-permeation of H and D
+
+```python
+import festim as F
+import numpy as np
+import matplotlib.pyplot as plt
+
+pd_thickness = 0.025e-3  # m
+temperature = 870  # K
 upstream_effective_H_pressure = 0.063  # Pa
-
-
-def pressure_h2(p_H, p_D):
-    return p_H**2 / (p_H + p_D)
-
-
-def pressure_d2(p_H, p_D):
-    return p_D**2 / (p_H + p_D)
-
-
-def pressure_hd(p_H, p_D):
-    p_h2 = pressure_h2(p_H, p_D)
-    p_d2 = pressure_d2(p_H, p_D)
-    return (4 * p_h2 * p_d2) ** 0.5
 ```
 
 ```python
@@ -90,7 +269,6 @@ left = F.SurfaceSubdomain1D(id=1, x=0)
 right = F.SurfaceSubdomain1D(id=2, x=pd_thickness)
 
 my_model.subdomains = [vol, left, right]
-
 
 
 my_model.temperature = temperature
@@ -228,7 +406,7 @@ for effective_d_pressure in upstream_d_pressures:
 
     all_d_desorption_fluxes.append(np.abs(D_flux_right.data)[-1])
     print(
-        f"Desorption flux at {effective_d_pressure:.2e} Pa: {all_d_desorption_fluxes[-1]:.2e} molecules/m^2/s"
+        f"Desorption flux at {effective_d_pressure:.2e} Pa: {all_d_desorption_fluxes[-1]:.2e} mol/m^2/s"
     )
 
     hh_desorption_fluxes.append(np.abs(HH_flux.data)[-1])
@@ -268,35 +446,99 @@ plt.show()
 ```
 
 ```python
-plt.figure()
-plt.stackplot(
-    H_flux_left.t,
-    np.abs(H_flux_left.data),
-    np.abs(D_flux_left.data),
-    labels=["H_in", "D_in"],
-)
-plt.stackplot(
-    H_flux_right.t,
-    -np.abs(H_flux_right.data),
-    -np.abs(D_flux_right.data),
-    labels=["H_out", "D_out"],
-)
-plt.legend()
-plt.xlabel("Time (s)")
-plt.ylabel("Flux (molecule/m^2/s)")
-plt.savefig("co_permeation_in_out.png")
+import pandas as pd
 
-plt.figure()
-plt.stackplot(
-    HD_flux.t,
-    np.abs(HH_flux.data),
-    np.abs(HD_flux.data),
-    np.abs(DD_flux.data),
-    labels=["HH", "HD", "DD"],
+# read experimental data
+exp_data = pd.read_csv(
+    "co_permeation_exp_data.csv",
+    names=["H2_X", "H2_Y", "D2_X", "D2_Y", "HD_X", "HD_Y"],
+    skiprows=2,
 )
-plt.legend(reverse=True)
-plt.xlabel("Time (s)")
-plt.ylabel("Flux (molecule/m^2/s)")
 
-plt.show()
+from pypalettes import load_cmap
+
+cmap = load_cmap("Acadia")
+
+# Create a Plotly figure
+fig = go.Figure()
+
+# Add scatter plots for experimental data
+fig.add_trace(
+    go.Scatter(
+        x=exp_data["H2_X"],
+        y=exp_data["H2_Y"],
+        mode="markers",
+        name="H2 (exp)",
+        marker=dict(color=cmap.hex[0][:-2], symbol="circle"),
+    )
+)
+fig.add_trace(
+    go.Scatter(
+        x=exp_data["D2_X"],
+        y=exp_data["D2_Y"],
+        mode="markers",
+        name="D2 (exp)",
+        marker=dict(color=cmap.hex[1][:-2], symbol="triangle-up"),
+    )
+)
+fig.add_trace(
+    go.Scatter(
+        x=exp_data["HD_X"],
+        y=exp_data["HD_Y"],
+        mode="markers",
+        name="HD (exp)",
+        marker=dict(color=cmap.hex[2][:-2], symbol="square"),
+    )
+)
+
+# Add line plots for FESTIM simulation results
+fig.add_trace(
+    go.Scatter(
+        x=upstream_d_pressures,
+        y=hh_desorption_fluxes,
+        mode="lines",
+        name="HH (FESTIM)",
+        line=dict(color=cmap.hex[0][:-2]),
+    )
+)
+fig.add_trace(
+    go.Scatter(
+        x=upstream_d_pressures,
+        y=dd_desorption_fluxes,
+        mode="lines",
+        name="DD (FESTIM)",
+        line=dict(color=cmap.hex[1][:-2]),
+    )
+)
+fig.add_trace(
+    go.Scatter(
+        x=upstream_d_pressures,
+        y=hd_desorption_fluxes,
+        mode="lines",
+        name="HD (FESTIM)",
+        line=dict(color=cmap.hex[2][:-2]),
+    )
+)
+
+# Update layout for log scale, labels, and legend
+fig.update_layout(
+    xaxis=dict(title="Upstream D pressure (Pa)", type="log"),
+    yaxis=dict(
+        title="Desorption flux (mol/m^2/s)",
+        type="log",
+        range=[-8, -3],  # Corresponds to 1e-8 to 1e-3
+        exponentformat="power",
+        showexponent="last",
+    ),
+    legend=dict(title="Legend"),
+    template="plotly_white",
+    width=800,  # Set the width of the figure
+    height=600,  # Set the height of the figure
+)
+
+
+fig.write_html("./co_permeation2.html")
+from IPython.display import HTML, display
+
+display(HTML("./co_permeation2.html"))
 ```
