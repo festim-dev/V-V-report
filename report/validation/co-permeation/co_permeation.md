@@ -1,19 +1,17 @@
 ---
-jupyter:
-  jupytext:
-    formats: ipynb,md
-    text_representation:
-      extension: .md
-      format_name: markdown
-      format_version: '1.3'
-      jupytext_version: 1.16.7
-  kernelspec:
-    display_name: vv-festim-report-env-festim-2
-    language: python
-    name: python3
+jupytext:
+  formats: ipynb,md:myst
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.16.7
+kernelspec:
+  display_name: vv-festim-report-env-festim-2
+  language: python
+  name: python3
 ---
 
-<!-- #region -->
 # Co-permeation of H and D through Pd
 
 ```{tags} 1D, transient, multi-isotopes
@@ -23,13 +21,13 @@ jupyter:
 This case is taken and adapted from {cite}`ambrosek_verification_2008` based on the experimental data of {cite}`kizu2001co`.
 
 
-<!-- #endregion -->
++++
 
 ## Calibration with pure D2
 
 ### Implementation
 
-```python
+```{code-cell} ipython3
 import festim as F
 
 import numpy as np
@@ -83,7 +81,7 @@ def make_festim_model_dlr(pd_thickness, temperature, upstream_d2_pressure):
     return my_model
 ```
 
-```python
+```{code-cell} ipython3
 upstream_d_pressures = np.geomspace(1e-4, 3, num=6)
 
 thicknesses = [0.025e-3, 0.05e-3]
@@ -148,7 +146,7 @@ for pd_thickness, temperature in prms:
 
 ### Results
 
-```python
+```{code-cell} ipython3
 import pandas as pd
 import plotly.graph_objects as go
 from pypalettes import load_cmap
@@ -225,7 +223,7 @@ display(HTML("./co_permeation.html"))
 
 ### Implementation
 
-```python
+```{code-cell} ipython3
 import festim as F
 import dolfinx.fem as fem
 
@@ -245,13 +243,13 @@ class FluxFromSurfaceReaction(F.SurfaceFlux):
         self.data.append(self.value)
 ```
 
-```python
+```{code-cell} ipython3
 pd_thickness = 0.025e-3  # m
 temperature = 870  # K
 upstream_effective_H_pressure = 0.063  # Pa
 ```
 
-```python
+```{code-cell} ipython3
 my_model = F.HydrogenTransportProblem()
 
 H = F.Species("H")
@@ -418,7 +416,9 @@ for effective_d_pressure in upstream_d_pressures:
 
 ### Results
 
-```python tags=["hide-cell"]
+```{code-cell} ipython3
+:tags: [hide-cell]
+
 from scipy.interpolate import interp1d
 
 # read experimental data
@@ -466,7 +466,7 @@ for label, flux in zip(
     errors[label] = RMSE_value
 ```
 
-```python
+```{code-cell} ipython3
 cmap = load_cmap("Acadia")
 
 # Create a Plotly figure
