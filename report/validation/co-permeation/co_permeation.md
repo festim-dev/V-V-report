@@ -13,13 +13,21 @@ jupyter:
     name: python3
 ---
 
-# Co-permeation
+<!-- #region -->
+# Co-permeation of H and D through Pd
+
+```{tags} 1D, transient, multi-isotopes
+```
 
 
+This case is taken and adapted from {cite}`ambrosek_verification_2008` based on the experimental data of {cite}`kizu2001co`.
 
 
+<!-- #endregion -->
 
 ## Calibration with pure D2
+
+### Implementation
 
 ```python
 import festim as F
@@ -217,6 +225,8 @@ display(HTML("./co_permeation.html"))
 
 ## Co-permeation of H and D
 
+### Implementation
+
 ```python
 import festim as F
 import dolfinx.fem as fem
@@ -377,8 +387,6 @@ hd_desorption_fluxes = []
 dd_desorption_fluxes = []
 upstream_d_pressures = np.geomspace(4e-3, 1, num=5)
 
-# import dolfinx.log
-# dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
 for effective_d_pressure in upstream_d_pressures:
     upstream_d2_pressure = effective_d_pressure
     upstream_h2_pressure = upstream_effective_H_pressure
@@ -394,8 +402,6 @@ for effective_d_pressure in upstream_d_pressures:
 
     my_model.initialise()
     my_model.run()
-
-    # ------ Post processsing ------ #
 
     # convert all data to mol
     for export in my_model.exports:
@@ -417,6 +423,12 @@ for effective_d_pressure in upstream_d_pressures:
 ```python tags=["hide-cell"]
 from scipy.interpolate import interp1d
 
+# read experimental data
+exp_data = pd.read_csv(
+    "co_permeation_exp_data.csv",
+    names=["H2_X", "H2_Y", "D2_X", "D2_Y", "HD_X", "HD_Y"],
+    skiprows=2,
+)
 
 def RMSE(exp, sim):
     """
@@ -455,13 +467,6 @@ for label, flux in zip(
 ```
 
 ```python
-# read experimental data
-exp_data = pd.read_csv(
-    "co_permeation_exp_data.csv",
-    names=["H2_X", "H2_Y", "D2_X", "D2_Y", "HD_X", "HD_Y"],
-    skiprows=2,
-)
-
 cmap = load_cmap("Acadia")
 
 # Create a Plotly figure
@@ -526,14 +531,12 @@ fig.add_trace(
 )
 
 # annotate the RMSE
-
-for (label, RMSE_value), y in zip(errors.items(), [5e-6, 5e-5, 4e-4]):
+for RMSE_value, y in zip(errors.values(), [5e-6, 5e-5, 4e-4]):
     fig.add_annotation(
-        x=upstream_d_pressures[-1],
-        # y=y,
-        y=np.mean(hd_desorption_fluxes),
-        text=f"{label} RMSE: {RMSE_value:.2e}",
-        showarrow=True,
+        x=np.log10(upstream_d_pressures[-1] * 3),
+        y=np.log10(y),
+        text=f"log-RMSE = {np.abs(RMSE_value):.2%}",
+        showarrow=False,
         # font=dict(size=12),
     )
 
