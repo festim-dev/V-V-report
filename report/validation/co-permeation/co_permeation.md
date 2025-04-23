@@ -19,11 +19,11 @@ kernelspec:
 
 
 This case is taken and adapted from {cite}`ambrosek_verification_2008` based on the experimental data of {cite}`kizu2001co`.
-
+First the system is simulated with pure D2 permeating, then both D2 and H2 gas dissociate on the Pd surface, diffuse through the membrane, then recombines on the downstream surface either as H2, D2, or HD.
 
 +++
 
-## Calibration with pure D2
+## Permeation of pure D2
 
 ### Implementation
 
@@ -146,7 +146,12 @@ for pd_thickness, temperature in prms:
 
 ### Results
 
+Below is the evolution of the downstream D2 flux as a function of upstream D2 pressure.
+There is a good agreement between FESTIM and the experimental data. The change of the slope in the experimentally measured flux at higher pressures suggest a transition to the diffusion-limited regime.
+
 ```{code-cell} ipython3
+:tags: [hide-input]
+
 import pandas as pd
 import plotly.graph_objects as go
 from pypalettes import load_cmap
@@ -224,6 +229,8 @@ display(HTML("./co_permeation.html"))
 ### Implementation
 
 ```{code-cell} ipython3
+:tags: [hide-cell]
+
 import festim as F
 import dolfinx.fem as fem
 
@@ -376,7 +383,9 @@ my_model.exports = [
 my_model.settings = F.Settings(atol=1e11, rtol=1e-6, final_time=10, transient=True)
 
 my_model.settings.stepsize = 0.2
+```
 
+```{code-cell} ipython3
 all_d_desorption_fluxes = []
 hh_desorption_fluxes = []
 hd_desorption_fluxes = []
@@ -466,7 +475,17 @@ for label, flux in zip(
     errors[label] = RMSE_value
 ```
 
+Below is the evolution of H2, D2, and HD fluxes as a function of the effective deuterium upstream pressure.
+
+There is a reasonable agreement between the experimental data and the FESTIM simulation. We followed the parameters (material properties) provided in the TMAP7 V&V report {cite}`ambrosek_verification_2008` although we did not include things like enclosures, pumping, etc.
+
+A better agreement could potentially be obtained by setting the surface rates and diffusivities as free parameters and then perform some parametric optimisation.
+
+Better experimental data with better measurements of the upstream partial pressures would be required to better constrain the model.
+
 ```{code-cell} ipython3
+:tags: [hide-input]
+
 cmap = load_cmap("Acadia")
 
 # Create a Plotly figure
@@ -537,7 +556,6 @@ for RMSE_value, y in zip(errors.values(), [5e-6, 5e-5, 4e-4]):
         y=np.log10(y),
         text=f"log-RMSE = {np.abs(RMSE_value):.2%}",
         showarrow=False,
-        # font=dict(size=12),
     )
 
 # Update layout for log scale, labels, and legend
@@ -546,14 +564,14 @@ fig.update_layout(
     yaxis=dict(
         title="Desorption flux (mol/m^2/s)",
         type="log",
-        range=[-8, -3],  # Corresponds to 1e-8 to 1e-3
+        range=[-8, -3],
         exponentformat="power",
         showexponent="last",
     ),
     legend=dict(title="Legend"),
     template="plotly_white",
-    width=800,  # Set the width of the figure
-    height=600,  # Set the height of the figure
+    width=800,
+    height=600,
 )
 
 
