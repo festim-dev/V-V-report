@@ -155,15 +155,13 @@ from pypalettes import load_cmap
 
 cmap = load_cmap("Acadia")
 
-data_thick_825 = pd.read_csv(
-    "https://raw.githubusercontent.com/idaholab/TMAP8/dc0bfc4cb3114a2c3159f5f18a0d441c4ce78b13/test/tests/val-2e/gold/experiment_thick_825K.csv"
-)
-data_thin_825 = pd.read_csv(
-    "https://raw.githubusercontent.com/idaholab/TMAP8/dc0bfc4cb3114a2c3159f5f18a0d441c4ce78b13/test/tests/val-2e/gold/experiment_thin_825K.csv"
-)
-data_thin_865 = pd.read_csv(
-    "https://raw.githubusercontent.com/idaholab/TMAP8/dc0bfc4cb3114a2c3159f5f18a0d441c4ce78b13/test/tests/val-2e/gold/experiment_thin_865K.csv"
-)
+
+commit_hash = "dc0bfc4cb3114a2c3159f5f18a0d441c4ce78b13"
+
+url_base = f"https://raw.githubusercontent.com/idaholab/TMAP8/{commit_hash}/test/tests/val-2e/gold/"
+data_thin_825 = pd.read_csv(url_base + "experiment_thin_825K.csv")
+data_thick_825 = pd.read_csv(url_base + "experiment_thick_825K.csv")
+data_thin_865 = pd.read_csv(url_base + "experiment_thin_865K.csv")
 
 exp_data = [
     data_thin_825,
@@ -430,6 +428,7 @@ exp_data = pd.read_csv(
     skiprows=2,
 )
 
+
 def RMSE(exp, sim):
     """
     Calculate the Root Mean Square Error (RMSE) between experimental and simulated data.
@@ -444,6 +443,7 @@ def RMSE(exp, sim):
     return np.sqrt(np.mean((np.array(exp) - np.array(sim)) ** 2)) / np.mean(
         np.array(exp)
     )
+
 
 errors = {}
 
