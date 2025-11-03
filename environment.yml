@@ -19,8 +19,11 @@ dependencies:
   - ipython=8.23
   - scipy
   - plotly
-  - festim=2.0a3
+  - festim=2.0b0
   - plotly
+  - sphinxcontrib-bibtex>=2.6
+  - pybtex>=0.25
+  - pybtex-docutils>=1.0.3
   - pip
   - pip:
     - h_transport_materials
