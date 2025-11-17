@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.2
+    jupytext_version: 1.18.1
 kernelspec:
   display_name: vv-festim-report-env
   language: python
@@ -61,76 +61,58 @@ We can then run a FESTIM model with these values and compare the numerical solut
 :tags: [hide-cell]
 
 import festim as F
-import sympy as sp
-import fenics as f
-import matplotlib as mpl
-import matplotlib.pyplot as plt
+from mpi4py import MPI
+import dolfinx
 import numpy as np
 
-# Create and mark the mesh
+# --- Create and mark the mesh ---
 nx = ny = 100
-fenics_mesh = f.UnitSquareMesh(nx, ny)
+fenics_mesh = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, nx, ny)
 
+# --- FESTIM model setup ---
+my_model = F.HydrogenTransportProblem()
+H = F.Species("H")
+my_model.species = [H]
+my_model.mesh = F.Mesh(fenics_mesh)
 
-volume_markers = f.MeshFunction("size_t", fenics_mesh, fenics_mesh.topology().dim())
-volume_markers.set_all(1)
-
-surface_markers = f.MeshFunction(
-    "size_t", fenics_mesh, fenics_mesh.topology().dim() - 1
-)
-surface_markers.set_all(0)
-
-
-class Boundary(f.SubDomain):
-    def inside(self, x, on_boundary):
-        return on_boundary
-
-
-boundary = Boundary()
-boundary.mark(surface_markers, 1)
-
-# Create the FESTIM model
-my_model = F.Simulation()
-
-my_model.mesh = F.Mesh(
-    fenics_mesh, volume_markers=volume_markers, surface_markers=surface_markers
-)
-
-# Variational formulation
-exact_solution = 1 + 2 * F.x**2 + 3 * F.t * F.y**2 + 2 * F.t  # exact solution
-
-exact_solution_copy = exact_solution.subs(F.x, F.x)
-
+# --- materials ---
 D = 2
+material = F.Material(D_0=D, E_D=0)
 
-my_model.sources = [
-    F.Source(2 + 3 * F.y**2 - (4 + 6 * F.t) * D, volume=1, field="solute"),
-]
+# --- subdomains ---
+volume = F.VolumeSubdomain(id=1, material=material)
+boundary = F.SurfaceSubdomain(id=1)
+my_model.subdomains = [volume, boundary]
 
+# --- define the exact solution ---
+exact_solution = lambda x,t:1 + 2 * x[0]**2 + 3 * t * x[1]**2 + 2 * t 
+
+# --- define the sources and boundary conditions ---
+my_model.sources = [(F.ParticleSource(value=lambda x, t: 2 + 3 * x[1]**2 - (4 + 6 * t) * D , volume = volume, species=H))]
 my_model.boundary_conditions = [
-    F.DirichletBC(surfaces=[1], value=exact_solution, field="solute"),
+    F.FixedConcentrationBC(subdomain=boundary, value=exact_solution, species=H),
 ]
 
-my_model.materials = F.Material(id=1, D_0=D, E_D=0)
+my_model.temperature = 500  # ignored in this problem
 
-my_model.T = F.Temperature(500)  # ignored in this problem
-
+# --- output control ---
 xdmf_file_name = "simple_transient_mobile.xdmf"
+vtx_file_name = "simple_transient_mobile.bp"
 my_model.exports = [
-    F.XDMFExport(field="solute", filename=xdmf_file_name, checkpoint=True)
+    F.XDMFExport(field=H, filename=xdmf_file_name),
+    F.VTXSpeciesExport(field=H, filename=vtx_file_name, checkpoint=True),
+    F.VTXSpeciesExport(field=H, filename="out.bp", checkpoint=False)
 ]
 
+
+# --- time stepping ---
 final_time = 17
-slices = 4
-slice_size = final_time / slices
-milestones = list(np.linspace(slice_size, final_time, slices))
-
-my_model.dt = F.Stepsize(initial_value=1, milestones=milestones)
-
+dt = F.Stepsize(initial_value=1)
 my_model.settings = F.Settings(
-    absolute_tolerance=1e-10,
-    relative_tolerance=1e-10,
+    atol=1e-10,
+    rtol=1e-10,
     final_time=final_time,
+    stepsize=dt,
 )
 
 my_model.initialise()
@@ -142,153 +124,81 @@ my_model.run()
 ```{code-cell} ipython3
 :tags: [hide-input]
 
-from fenics import XDMFFile, FunctionSpace, Function, plot
+import pyvista
+from dolfinx.plot import vtk_mesh
+import adios4dolfinx
+from mpi4py import MPI
+
+"""
+Post-process FESTIM v2/VTX (.bp) output in Python with PyVista.
+
+- Reads selected timesteps from a VTX/ADIOS2 file using adios4dolfinx
+- For each timestep, computes the corresponding analytic "exact" field
+- Plots a grid of comparisons between simulation and exact solutions:
+  1 row per time instant
+  2 columns: left = simulation, right = exact
+"""
 
 
-def load_xdmf(mesh, filename, field, element="CG", counter=-1):
-    """Loads a XDMF file and store its content to a fenics.Function
+pyvista.start_xvfb()
+pyvista.set_jupyter_backend("html")
 
-    Args:
-        mesh (fenics.mesh): the mesh of the function
-        filename (str): the XDMF filename
-        field (str): the name of the field in the XDMF file
-        element (str, optional): Finite element of the function.
-            Defaults to "CG".
-        counter (int, optional): timestep in the file, -1 is the
-            last timestep. Defaults to -1.
-
-    Returns:
-        fenics.Function: the content of the XDMF file as a Function
-    """
-
-    V = FunctionSpace(mesh, element, 1)
-    u = Function(V)
-
-    XDMFFile(filename).read_checkpoint(u, field, counter)
-    return u
+def read_computed_solution(time: float):
+    """Load FEM function at a given time from a VTX/ADIOS2 file."""
+    mesh = adios4dolfinx.read_mesh(vtx_file_name, comm=MPI.COMM_WORLD)
+    V = dolfinx.fem.functionspace(mesh, ("Lagrange", 1))
+    u_in = dolfinx.fem.Function(V)
+    adios4dolfinx.read_function(vtx_file_name, u_in, time=time, name=H.name)
+    return u_in
 
 
-fig, axs = plt.subplots(
-    slices, 3, figsize=(slices * 2.3, slices * 2.5 + 1)
-)  # tweak figsize if needed
-fig.tight_layout()
+def get_u_grid(u: dolfinx.fem.Function, label: str):
+    """Convert a FEM function to a PyVista UnstructuredGrid and attach nodal data."""
+    u_topology, u_cell_types, u_geometry = vtk_mesh(u.function_space)
+    u_grid = pyvista.UnstructuredGrid(u_topology, u_cell_types, u_geometry)
+    u_grid.point_data[label] = u.x.array.real
+    u_grid.set_active_scalars(label)
+    return u_grid
 
+timestamps = adios4dolfinx.read_timestamps(vtx_file_name, MPI.COMM_WORLD, function_name=H.name)
 
-def compute_arc_length(xs, ys):
-    """Computes the arc length of x,y points based
-    on x and y arrays
-    """
-    points = np.vstack((xs, ys)).T
-    distance = np.linalg.norm(points[1:] - points[:-1], axis=1)
-    arc_length = np.insert(np.cumsum(distance), 0, [0.0])
-    return arc_length
+for t_val in timestamps[::6]:
+    t_val = float(t_val)
 
+    computed_solution = read_computed_solution(t_val)
+    u_grid_mobile = get_u_grid(computed_solution, "c_simulation")
 
-def exists_close(x, list):
-    return any(np.isclose(x, t) for t in list)
-
-
-xdmf_times = F.extract_xdmf_times(xdmf_file_name)
-counters = [i for (i, time) in enumerate(xdmf_times) if exists_close(time, milestones)]
-
-for i, counter in enumerate(counters):
-    time = xdmf_times[counter]
-
-    c_exact = f.Expression(
-        sp.printing.ccode(exact_solution_copy.subs(F.t, time)), degree=4
+    exact_solution_function = dolfinx.fem.Function(computed_solution.function_space)
+    exact_solution_function.interpolate(
+        lambda X: 1 + 2 * X[0] ** 2 + 3 * t_val * X[1] ** 2 + 2 * t_val
     )
-    c_exact = f.project(c_exact, f.FunctionSpace(my_model.mesh.mesh, "CG", 1))
+    u_grid_mobile_exact = get_u_grid(exact_solution_function, "c_exact")
 
-    computed_solution = load_xdmf(
-        fenics_mesh, xdmf_file_name, "mobile_concentration", "CG", counter
-    )
-    E = f.errornorm(computed_solution, c_exact, "L2")
+    print(f"t={float(t_val):g}s, Simulation result (left) vs. Exact result (right)")
+    u_plotter = pyvista.Plotter(shape=(1, 2))
+    
+    u_plotter.subplot(0, 0)
+    u_plotter.add_title("simulation",font_size = 20, color = "black")
+    u_plotter.set_background("white")
+    u_plotter.add_mesh(u_grid_mobile)
+    contours_sim = u_grid_mobile.contour(9)
+    u_plotter.add_mesh(contours_sim, color="white")
+    u_plotter.add_text("Simulation", font_size=18,color="black", position="upper_edge")
+    u_plotter.view_xy()
 
-    # plot exact solution and computed solution
-    plt.sca(axs[i, 0])
-    if i == 0:
-        plt.title(f"Exact")
-    plt.annotate(
-        f"t={time}s",
-        xy=(0.5, 1),
-        xytext=(-axs[i, 0].yaxis.labelpad - 3, 0),
-        xycoords=axs[i, 0].yaxis.label,
-        textcoords="offset points",
-        size="large",
-        ha="right",
-        va="center",
-    )
-    CS1 = f.plot(c_exact, cmap="inferno")
-    plt.sca(axs[i, 1])
-    if i == 0:
-        plt.title(f"Computed")
-    CS2 = f.plot(computed_solution, cmap="inferno")
+    u_plotter.subplot(0, 1)
+    u_plotter.set_background("white")
+    u_plotter.add_mesh(u_grid_mobile_exact)
+    contours_ex = u_grid_mobile_exact.contour(9)
+    u_plotter.add_mesh(contours_ex, color="white")
+    u_plotter.view_xy()
+    u_plotter.add_text("Exact", font_size=18,color="black", position="upper_edge")
+    
 
-    plt.colorbar(CS1, ax=[axs[i, 0]], shrink=0.8)
-    plt.colorbar(CS2, ax=[axs[i, 1]], shrink=0.8)
-
-    axs[i, 0].sharey(axs[i, 1])
-    plt.setp(axs[i, 1].get_yticklabels(), visible=False)
-
-    for CS in [CS1, CS2]:
-        CS.set_edgecolor("face")
-
-    # define the profiles
-    profiles = [
-        {"start": (0.0, 0.0), "end": (1.0, 1.0)},
-        {"start": (0.2, 0.8), "end": (0.7, 0.2)},
-        {"start": (0.2, 0.6), "end": (0.8, 0.8)},
-    ]
-
-    # plot the profiles on the right subplot
-    for profile in profiles:
-        start_x, start_y = profile["start"]
-        end_x, end_y = profile["end"]
-        plt.sca(axs[i, 1])
-        (l,) = plt.plot([start_x, end_x], [start_y, end_y])
-
-        plt.sca(axs[i, 2])
-
-        points_x_exact = np.linspace(start_x, end_x, num=30)
-        points_y_exact = np.linspace(start_y, end_y, num=30)
-        arc_length_exact = compute_arc_length(points_x_exact, points_y_exact)
-        u_values = [c_exact(x, y) for x, y in zip(points_x_exact, points_y_exact)]
-
-        points_x = np.linspace(start_x, end_x, num=100)
-        points_y = np.linspace(start_y, end_y, num=100)
-        arc_lengths = sorted(compute_arc_length(points_x, points_y))
-        computed_values = [computed_solution(x, y) for x, y in zip(points_x, points_y)]
-
-        (exact_line,) = plt.plot(
-            arc_length_exact,
-            u_values,
-            color=l.get_color(),
-            marker="o",
-            linestyle="None",
-            alpha=0.3,
-        )
-        (computed_line,) = plt.plot(arc_lengths, computed_values, color=l.get_color())
-
-    plt.sca(axs[i, 2])
-    plt.xlabel("Arc length")
-    if i == 0:
-        legend_marker = mpl.lines.Line2D(
-            [],
-            [],
-            color="black",
-            marker=exact_line.get_marker(),
-            linestyle="None",
-            label="Exact",
-        )
-        legend_line = mpl.lines.Line2D([], [], color="black", label="Computed")
-        plt.legend(
-            [legend_marker, legend_line],
-            [legend_marker.get_label(), legend_line.get_label()],
-        )
-    plt.grid(alpha=0.3)
-    plt.gca().spines[["right", "top"]].set_visible(False)
-
-plt.show()
+    if not pyvista.OFF_SCREEN:
+        u_plotter.show()
+    else:
+        figure = u_plotter.screenshot("comparison.png")
 ```
 
 ## Compute convergence rates
@@ -300,53 +210,70 @@ This is expected for this particular problem as first order finite elements are 
 ```{code-cell} ipython3
 :tags: [hide-cell]
 
-def make_unit_square_mesh(n):
-    """
-    Makes a festim Mesh with sides n x n for a total of n^2 cells.
-    Sets surface markers on the boundary to 1, otherwise 0.
-    """
+import matplotlib.pyplot as plt
+import ufl
+import dolfinx
 
-    fenics_mesh = f.UnitSquareMesh(n, n)
 
-    volume_markers = f.MeshFunction("size_t", fenics_mesh, fenics_mesh.topology().dim())
-    volume_markers.set_all(1)
+def error_L2(u_computed, u_exact, degree_raise=3):
+    # Create higher order function space
+    degree = u_computed.function_space.ufl_element().degree
+    family = u_computed.function_space.ufl_element().family_name
+    mesh = u_computed.function_space.mesh
+    W = dolfinx.fem.functionspace(mesh, (family, degree + degree_raise))
 
-    surface_markers = f.MeshFunction(
-        "size_t", fenics_mesh, fenics_mesh.topology().dim() - 1
+    # Interpolate exact solution, special handling if exact solution
+    # is a ufl expression or a python lambda function
+    u_ex_W = dolfinx.fem.Function(W)
+    if isinstance(u_exact, ufl.core.expr.Expr):
+        u_expr = dolfinx.fem.Expression(u_exact, W.element.interpolation_points)
+        u_ex_W.interpolate(u_expr)
+    else:
+        u_ex_W.interpolate(u_exact)
+
+    # Integrate the error
+    error = dolfinx.fem.form(
+        ufl.inner(u_computed - u_ex_W, u_computed - u_ex_W) * ufl.dx
     )
-    surface_markers.set_all(0)
-
-    class Boundary(f.SubDomain):
-        def inside(self, x, on_boundary):
-            return on_boundary
-
-    boundary = Boundary()
-    boundary.mark(surface_markers, 1)
-
-    return F.Mesh(fenics_mesh, volume_markers, surface_markers)
+    error_local = dolfinx.fem.assemble_scalar(error)
+    error_global = mesh.comm.allreduce(error_local, op=MPI.SUM)
+    return np.sqrt(error_global)
 
 
 errors = []
 ns = [5, 10, 20, 30, 50, 100, 150]
 
 for n in ns:
-    my_model.mesh = make_unit_square_mesh(n)
+    nx = ny = n
+    fenics_mesh = fenics_mesh = dolfinx.mesh.create_unit_square(MPI.COMM_WORLD, nx, ny)
 
-    my_model.initialise()
-    my_model.run()
+    new_model = F.HydrogenTransportProblem()
+    new_model.mesh = F.Mesh(fenics_mesh)
 
-    computed_solution = my_model.h_transport_problem.mobile.post_processing_solution
-    errors.append(f.errornorm(computed_solution, c_exact, "L2"))
-```
+    new_model.species = my_model.species
+    new_model.subdomains = my_model.subdomains
+    new_model.sources = my_model.sources
+    new_model.boundary_conditions = my_model.boundary_conditions
+    new_model.temperature = my_model.temperature
+    new_model.settings = my_model.settings
 
-```{code-cell} ipython3
-:tags: [hide-input]
+    new_model.initialise()
+    new_model.run()
+    
+    # by default, get the last time step solution
+    computed_solution = H.solution
+    exact_solution_function = dolfinx.fem.Function(computed_solution.function_space)
+    exact_solution_function.interpolate(
+        lambda X: 1 + 2 * X[0] ** 2 + 3 * final_time * X[1] ** 2 + 2 * final_time
+    )
+    errors.append(error_L2(computed_solution, exact_solution_function))
 
 h = 1 / np.array(ns)
 
 plt.loglog(h, errors, marker="o")
 plt.xlabel("Element size")
 plt.ylabel("L2 error")
+plt.title("Mesh convergence study for transient diffusion problem at t=17s")
 
 plt.loglog(h, 2 * h**2, linestyle="--", color="black")
 plt.annotate(
