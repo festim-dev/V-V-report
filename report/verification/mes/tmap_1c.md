@@ -139,6 +139,12 @@ $$
 
 where $h$ is the thickness of the pre-loaded region.
 
++++
+
+```{warning}
+There is an existing bug with `ProfileExport1D` class. See (this associated issue for more details)[https://github.com/festim-dev/FESTIM/issues/1046].
+```
+
 ```{code-cell} ipython3
 :tags: [hide-input]
 
