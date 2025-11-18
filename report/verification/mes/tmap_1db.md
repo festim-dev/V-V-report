@@ -10,6 +10,8 @@ kernelspec:
   display_name: vv-festim-report-env
   language: python
   name: python3
+mystnb:
+  execution_mode: "off"
 ---
 
 # Strong trapping regime
