@@ -101,20 +101,56 @@ my_model.boundary_conditions = [
     F.DirichletBC(subdomain=right_boundary, value=0, species=mobile_H),
 ]
 
-my_model.settings = F.Settings(atol=2e15, rtol=5e-8, max_iterations=30, final_time=1000)
+my_model.settings = F.Settings(atol=1e10, rtol=1e-10, final_time=1000)
 
 my_model.settings.stepsize = F.Stepsize(
-    initial_value=1e-6,
+    # initial_value=1e-6,
+    initial_value=0.01,
     growth_factor=1.1,
     cutback_factor=0.9,
-    target_nb_iterations=30,
-    max_stepsize=2,
+    target_nb_iterations=4,
 )
 
 right_flux = F.SurfaceFlux(field=mobile_H, surface=right_boundary)
 
 my_model.exports = [right_flux]
 
+
+```
+
+```{code-cell} ipython3
+from petsc4py import PETSc
+import dolfinx
+
+# taken from https://github.com/FEniCS/dolfinx/blob/5fcb988c5b0f46b8f9183bc844d8f533a2130d6a/python/demo/demo_cahn-hilliard.py#L279C1-L286C28
+use_superlu = (
+    PETSc.IntType == np.int64
+)  # or PETSc.ScalarType == np.complex64
+sys = PETSc.Sys()  # type: ignore
+if sys.hasExternalPackage("mumps") and not use_superlu:
+    linear_solver = "mumps"
+elif sys.hasExternalPackage("superlu_dist"):
+    linear_solver = "superlu_dist"
+else:
+    linear_solver = "petsc"
+
+petsc_options = {
+    "snes_type": "newtonls",
+    "snes_linesearch_type": "none",
+    "snes_stol": np.sqrt(np.finfo(dolfinx.default_real_type).eps)
+    * 1e-2,
+    "snes_atol": my_model.settings.atol,
+    "snes_rtol": my_model.settings.rtol,
+    "snes_divergence_tolerance": "PETSC_UNLIMITED",
+    "snes_max_it": my_model.settings.max_iterations,
+    "ksp_type": "preonly",
+    "pc_type": "lu",
+    "pc_factor_mat_solver_type": linear_solver,
+}
+my_model.petsc_options = petsc_options
+```
+
+```{code-cell} ipython3
 my_model.initialise()
 my_model.run()
 ```
