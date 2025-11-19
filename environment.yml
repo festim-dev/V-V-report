@@ -20,6 +20,7 @@ dependencies:
   - scipy
   - plotly
   - festim=2.0a3
+  - pybtex=0.25
   - plotly
   - pip
   - pip:
