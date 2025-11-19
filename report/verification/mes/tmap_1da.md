@@ -5,13 +5,11 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.7
+    jupytext_version: 1.18.1
 kernelspec:
   display_name: vv-festim-report-env
   language: python
   name: python3
-mystnb:
-  execution_mode: "off"
 ---
 
 # Effective diffusivity regime
@@ -54,9 +52,11 @@ For this case, $\lambda=\sqrt{10^{-15}} \ \mathrm{m}$, $\nu=10^{13} \ \mathrm{s}
 
 ## FESTIM Code
 
-```{code-cell}
+```{code-cell} ipython3
 import festim as F
 import numpy as np
+
+
 
 # Define input parameters
 n = 3.162e22
@@ -65,6 +65,9 @@ D_0 = 1
 E_D = 0.0
 k_0 = 1e15 / n
 p_0 = 1e13
+# k_0 = 1e12 / n
+
+
 E_p = 100 * F.k_B
 T = 1000
 sample_depth = 1
@@ -107,21 +110,63 @@ my_model.boundary_conditions = [
     F.DirichletBC(subdomain=right_boundary, value=0, species=mobile_H),
 ]
 
-my_model.settings = F.Settings(atol=2e15, rtol=5e-8, max_iterations=30, final_time=10)
-
+my_model.settings = F.Settings(atol=1e10, rtol=1e-10, final_time=10)
 my_model.settings.stepsize = F.Stepsize(0.05)
+
+# my_model.settings.stepsize = F.Stepsize(
+#     initial_value=1e-7,
+#     growth_factor=1.1,
+#     cutback_factor=0.9,
+#     target_nb_iterations=10,
+# )
 
 right_flux = F.SurfaceFlux(field=mobile_H, surface=right_boundary)
 
 my_model.exports = [right_flux]
+print(F.__version__)
 
+```
+
+```{code-cell} ipython3
+from petsc4py import PETSc
+import dolfinx
+
+# taken from https://github.com/FEniCS/dolfinx/blob/5fcb988c5b0f46b8f9183bc844d8f533a2130d6a/python/demo/demo_cahn-hilliard.py#L279C1-L286C28
+use_superlu = (
+    PETSc.IntType == np.int64
+)  # or PETSc.ScalarType == np.complex64
+sys = PETSc.Sys()  # type: ignore
+if sys.hasExternalPackage("mumps") and not use_superlu:
+    linear_solver = "mumps"
+elif sys.hasExternalPackage("superlu_dist"):
+    linear_solver = "superlu_dist"
+else:
+    linear_solver = "petsc"
+
+petsc_options = {
+    "snes_type": "newtonls",
+    "snes_linesearch_type": "none",
+    "snes_stol": np.sqrt(np.finfo(dolfinx.default_real_type).eps)
+    * 1e-2,
+    "snes_atol": my_model.settings.atol,
+    "snes_rtol": my_model.settings.rtol,
+    "snes_divergence_tolerance": "PETSC_UNLIMITED",
+    "snes_max_it": my_model.settings.max_iterations,
+    "ksp_type": "preonly",
+    "pc_type": "lu",
+    "pc_factor_mat_solver_type": linear_solver,
+}
+my_model.petsc_options = petsc_options
+```
+
+```{code-cell} ipython3
 my_model.initialise()
 my_model.run()
 ```
 
 ## Comparison with exact solution
 
-```{code-cell}
+```{code-cell} ipython3
 :tags: [hide-input]
 
 import plotly.graph_objects as go
