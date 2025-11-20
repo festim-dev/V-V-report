@@ -107,7 +107,7 @@ my_model.boundary_conditions = [
     F.DirichletBC(subdomain=right_boundary, value=0, species=mobile_H),
 ]
 
-my_model.settings = F.Settings(atol=1e10, rtol=1e-10, final_time=10)
+my_model.settings = F.Settings(atol=2e15, rtol=5e-8, final_time=10)
 my_model.settings.stepsize = F.Stepsize(0.05)
 
 right_flux = F.SurfaceFlux(field=mobile_H, surface=right_boundary)
