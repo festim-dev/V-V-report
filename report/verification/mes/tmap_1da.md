@@ -113,7 +113,6 @@ my_model.settings.stepsize = F.Stepsize(0.05)
 right_flux = F.SurfaceFlux(field=mobile_H, surface=right_boundary)
 
 my_model.exports = [right_flux]
-print(F.__version__)
 
 ```
 
