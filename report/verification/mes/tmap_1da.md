@@ -110,13 +110,6 @@ my_model.boundary_conditions = [
 my_model.settings = F.Settings(atol=1e10, rtol=1e-10, final_time=10)
 my_model.settings.stepsize = F.Stepsize(0.05)
 
-# my_model.settings.stepsize = F.Stepsize(
-#     initial_value=1e-7,
-#     growth_factor=1.1,
-#     cutback_factor=0.9,
-#     target_nb_iterations=10,
-# )
-
 right_flux = F.SurfaceFlux(field=mobile_H, surface=right_boundary)
 
 my_model.exports = [right_flux]
