@@ -5,7 +5,7 @@ channels:
   - defaults
 
 dependencies:
-  - python
+  - python=3.11
   - jupyter-book<2.0
   - jupytext # necessary to open MyST files using BinderHub https://jupyterbook.org/en/stable/interactive/launchbuttons.html#launchbuttons-binder
   - sphinx-tags
@@ -19,8 +19,12 @@ dependencies:
   - ipython=8.23
   - scipy
   - plotly
-  - festim=2.0a3
-  - plotly
+  - festim=2.0b0
+  - sphinxcontrib-bibtex>=2.6
+  - pybtex-docutils>=1.0.3
+  - ipywidgets
+  - widgetsnbextension
+  - jupyterlab_widgets
   - pip
   - pip:
     - h_transport_materials
