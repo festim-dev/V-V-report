@@ -10,8 +10,6 @@ kernelspec:
   display_name: vv-festim-report-env-festim-2
   language: python
   name: python3
-mystnb:
-  execution_mode: "off"
 ---
 
 # Pre-loaded semi-infinite slab
