@@ -101,21 +101,20 @@ my_model.boundary_conditions = [
     F.DirichletBC(subdomain=right_boundary, value=0, species=mobile_H),
 ]
 
-my_model.settings = F.Settings(atol=1e10, rtol=1e-10, final_time=1000)
+my_model.settings = F.Settings(atol=2e15, rtol=5e-8, max_iterations=30, final_time=1000)
 
 my_model.settings.stepsize = F.Stepsize(
-    # initial_value=1e-6,
-    initial_value=0.01,
+    initial_value=1e-6,
     growth_factor=1.1,
     cutback_factor=0.9,
-    target_nb_iterations=4,
+    target_nb_iterations=30,
+    max_stepsize=2,
 )
 
 right_flux = F.SurfaceFlux(field=mobile_H, surface=right_boundary)
 
 my_model.exports = [right_flux]
-
-
+print(F.__version__)
 ```
 
 ```{code-cell} ipython3
@@ -146,6 +145,7 @@ petsc_options = {
     "ksp_type": "preonly",
     "pc_type": "lu",
     "pc_factor_mat_solver_type": linear_solver,
+    # "snes_monitor": None,
 }
 my_model.petsc_options = petsc_options
 ```
