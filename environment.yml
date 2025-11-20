@@ -5,7 +5,7 @@ channels:
   - defaults
 
 dependencies:
-  - python
+  - python=3.11
   - jupyter-book<2.0
   - jupytext # necessary to open MyST files using BinderHub https://jupyterbook.org/en/stable/interactive/launchbuttons.html#launchbuttons-binder
   - sphinx-tags
@@ -25,9 +25,9 @@ dependencies:
   - ipywidgets
   - widgetsnbextension
   - jupyterlab_widgets
-  - tqdm
   - pip
   - pip:
     - h_transport_materials
     - pybtex>=0.25
     - pyvista[all,trame]  # trame cannot be installed on conda
+    - pybtex==0.25
