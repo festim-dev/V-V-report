@@ -65,9 +65,6 @@ D_0 = 1
 E_D = 0.0
 k_0 = 1e15 / n
 p_0 = 1e13
-# k_0 = 1e12 / n
-
-
 E_p = 100 * F.k_B
 T = 1000
 sample_depth = 1
