@@ -34,3 +34,8 @@ jupyter-book build report --all
 Run [`jupytext --sync`](https://jupytext.readthedocs.io/en/latest/using-cli.html) on a case's markdown file to generate a matching [Jupyter notebook](https://jupyter-notebook-beginner-guide.readthedocs.io/en/latest/what_is_jupyter.html). Run [`jupytext --sync`](https://jupytext.readthedocs.io/en/latest/using-cli.html) again to sync the changes to the markdown file.
 
 See [this page](./report/how_to.md/#how-to-contribute) for more instructions.
+
+To convert a notebook to myst run:
+```
+jupytext --set-formats ipynb,myst notebook_path.ipynb 
+```
