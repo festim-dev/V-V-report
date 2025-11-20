@@ -28,6 +28,5 @@ dependencies:
   - pip
   - pip:
     - h_transport_materials
-    - pybtex>=0.25
     - pyvista[all,trame]  # trame cannot be installed on conda
     - pybtex==0.25
