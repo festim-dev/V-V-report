@@ -5,9 +5,9 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.7
+    jupytext_version: 1.18.1
 kernelspec:
-  display_name: vv-festim-report-env-festim-2
+  display_name: vv-festim-report-env
   language: python
   name: python3
 ---
@@ -46,15 +46,18 @@ class PointValue(F.VolumeQuantity):
         self.value = self.field.solution.eval(self.x0, first_cell)
         self.data.append(self.value)
 
+class Profile(F.Profile1DExport):
+    def __init__(self, field, volume, times=None):
+        super().__init__(field=field, subdomain=volume, times=times)
+        self.data = []   
+        self.t = []      
+        self.x = None    
 
-class Profile(F.VolumeQuantity):
-    def __init__(self, field, volume, times=None, filename=None):
-        super().__init__(field, volume, filename)
-        self.times = times or []
+    def compute(self, *args, **kwargs):
+        super().compute(*args, **kwargs)
 
-    def compute(self):
-        self.value = self.field.solution.x.array[:].copy()
-        self.data.append(self.value)
+        last_profile = self.data[-1].copy()
+        self.data[-1] = last_profile     
 ```
 
 ```{code-cell} ipython3
@@ -96,7 +99,7 @@ model.boundary_conditions = [
 ]
 
 initial_concentration = lambda x: ufl.conditional(x[0] <= preloaded_length, C_0, 0)
-model.initial_conditions = [F.InitialCondition(value=initial_concentration, species=H)]
+model.initial_conditions = [F.InitialConcentration(value=initial_concentration, species=H, volume=volume)]
 
 
 model.temperature = 500  # ignored in this problem
@@ -104,21 +107,28 @@ model.temperature = 500  # ignored in this problem
 
 test_points = [0.5, preloaded_length, 12]  # m
 profile_times = [0.1] + np.linspace(0, 100, num=10).tolist()[1:]
+
+
+profile_export = F.Profile1DExport(field=H, times=profile_times)
+
 model.exports = [
     PointValue(field=H, volume=volume, x0=np.array([v, 0, 0])) for v in test_points
-] + [Profile(field=H, volume=volume)]
+] + [profile_export
+] 
+
 
 model.settings = F.Settings(atol=1e-10, rtol=1e-10, final_time=100)
 model.settings.stepsize = F.Stepsize(
     initial_value=0.01,
     growth_factor=1.1,
     cutback_factor=0.9,
-    target_nb_iterations=4,
+    target_nb_iterations=10,
     milestones=profile_times,
 )
 
 model.initialise()
 model.run()
+
 ```
 
 ## Comparison with exact solution
@@ -164,24 +174,32 @@ def exact_solution(x, t):
     )
 
 
-norm = Normalize(vmin=0, vmax=max(profile_times))
-cmap = cm.viridis
+profile_export = model.exports[-1]
+times = np.array(profile_export.t)
 
+profiles_1d = [np.ravel(p) for p in profile_export.data]
+data = np.stack(profiles_1d, axis=0)
+
+x = profile_export.x
+order = np.argsort(x)
+x = x[order]
+data = data[:, order]
+
+norm = Normalize(vmin=times.min(), vmax=times.max())
+cmap = cm.viridis
 
 plt.figure()
 
-profile_export = model.exports[-1]
-data = profile_export.data
+
 for i, t in enumerate(profile_times):
     label = "exact" if i == 0 else ""
-    x = model.mesh.mesh.geometry.x[:, 0]
     y_name = f"t{t:.2e}s".replace("+", "").replace("-", "").replace(".", "")
 
-    indices = np.where(np.isclose(profile_export.t, t))[0][0]
-    y = data[indices]
-    x, y = zip(*sorted(zip(x, y)))
+    idx = np.argmin(np.abs(times - t))
+    t = times[idx]
+    y = data[idx, :]
 
-    exact_y = exact_solution(np.array(x), t)
+    exact_y = exact_solution(x, t)
 
     plt.plot(x, exact_y, linestyle="dashed", color="tab:grey", linewidth=3, label=label)
     plt.plot(x, y, color=cmap(norm(t)))
