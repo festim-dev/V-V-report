@@ -25,7 +25,6 @@ dependencies:
   - ipywidgets
   - widgetsnbextension
   - jupyterlab_widgets
-  - tqdm
   - pip
   - pip:
     - h_transport_materials
