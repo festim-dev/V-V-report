@@ -5,9 +5,9 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.7
+    jupytext_version: 1.18.1
 kernelspec:
-  display_name: vv-festim-report-env-festim-2
+  display_name: vv-festim-report-env
   language: python
   name: python3
 ---
@@ -45,7 +45,6 @@ We can then run a FESTIM model with these conditions and compare the numerical s
 ## FESTIM Code
 
 ```{code-cell} ipython3
-
 import festim as F
 import numpy as np
 import matplotlib.pyplot as plt
@@ -80,7 +79,7 @@ def run_model(half_life):
 
     my_model.exports = [average_volume]
 
-    my_model.initial_conditions = [F.InitialCondition(value=initial_concentration, species=H)]
+    my_model.initial_conditions = [F.InitialConcentration(value=initial_concentration, species=H, volume=volume)]
 
     my_model.settings = F.Settings(
         atol=1e-10, rtol=1e-10, final_time=5 * half_life, transient=True
@@ -111,6 +110,7 @@ The evolution of the hydrogen concentration is computed with FESTIM and compared
 
 ```{code-cell} ipython3
 :tags: [hide-input]
+
 from matplotlib import cm
 from matplotlib.colors import LogNorm
 
