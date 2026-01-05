@@ -5,9 +5,9 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.7
+    jupytext_version: 1.18.1
 kernelspec:
-  display_name: vv-festim-report-env-festim-2
+  display_name: vv-festim-report-env
   language: python
   name: python3
 ---
@@ -19,11 +19,12 @@ kernelspec:
 
 
 This case is taken and adapted from {cite}`ambrosek_verification_2008` based on the experimental data of {cite}`kizu2001co`.
-First the system is simulated with pure D2 permeating, then both D2 and H2 gas dissociate on the Pd surface, diffuse through the membrane, then recombines on the downstream surface either as H2, D2, or HD.
+First the system is simulated with pure $D_2$ permeating, then both $D_2$ and $H_2$ gas dissociate on the Pd surface, diffuse through the membrane, then recombines on the downstream surface either as $H_2$, $D_2$, or HD.
 
 +++
 
-## Permeation of pure D2
+## Permeation of pure $D_2$
+Below we present the implementation of pure $D_2$ permeation through a Pd membrane. Two membrane thicknesses are considered (0.025 mm and 0.05 mm), and simulations are performed at temperatures of 825 K and 865 K. The corresponding experimental setup and model parameters are described in {cite}ambrosek_verification_2008.
 
 ### Implementation
 
@@ -146,7 +147,7 @@ for pd_thickness, temperature in prms:
 
 ### Results
 
-Below is the evolution of the downstream D2 flux as a function of upstream D2 pressure.
+Below is the evolution of the downstream $D_2$ flux as a function of upstream D2 pressure.
 There is a good agreement between FESTIM and the experimental data. The change of the slope in the experimentally measured flux at higher pressures suggest a transition to the diffusion-limited regime.
 
 ```{code-cell} ipython3
@@ -182,7 +183,7 @@ for i, result_dict in enumerate(results):
             y=result_dict["dd_desorption_fluxes"],
             mode="lines",
             name=f"{result_dict['thickness']:.2e} m, {result_dict['temperature']} K (model)",
-            line=dict(color=cmap.hex[i][:-2]),
+            line=dict(color=cmap.hex[i][:-2], width=3),
         )
     )
 
@@ -193,7 +194,7 @@ for i, result_dict in enumerate(results):
             y=exp_data[i]["Flux [mol/m^2/s]"],
             mode="markers",
             name=f"{result_dict['thickness']:.2e} m, {result_dict['temperature']} K (exp)",
-            marker=dict(color=cmap.hex[i][:-2], symbol="x"),
+            marker=dict(color=cmap.hex[i][:-2], symbol="x", size=8),
         )
     )
 
@@ -206,7 +207,7 @@ fig.update_layout(
         showexponent="last",
     ),
     yaxis=dict(
-        title="Desorption flux (mol/m^2/s)",
+        title="Desorption flux (mol m<sup>-2</sup> s<sup>-1</sup>)",
         type="log",
         range=[-8, -3],  # Corresponds to 1e-8 to 1e-3
         exponentformat="power",
@@ -214,17 +215,15 @@ fig.update_layout(
     ),
     legend=dict(title="Legend"),
     template="plotly_white",
-    width=1000,  # Set the width of the figure
-    height=600,  # Set the height of the figure
 )
-
-fig.write_html("./co_permeation.html")
-from IPython.display import HTML, display
-
-display(HTML("./co_permeation.html"))
+fig.show()
 ```
 
 ## Co-permeation of H and D
+
+The co-permeation of H and D through a Pd membrane was simulated using FESTIM within a one-dimensional transient framework. A planar Pd membrane with thicknesses of 0.025 mm and 0.05 mm was discretized using a 1D mesh, with H and D treated as distinct diffusing species within the same solid phase. Temperature-dependent bulk diffusion coefficients for each isotope were prescribed using Arrhenius relations. Surface reactions at both the upstream and downstream boundaries were explicitly modeled via surface reaction boundary conditions. At each surface, dissociative adsorption and associative desorption reactions were defined for the H–H, D–D, and mixed H–D channels, enabling the formation of $H_2$, $D_2$, and HD molecules. The corresponding kinetic parameters and material properties were taken from the TMAP7 verification and validation report {cite}`ambrosek_verification_2008` with system-level effects such as enclosures, pumping, etc. not included.
+
+Upstream boundary conditions were imposed through effective $H_2$ and $D_2$ gas pressures, while the downstream boundary was maintained at zero gas pressure. Surface-integrated fluxes of H, D, HH, HD, and DD were evaluated using custom surface flux exports. All fluxes were subsequently post-processed and converted to molar units to enable direct comparison with experimental co-permeation data at temperatures of 825 K and 865 K.
 
 ### Implementation
 
@@ -243,7 +242,8 @@ class FluxFromSurfaceReaction(F.SurfaceFlux):
         )
         self.reaction = reaction.flux_bcs[0]
 
-    def compute(self, ds):
+    def compute(self, u, ds, entity_maps=None):
+        # u is provided by FESTIM but may be unused here; keep for API compatibility
         self.value = fem.assemble_scalar(
             fem.form(self.reaction.value_fenics * ds(self.surface.id))
         )
@@ -254,9 +254,7 @@ class FluxFromSurfaceReaction(F.SurfaceFlux):
 pd_thickness = 0.025e-3  # m
 temperature = 870  # K
 upstream_effective_H_pressure = 0.063  # Pa
-```
 
-```{code-cell} ipython3
 my_model = F.HydrogenTransportProblem()
 
 H = F.Species("H")
@@ -424,6 +422,13 @@ for effective_d_pressure in upstream_d_pressures:
 ```
 
 ### Results
+Below is the evolution of $H_2$, $D_2$, and HD fluxes as a function of the effective deuterium upstream pressure.
+
+There is a reasonable agreement between the experimental data and the FESTIM simulation. 
+
+A better agreement could potentially be obtained by setting the surface rates and diffusivities as free parameters and then perform some parametric optimisation.
+
+Better experimental data with better measurements of the upstream partial pressures would be required to better constrain the model.
 
 ```{code-cell} ipython3
 :tags: [hide-cell]
@@ -473,18 +478,10 @@ for label, flux in zip(
     RMSE_value = RMSE(np.log10(fluxes_exp), np.log10(sim_interp(pressures_exp)))
 
     errors[label] = RMSE_value
-```
 
-Below is the evolution of H2, D2, and HD fluxes as a function of the effective deuterium upstream pressure.
 
-There is a reasonable agreement between the experimental data and the FESTIM simulation. We followed the parameters (material properties) provided in the TMAP7 V&V report {cite}`ambrosek_verification_2008` although we did not include things like enclosures, pumping, etc.
+from numpy import size
 
-A better agreement could potentially be obtained by setting the surface rates and diffusivities as free parameters and then perform some parametric optimisation.
-
-Better experimental data with better measurements of the upstream partial pressures would be required to better constrain the model.
-
-```{code-cell} ipython3
-:tags: [hide-input]
 
 cmap = load_cmap("Acadia")
 
@@ -498,7 +495,7 @@ fig.add_trace(
         y=exp_data["H2_Y"],
         mode="markers",
         name="H2 (exp)",
-        marker=dict(color=cmap.hex[0][:-2], symbol="circle"),
+        marker=dict(color=cmap.hex[0][:-2], symbol="circle", size=8),
     )
 )
 fig.add_trace(
@@ -507,7 +504,7 @@ fig.add_trace(
         y=exp_data["D2_Y"],
         mode="markers",
         name="D2 (exp)",
-        marker=dict(color=cmap.hex[1][:-2], symbol="triangle-up"),
+        marker=dict(color=cmap.hex[1][:-2], symbol="triangle-up", size=8),
     )
 )
 fig.add_trace(
@@ -516,7 +513,7 @@ fig.add_trace(
         y=exp_data["HD_Y"],
         mode="markers",
         name="HD (exp)",
-        marker=dict(color=cmap.hex[2][:-2], symbol="square"),
+        marker=dict(color=cmap.hex[2][:-2], symbol="square", size=8),
     )
 )
 
@@ -527,7 +524,7 @@ fig.add_trace(
         y=hh_desorption_fluxes,
         mode="lines",
         name="HH (FESTIM)",
-        line=dict(color=cmap.hex[0][:-2]),
+        line=dict(color=cmap.hex[0][:-2], width=3),
     )
 )
 fig.add_trace(
@@ -536,7 +533,7 @@ fig.add_trace(
         y=dd_desorption_fluxes,
         mode="lines",
         name="DD (FESTIM)",
-        line=dict(color=cmap.hex[1][:-2]),
+        line=dict(color=cmap.hex[1][:-2], width=3),
     )
 )
 fig.add_trace(
@@ -545,7 +542,7 @@ fig.add_trace(
         y=hd_desorption_fluxes,
         mode="lines",
         name="HD (FESTIM)",
-        line=dict(color=cmap.hex[2][:-2]),
+        line=dict(color=cmap.hex[2][:-2], width=3),
     )
 )
 
@@ -562,7 +559,7 @@ for RMSE_value, y in zip(errors.values(), [5e-6, 5e-5, 4e-4]):
 fig.update_layout(
     xaxis=dict(title="Upstream D pressure (Pa)", type="log"),
     yaxis=dict(
-        title="Desorption flux (mol/m^2/s)",
+        title="Desorption flux (mol m<sup>-2</sup> s<sup>-1</sup>)",
         type="log",
         range=[-8, -3],
         exponentformat="power",
@@ -570,13 +567,6 @@ fig.update_layout(
     ),
     legend=dict(title="Legend"),
     template="plotly_white",
-    width=800,
-    height=600,
 )
-
-
-fig.write_html("./co_permeation2.html")
-from IPython.display import HTML, display
-
-display(HTML("./co_permeation2.html"))
+fig. show()
 ```
