@@ -1,17 +1,20 @@
 ---
-jupytext:
-  formats: ipynb,md:myst
-  text_representation:
-    extension: .md
-    format_name: myst
-    format_version: 0.13
-    jupytext_version: 1.18.1
-kernelspec:
-  display_name: vv-festim-report-env
-  language: python
-  name: python3
+jupyter:
+  jupytext:
+    default_lexer: ipython3
+    formats: ipynb,md
+    text_representation:
+      extension: .md
+      format_name: markdown
+      format_version: '1.3'
+      jupytext_version: 1.18.1
+  kernelspec:
+    display_name: vv-festim-report-env
+    language: python
+    name: python3
 ---
 
+<!-- #region -->
 # Co-permeation of H and D through Pd
 
 ```{tags} 1D, transient, multi-isotopes
@@ -20,15 +23,14 @@ kernelspec:
 
 This case is taken and adapted from {cite}`ambrosek_verification_2008` based on the experimental data of {cite}`kizu2001co`.
 First the system is simulated with pure $D_2$ permeating, then both $D_2$ and $H_2$ gas dissociate on the Pd surface, diffuse through the membrane, then recombines on the downstream surface either as $H_2$, $D_2$, or HD.
-
-+++
+<!-- #endregion -->
 
 ## Permeation of pure $D_2$
-Below we present the implementation of pure $D_2$ permeation through a Pd membrane. Two membrane thicknesses are considered (0.025 mm and 0.05 mm), and simulations are performed at temperatures of 825 K and 865 K. The corresponding experimental setup and model parameters are described in {cite}ambrosek_verification_2008.
+Below we present the implementation of pure $D_2$ permeation through a Pd membrane. Two membrane thicknesses are considered (0.025 mm and 0.05 mm), and simulations are performed at temperatures of 825 K and 865 K. The corresponding experimental setup and model parameters are described in {cite}`ambrosek_verification_2008`.
 
 ### Implementation
 
-```{code-cell} ipython3
+```python
 import festim as F
 
 import numpy as np
@@ -82,7 +84,7 @@ def make_festim_model_dlr(pd_thickness, temperature, upstream_d2_pressure):
     return my_model
 ```
 
-```{code-cell} ipython3
+```python
 upstream_d_pressures = np.geomspace(1e-4, 3, num=6)
 
 thicknesses = [0.025e-3, 0.05e-3]
@@ -147,12 +149,10 @@ for pd_thickness, temperature in prms:
 
 ### Results
 
-Below is the evolution of the downstream $D_2$ flux as a function of upstream D2 pressure.
+Below is the evolution of the downstream $D_2$ flux as a function of upstream $D_2$ pressure.
 There is a good agreement between FESTIM and the experimental data. The change of the slope in the experimentally measured flux at higher pressures suggest a transition to the diffusion-limited regime.
 
-```{code-cell} ipython3
-:tags: [hide-input]
-
+```python tags=["hide-input"]
 import pandas as pd
 import plotly.graph_objects as go
 from pypalettes import load_cmap
@@ -216,20 +216,22 @@ fig.update_layout(
     legend=dict(title="Legend"),
     template="plotly_white",
 )
-fig.show()
+fig.write_html("./co_permeation.html")
+from IPython.display import HTML, display
+
+display(HTML("./co_permeation.html"))
+
 ```
 
 ## Co-permeation of H and D
 
-The co-permeation of H and D through a Pd membrane was simulated using FESTIM within a one-dimensional transient framework. A planar Pd membrane with thicknesses of 0.025 mm and 0.05 mm was discretized using a 1D mesh, with H and D treated as distinct diffusing species within the same solid phase. Temperature-dependent bulk diffusion coefficients for each isotope were prescribed using Arrhenius relations. Surface reactions at both the upstream and downstream boundaries were explicitly modeled via surface reaction boundary conditions. At each surface, dissociative adsorption and associative desorption reactions were defined for the H–H, D–D, and mixed H–D channels, enabling the formation of $H_2$, $D_2$, and HD molecules. The corresponding kinetic parameters and material properties were taken from the TMAP7 verification and validation report {cite}`ambrosek_verification_2008` with system-level effects such as enclosures, pumping, etc. not included.
+The co-permeation of H and D through a Pd membrane was simulated using FESTIM within a one-dimensional transient framework. A planar Pd membrane with thicknesses of 0.025 mm and 0.05 mm was discretized using a 1D mesh, with H and D treated as distinct diffusing species within the same solid phase. Temperature-dependent bulk diffusion coefficients for each isotope were prescribed using Arrhenius relations. Surface reactions at both the upstream and downstream boundaries were explicitly modeled via surface reaction boundary conditions. At each surface, adsorption and desorption reactions were defined for the H–H, D–D, and mixed H–D channels, enabling the formation of $H_2$, $D_2$, and HD molecules. The corresponding kinetic parameters and material properties were taken from the TMAP7 verification and validation report {cite}`ambrosek_verification_2008` with system-level effects such as enclosures, pumping, etc. not included.
 
 Upstream boundary conditions were imposed through effective $H_2$ and $D_2$ gas pressures, while the downstream boundary was maintained at zero gas pressure. Surface-integrated fluxes of H, D, HH, HD, and DD were evaluated using custom surface flux exports. All fluxes were subsequently post-processed and converted to molar units to enable direct comparison with experimental co-permeation data at temperatures of 825 K and 865 K.
 
 ### Implementation
 
-```{code-cell} ipython3
-:tags: [hide-cell]
-
+```python tags=["hide-cell"]
 import festim as F
 import dolfinx.fem as fem
 
@@ -250,7 +252,7 @@ class FluxFromSurfaceReaction(F.SurfaceFlux):
         self.data.append(self.value)
 ```
 
-```{code-cell} ipython3
+```python
 pd_thickness = 0.025e-3  # m
 temperature = 870  # K
 upstream_effective_H_pressure = 0.063  # Pa
@@ -383,7 +385,7 @@ my_model.settings = F.Settings(atol=1e11, rtol=1e-6, final_time=10, transient=Tr
 my_model.settings.stepsize = 0.2
 ```
 
-```{code-cell} ipython3
+```python
 all_d_desorption_fluxes = []
 hh_desorption_fluxes = []
 hd_desorption_fluxes = []
@@ -430,9 +432,7 @@ A better agreement could potentially be obtained by setting the surface rates an
 
 Better experimental data with better measurements of the upstream partial pressures would be required to better constrain the model.
 
-```{code-cell} ipython3
-:tags: [hide-cell]
-
+```python tags=["hide-cell"]
 from scipy.interpolate import interp1d
 
 # read experimental data
@@ -568,5 +568,8 @@ fig.update_layout(
     legend=dict(title="Legend"),
     template="plotly_white",
 )
-fig. show()
+fig.write_html("./co_permeation2.html")
+from IPython.display import HTML, display
+
+display(HTML("./co_permeation2.html"))
 ```
