@@ -211,10 +211,11 @@ fig.update_layout(
     legend=dict(title="Legend"),
     template="plotly_white",
 )
-fig.write_html("./co_permeation.html")
+import plotly.io as pio
 from IPython.display import HTML, display
 
-display(HTML("./co_permeation.html"))
+display(HTML(pio.to_html(fig, include_plotlyjs="cdn", full_html=False)))
+
 
 ```
 
@@ -563,8 +564,9 @@ fig.update_layout(
     legend=dict(title="Legend"),
     template="plotly_white",
 )
-fig.write_html("./co_permeation2.html")
+import plotly.io as pio
 from IPython.display import HTML, display
 
-display(HTML("./co_permeation2.html"))
+display(HTML(pio.to_html(fig, include_plotlyjs="cdn", full_html=False)))
+
 ```
