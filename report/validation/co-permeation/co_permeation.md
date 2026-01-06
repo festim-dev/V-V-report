@@ -21,12 +21,12 @@ jupyter:
 ```
 
 
-This case is taken and adapted from {cite}`ambrosek_verification_2008` based on the experimental data of {cite}`kizu2001co`.
-First the system is simulated with pure $D_2$ permeating, then both $D_2$ and $H_2$ gas dissociate on the Pd surface, diffuse through the membrane, then recombines on the downstream surface either as $H_2$, $D_2$, or HD.
+This case is taken and adapted from {cite}`ambrosek_verification_2008` based on the experimental data reporeted in {cite}`kizu2001co`.
+The system is first simulated with pure D<sub>2</sub> permeation, then extended to the co-permeation regime, in which both D<sub>2</sub> and H<sub>2</sub> dissociate on the Pd upstream surface, diffuse through the membrane, and recombine on the downstream surface to form H<sub>2</sub>, D<sub>2</sub> and HD.
 <!-- #endregion -->
 
-## Permeation of pure $D_2$
-Below we present the implementation of pure $D_2$ permeation through a Pd membrane. Two membrane thicknesses are considered (0.025 mm and 0.05 mm), and simulations are performed at temperatures of 825 K and 865 K. The corresponding experimental setup and model parameters are described in {cite}`ambrosek_verification_2008`.
+## Permeation of pure D<sub>2</sub>
+Below we present the implementation of pure D<sub>2</sub> permeation through a Pd membrane. Two membrane thicknesses are considered (0.025 mm and 0.05 mm), and simulations are performed at temperatures of 825 K and 865 K. The corresponding experimental setup and model parameters are described in {cite}`ambrosek_verification_2008`.
 
 ### Implementation
 
@@ -97,27 +97,22 @@ prms = [
 ]
 results = []
 
-# import dolfinx.log
-# dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
+
 for pd_thickness, temperature in prms:
     print(f"Pd thickness: {pd_thickness:.2e} m")
     print(f"Temperature: {temperature:.2f} K")
     dd_desorption_fluxes = []
     models = []
 
-    # ------ Model ------ #
     for d2_pressure in upstream_d_pressures:
-        # create the model
         my_model = make_festim_model_dlr(
             pd_thickness=pd_thickness,
             temperature=temperature,
             upstream_d2_pressure=d2_pressure,
         )
 
-        # initialise the model
         my_model.initialise()
 
-        # run the model
         my_model.run()
 
         # ------ Post processsing ------ #
@@ -149,7 +144,7 @@ for pd_thickness, temperature in prms:
 
 ### Results
 
-Below is the evolution of the downstream $D_2$ flux as a function of upstream $D_2$ pressure.
+Below is the evolution of the downstream D<sub>2</sub> flux as a function of upstream D<sub>2</sub> pressure.
 There is a good agreement between FESTIM and the experimental data. The change of the slope in the experimentally measured flux at higher pressures suggest a transition to the diffusion-limited regime.
 
 ```python tags=["hide-input"]
@@ -159,7 +154,7 @@ from pypalettes import load_cmap
 
 cmap = load_cmap("Acadia")
 
-
+# Load experimental data from GitHub
 commit_hash = "dc0bfc4cb3114a2c3159f5f18a0d441c4ce78b13"
 
 url_base = f"https://raw.githubusercontent.com/idaholab/TMAP8/{commit_hash}/test/tests/val-2e/gold/"
@@ -225,9 +220,9 @@ display(HTML("./co_permeation.html"))
 
 ## Co-permeation of H and D
 
-The co-permeation of H and D through a Pd membrane was simulated using FESTIM within a one-dimensional transient framework. A planar Pd membrane with thicknesses of 0.025 mm and 0.05 mm was discretized using a 1D mesh, with H and D treated as distinct diffusing species within the same solid phase. Temperature-dependent bulk diffusion coefficients for each isotope were prescribed using Arrhenius relations. Surface reactions at both the upstream and downstream boundaries were explicitly modeled via surface reaction boundary conditions. At each surface, adsorption and desorption reactions were defined for the H–H, D–D, and mixed H–D channels, enabling the formation of $H_2$, $D_2$, and HD molecules. The corresponding kinetic parameters and material properties were taken from the TMAP7 verification and validation report {cite}`ambrosek_verification_2008` with system-level effects such as enclosures, pumping, etc. not included.
+The co-permeation of H and D through a Pd membrane is simulated using FESTIM within a one-dimensional transient framework. A Pd membrane with thicknesses of 0.025 mm and 0.05 mm is discretized using a 1D mesh, with H and D treated as distinct diffusing species within the same solid phase. Temperature-dependent bulk diffusion coefficients for each isotope are prescribed using Arrhenius relations. Surface reactions at both the upstream and downstream boundaries are explicitly modeled via surface reaction boundary conditions. At each surface, adsorption and desorption reactions are defined for the H–H, D–D, and mixed H–D, enabling the formation of H<sub>2</sub>, D<sub>2</sub> and HD molecules. The corresponding kinetic parameters and material properties are taken from the TMAP7 verification and validation report {cite}`ambrosek_verification_2008` with system-level effects such as enclosures, pumping, etc. not included.
 
-Upstream boundary conditions were imposed through effective $H_2$ and $D_2$ gas pressures, while the downstream boundary was maintained at zero gas pressure. Surface-integrated fluxes of H, D, HH, HD, and DD were evaluated using custom surface flux exports. All fluxes were subsequently post-processed and converted to molar units to enable direct comparison with experimental co-permeation data at temperatures of 825 K and 865 K.
+Upstream boundary conditions are imposed through effective H<sub>2</sub>, D<sub>2</sub> gas pressures, while the downstream boundary is maintained at zero gas pressure. Surface-integrated fluxes of H, D, H<sub>2</sub>, HD, and D<sub>2</sub> are evaluated using custom surface flux exports. Fluxes of H<sub>2</sub>, HD, and D<sub>2</sub> are subsequently post-processed and converted to molar units to enable direct comparison with experimental co-permeation data at temperatures of 825 K and 865 K.
 
 ### Implementation
 
@@ -245,7 +240,7 @@ class FluxFromSurfaceReaction(F.SurfaceFlux):
         self.reaction = reaction.flux_bcs[0]
 
     def compute(self, u, ds, entity_maps=None):
-        # u is provided by FESTIM but may be unused here; keep for API compatibility
+        # u is provided by FESTIM but may be unused here, keep for API compatibility
         self.value = fem.assemble_scalar(
             fem.form(self.reaction.value_fenics * ds(self.surface.id))
         )
@@ -424,7 +419,7 @@ for effective_d_pressure in upstream_d_pressures:
 ```
 
 ### Results
-Below is the evolution of $H_2$, $D_2$, and HD fluxes as a function of the effective deuterium upstream pressure.
+Below is the evolution of H<sub>2</sub>, HD, and D<sub>2</sub> fluxes as a function of the effective deuterium upstream pressure.
 
 There is a reasonable agreement between the experimental data and the FESTIM simulation. 
 
