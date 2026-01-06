@@ -12,7 +12,6 @@ build:
     pre_build:
       # Generate the Sphinx configuration for this Jupyter Book so it builds.
       - "jupyter-book config sphinx report/"
-      # - jupyter-book build report/
 
 conda:
   environment: environment.yml
