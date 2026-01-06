@@ -76,7 +76,7 @@ $$
 $$
 
 ```{note}
-In [TMAP8 V&V](https://mooseframework.inl.gov/TMAP8/verification_and_validation/ver-1e.html) there is a note stating that the expressions of the analytical solution for the transient case in TMAP4 and TMAP7 V&V books are inconsistent with the results, which suggest typographical errors. Therefore, we used the expression provided in TMAP8 V&V and taken from {cite}`li2010analytical`. However, we assume that there is also a typogaphical error in the TMAP8 case description as a reasonable agreement of numerical and analytical results can be obtained by replacing the minus sign before the summations with the plus sign.
+In [TMAP8 V&V](https://mooseframework.inl.gov/TMAP8/verification_and_validation/ver-1e.html) there is a note stating that the expressions of the analytical solution for the transient case in TMAP4 and TMAP7 V&V books are inconsistent with the results, which suggest typographical errors. Therefore, we used the expression provided in TMAP8 V&V and taken from {cite}`li2010analytical`.
 ```
 
 +++
