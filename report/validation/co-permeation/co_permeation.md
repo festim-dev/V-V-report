@@ -210,11 +210,14 @@ fig.update_layout(
     ),
     legend=dict(title="Legend"),
     template="plotly_white",
+    width=1000,  # Set the width of the figure
+    height=600,  # Set the height of the figure
 )
-import plotly.io as pio
+
+fig.write_html("./co_permeation.html")
 from IPython.display import HTML, display
 
-display(HTML(pio.to_html(fig, include_plotlyjs="cdn", full_html=False)))
+display(HTML("./co_permeation.html"))
 
 
 ```
