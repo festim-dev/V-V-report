@@ -1,20 +1,17 @@
 ---
-jupyter:
-  jupytext:
-    default_lexer: ipython3
-    formats: ipynb,md
-    text_representation:
-      extension: .md
-      format_name: markdown
-      format_version: '1.3'
-      jupytext_version: 1.18.1
-  kernelspec:
-    display_name: vv-festim-report-env
-    language: python
-    name: python3
+jupytext:
+  formats: ipynb,md:myst
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.18.1
+kernelspec:
+  display_name: vv-festim-report-env
+  language: python
+  name: python3
 ---
 
-<!-- #region -->
 # Co-permeation of H and D through Pd
 
 ```{tags} 1D, transient, multi-isotopes
@@ -23,14 +20,15 @@ jupyter:
 
 This case is taken and adapted from {cite}`ambrosek_verification_2008` based on the experimental data reporeted in {cite}`kizu2001co`.
 The system is first simulated with pure D<sub>2</sub> permeation, then extended to the co-permeation regime, in which both D<sub>2</sub> and H<sub>2</sub> dissociate on the Pd upstream surface, diffuse through the membrane, and recombine on the downstream surface to form H<sub>2</sub>, D<sub>2</sub> and HD.
-<!-- #endregion -->
+
++++
 
 ## Permeation of pure D<sub>2</sub>
 Below we present the implementation of pure D<sub>2</sub> permeation through a Pd membrane. Two membrane thicknesses are considered (0.025 mm and 0.05 mm), and simulations are performed at temperatures of 825 K and 865 K. The corresponding experimental setup and model parameters are described in {cite}`ambrosek_verification_2008`.
 
 ### Implementation
 
-```python
+```{code-cell} ipython3
 import festim as F
 
 import numpy as np
@@ -84,7 +82,7 @@ def make_festim_model_dlr(pd_thickness, temperature, upstream_d2_pressure):
     return my_model
 ```
 
-```python
+```{code-cell} ipython3
 upstream_d_pressures = np.geomspace(1e-4, 3, num=6)
 
 thicknesses = [0.025e-3, 0.05e-3]
@@ -147,7 +145,9 @@ for pd_thickness, temperature in prms:
 Below is the evolution of the downstream D<sub>2</sub> flux as a function of upstream D<sub>2</sub> pressure.
 There is a good agreement between FESTIM and the experimental data. The change of the slope in the experimentally measured flux at higher pressures suggest a transition to the diffusion-limited regime.
 
-```python tags=["hide-input"]
+```{code-cell} ipython3
+:tags: [hide-input]
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from pypalettes import load_cmap
@@ -217,7 +217,9 @@ Upstream boundary conditions are imposed through effective H<sub>2</sub>, D<sub>
 
 ### Implementation
 
-```python tags=["hide-cell"]
+```{code-cell} ipython3
+:tags: [hide-cell]
+
 import festim as F
 import dolfinx.fem as fem
 
@@ -238,7 +240,7 @@ class FluxFromSurfaceReaction(F.SurfaceFlux):
         self.data.append(self.value)
 ```
 
-```python
+```{code-cell} ipython3
 pd_thickness = 0.025e-3  # m
 temperature = 870  # K
 upstream_effective_H_pressure = 0.063  # Pa
@@ -371,7 +373,7 @@ my_model.settings = F.Settings(atol=1e11, rtol=1e-6, final_time=10, transient=Tr
 my_model.settings.stepsize = 0.2
 ```
 
-```python
+```{code-cell} ipython3
 all_d_desorption_fluxes = []
 hh_desorption_fluxes = []
 hd_desorption_fluxes = []
@@ -418,7 +420,9 @@ A better agreement could potentially be obtained by setting the surface rates an
 
 Better experimental data with better measurements of the upstream partial pressures would be required to better constrain the model.
 
-```python tags=["hide-cell"]
+```{code-cell} ipython3
+:tags: [hide-cell]
+
 from scipy.interpolate import interp1d
 
 # read experimental data
@@ -530,10 +534,9 @@ ax.set_xlabel("Upstream D pressure (Pa)")
 ax.set_ylabel(r"Desorption flux (mol m$^{-2}$ s$^{-1}$)")
 
 ax.set_ylim(1e-8, 1e-3)
-ax.set_xlim(2e-3, 5)
+ax.set_xlim(2e-3, 4)
 
 ax.legend()
 plt.tight_layout()
 plt.show()
-
 ```
