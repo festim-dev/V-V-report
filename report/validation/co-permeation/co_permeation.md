@@ -149,7 +149,7 @@ There is a good agreement between FESTIM and the experimental data. The change o
 
 ```python tags=["hide-input"]
 import pandas as pd
-import plotly.graph_objects as go
+import matplotlib.pyplot as plt
 from pypalettes import load_cmap
 
 cmap = load_cmap("Acadia")
@@ -168,58 +168,45 @@ exp_data = [
     data_thin_865,
 ]
 
-fig = go.Figure()
+fig, ax = plt.subplots(figsize=(10, 6))
 
 for i, result_dict in enumerate(results):
     # Add line plot for simulation results
-    fig.add_trace(
-        go.Scatter(
-            x=result_dict["upstream_d_pressures"],
-            y=result_dict["dd_desorption_fluxes"],
-            mode="lines",
-            name=f"{result_dict['thickness']:.2e} m, {result_dict['temperature']} K (model)",
-            line=dict(color=cmap.hex[i][:-2], width=3),
-        )
+    ax.plot(
+        result_dict["upstream_d_pressures"],
+        result_dict["dd_desorption_fluxes"],
+        color=cmap.hex[i][:-2],
+        linewidth=3,
+        label=f"{result_dict['thickness']:.2e} m, {result_dict['temperature']} K (model)"
     )
 
     # Add scatter plot for experimental data
-    fig.add_trace(
-        go.Scatter(
-            x=exp_data[i]["Pressure [Pa]"],
-            y=exp_data[i]["Flux [mol/m^2/s]"],
-            mode="markers",
-            name=f"{result_dict['thickness']:.2e} m, {result_dict['temperature']} K (exp)",
-            marker=dict(color=cmap.hex[i][:-2], symbol="x", size=8),
-        )
+    ax.scatter(
+        exp_data[i]["Pressure [Pa]"],
+        exp_data[i]["Flux [mol/m^2/s]"],
+        color=cmap.hex[i][:-2],
+        marker="x",
+        s=64,
+        label=f"{result_dict['thickness']:.2e} m, {result_dict['temperature']} K (exp)"
     )
 
-# Update layout for log scale and labels
-fig.update_layout(
-    xaxis=dict(
-        title="Upstream D pressure (Pa)",
-        type="log",
-        exponentformat="power",
-        showexponent="last",
-    ),
-    yaxis=dict(
-        title="Desorption flux (mol m<sup>-2</sup> s<sup>-1</sup>)",
-        type="log",
-        range=[-8, -3],  # Corresponds to 1e-8 to 1e-3
-        exponentformat="power",
-        showexponent="last",
-    ),
-    legend=dict(title="Legend"),
-    template="plotly_white",
-    width=1000,  # Set the width of the figure
-    height=600,  # Set the height of the figure
-)
 
-fig.write_html("./co_permeation.html")
-from IPython.display import HTML, display
+# Log scales
+ax.set_xscale("log")
+ax.set_yscale("log")
 
-display(HTML("./co_permeation.html"))
+# Labels
+ax.set_xlabel("Upstream D pressure (Pa)")
+ax.set_ylabel(r"Desorption flux (mol m$^{-2}$ s$^{-1}$)")
 
+# Match your y-range: 1e-8 to 1e-3
+ax.set_ylim(1e-8, 1e-3)
 
+# Legend + layout
+ax.legend(title="Legend", fontsize=9)
+fig.tight_layout()
+
+plt.show()
 ```
 
 ## Co-permeation of H and D
@@ -484,92 +471,69 @@ from numpy import size
 
 cmap = load_cmap("Acadia")
 
-# Create a Plotly figure
-fig = go.Figure()
+# Create a matplotlib figure
+fig, ax = plt.subplots(figsize=(10, 6), constrained_layout=True)
 
-# Add scatter plots for experimental data
-fig.add_trace(
-    go.Scatter(
-        x=exp_data["H2_X"],
-        y=exp_data["H2_Y"],
-        mode="markers",
-        name="H2 (exp)",
-        marker=dict(color=cmap.hex[0][:-2], symbol="circle", size=8),
-    )
+c0 = cmap.hex[0][:-2]
+c1 = cmap.hex[1][:-2]
+c2 = cmap.hex[2][:-2]
+
+# Experimental data (markers)
+ax.plot(
+    exp_data["H2_X"], exp_data["H2_Y"],
+    linestyle="None", marker="o", markersize=8,
+    label="H2 (exp)", color=c0
 )
-fig.add_trace(
-    go.Scatter(
-        x=exp_data["D2_X"],
-        y=exp_data["D2_Y"],
-        mode="markers",
-        name="D2 (exp)",
-        marker=dict(color=cmap.hex[1][:-2], symbol="triangle-up", size=8),
-    )
+ax.plot(
+    exp_data["D2_X"], exp_data["D2_Y"],
+    linestyle="None", marker="^", markersize=8,
+    label="D2 (exp)", color=c1
 )
-fig.add_trace(
-    go.Scatter(
-        x=exp_data["HD_X"],
-        y=exp_data["HD_Y"],
-        mode="markers",
-        name="HD (exp)",
-        marker=dict(color=cmap.hex[2][:-2], symbol="square", size=8),
-    )
+ax.plot(
+    exp_data["HD_X"], exp_data["HD_Y"],
+    linestyle="None", marker="s", markersize=8,
+    label="HD (exp)", color=c2
 )
 
-# Add line plots for FESTIM simulation results
-fig.add_trace(
-    go.Scatter(
-        x=upstream_d_pressures,
-        y=hh_desorption_fluxes,
-        mode="lines",
-        name="HH (FESTIM)",
-        line=dict(color=cmap.hex[0][:-2], width=3),
-    )
+# FESTIM simulation results (lines)
+ax.plot(
+    upstream_d_pressures, hh_desorption_fluxes,
+    linewidth=3, label="HH (FESTIM)", color=c0
 )
-fig.add_trace(
-    go.Scatter(
-        x=upstream_d_pressures,
-        y=dd_desorption_fluxes,
-        mode="lines",
-        name="DD (FESTIM)",
-        line=dict(color=cmap.hex[1][:-2], width=3),
-    )
+ax.plot(
+    upstream_d_pressures, dd_desorption_fluxes,
+    linewidth=3, label="DD (FESTIM)", color=c1
 )
-fig.add_trace(
-    go.Scatter(
-        x=upstream_d_pressures,
-        y=hd_desorption_fluxes,
-        mode="lines",
-        name="HD (FESTIM)",
-        line=dict(color=cmap.hex[2][:-2], width=3),
-    )
+ax.plot(
+    upstream_d_pressures, hd_desorption_fluxes,
+    linewidth=3, label="HD (FESTIM)", color=c2
 )
 
-# annotate the RMSE
-for RMSE_value, y in zip(errors.values(), [5e-6, 5e-5, 4e-4]):
-    fig.add_annotation(
-        x=np.log10(upstream_d_pressures[-1] * 3),
-        y=np.log10(y),
-        text=f"log-RMSE = {np.abs(RMSE_value):.2%}",
-        showarrow=False,
+# RMSE annotations
+# Place text to the right of the last x point, at chosen y levels (data coords)
+x_text = upstream_d_pressures[-1]*1.1
+y_positions = [5e-6, 5e-5, 4e-4]
+
+for (label, rmse_val), y in zip(errors.items(), y_positions):
+    ax.text(
+        x_text, y,
+        f"log-RMSE = {abs(rmse_val):.2%}",
+        ha="left", va="center",
     )
 
-# Update layout for log scale, labels, and legend
-fig.update_layout(
-    xaxis=dict(title="Upstream D pressure (Pa)", type="log"),
-    yaxis=dict(
-        title="Desorption flux (mol m<sup>-2</sup> s<sup>-1</sup>)",
-        type="log",
-        range=[-8, -3],
-        exponentformat="power",
-        showexponent="last",
-    ),
-    legend=dict(title="Legend"),
-    template="plotly_white",
-)
-import plotly.io as pio
-from IPython.display import HTML, display
 
-display(HTML(pio.to_html(fig, include_plotlyjs="cdn", full_html=False)))
+# Axes formatting (log-log)
+ax.set_xscale("log")
+ax.set_yscale("log")
+
+ax.set_xlabel("Upstream D pressure (Pa)")
+ax.set_ylabel(r"Desorption flux (mol m$^{-2}$ s$^{-1}$)")
+
+ax.set_ylim(1e-8, 1e-3)
+ax.set_xlim(2e-3, 5)
+
+ax.legend()
+plt.tight_layout()
+plt.show()
 
 ```
