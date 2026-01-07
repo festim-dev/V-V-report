@@ -21,7 +21,6 @@ kernelspec:
 This case is taken and adapted from {cite}`ambrosek_verification_2008` based on the experimental data reporeted in {cite}`kizu2001co`.
 The system is first simulated with pure D<sub>2</sub> permeation, then extended to the co-permeation regime, in which both D<sub>2</sub> and H<sub>2</sub> dissociate on the Pd upstream surface, diffuse through the membrane, and recombine on the downstream surface to form H<sub>2</sub>, D<sub>2</sub> and HD.
 
-+++
 
 ## Permeation of pure D<sub>2</sub>
 Below we present the implementation of pure D<sub>2</sub> permeation through a Pd membrane. Two membrane thicknesses are considered (0.025 mm and 0.05 mm), and simulations are performed at temperatures of 825 K and 865 K. The corresponding experimental setup and model parameters are described in {cite}`ambrosek_verification_2008`.
@@ -30,7 +29,6 @@ Below we present the implementation of pure D<sub>2</sub> permeation through a P
 
 ```{code-cell} ipython3
 import festim as F
-
 import numpy as np
 
 
@@ -476,9 +474,6 @@ for label, flux in zip(
     RMSE_value = RMSE(np.log10(fluxes_exp), np.log10(sim_interp(pressures_exp)))
 
     errors[label] = RMSE_value
-
-
-from numpy import size
 
 
 cmap = load_cmap("Acadia")
