@@ -427,7 +427,7 @@ A better agreement could potentially be obtained by setting the surface rates an
 Better experimental data with better measurements of the upstream partial pressures would be required to better constrain the model.
 
 ```{code-cell} ipython3
-:tags: [hide-cell]
+:tags: [hide-input]
 
 from scipy.interpolate import interp1d
 
