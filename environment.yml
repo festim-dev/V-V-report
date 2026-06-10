@@ -19,7 +19,7 @@ dependencies:
   - ipython=8.23
   - scipy
   - plotly
-  - festim=2.0b0
+  - festim
   - sphinxcontrib-bibtex>=2.6
   - pybtex-docutils>=1.0.3
   - ipywidgets
