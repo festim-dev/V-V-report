@@ -127,7 +127,7 @@ sample_area = 12e-03 * 15e-03
 
 detrapping_energies = [1.15, 1.35, 1.65, 1.85, 2.05]
 dpa_n_i = {
-    # 0: [],
+    0: [],
     0.001: [1e24, 2.5e24, 1e24, 1e24, 2e23],
     0.005: [3.5e24, 5e24, 2.5e24, 1.9e24, 1.6e24],
     0.023: [2.2e25, 1.5e25, 6.5e24, 2.1e25, 6e24],
@@ -371,7 +371,7 @@ for dpa, derived_quantities in dpa_to_quantities.items():
     experimental_temp = experimental_tds[:, 0]
     experimental_flux = experimental_tds[:, 1] / sample_area
 
-    if dpa == 0.001:
+    if dpa == 0.1:
         plt.figure(1)
         plt.title(f"Damage = {dpa} dpa")
         plt.ylabel(r"Desorption flux (m$^{-2}$ s$^{-1}$)")
@@ -411,7 +411,7 @@ for i in [1, 2]:
     plt.figure(i)
     plt.ylabel(r"Desorption flux (m$^{-2}$ s$^{-1}$)")
     plt.xlabel(r"Temperature (K)")
-    plt.ylim(bottom=0, top=1e17)
+    plt.ylim(bottom=0, top=1.2e17)
     ax = plt.gca()
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
