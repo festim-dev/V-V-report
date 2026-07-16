@@ -47,6 +47,7 @@ The density distribution of the neutron-induced traps is $n_i \ f(x)$.
 
 import festim as F
 import ufl
+import dolfinx
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -215,11 +216,23 @@ def festim_sim(densities):
 
     model.exports = derived_quantities
 
-    # A backtracking line search helps Newton convergence when traps
-    # approach saturation during the long implantation phase.
-    # (Merged on top of FESTIM's default options; must be set before
-    # initialise().)
-    model.petsc_options = {"snes_linesearch_type": "bt"}
+    # These are the same solver options FESTIM uses by default, with one
+    # change: the "bt" line search, without which the solver fails to
+    # converge once the traps start to fill up. We have to write out the
+    # whole list because festim 2.0b0 (the version this book uses) drops
+    # its defaults when given this dictionary. From festim 2.0 onwards,
+    # the "snes_linesearch_type" line alone would be enough.
+    model.petsc_options = {
+        "snes_type": "newtonls",
+        "snes_linesearch_type": "bt",
+        "snes_stol": np.sqrt(np.finfo(dolfinx.default_real_type).eps) * 1e-2,
+        "snes_atol": 1e10,
+        "snes_rtol": 1e-10,
+        "snes_max_it": 30,
+        "ksp_type": "preonly",
+        "pc_type": "lu",
+        "pc_factor_mat_solver_type": "mumps",
+    }
 
     model.initialise()
     model.run()
