@@ -52,72 +52,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# ---------------------------------------------------------------------------
-# Two FESTIM 2.0 monkey-patches are needed to reproduce the FESTIM 1.0 results
-# of this case (long high-flux implantation drives deep trap saturation):
-#
-#   1. ProblemBase.iterate hard-asserts on SNES divergence in 2.0; FESTIM 1.0
-#      cuts dt back and retries. We restore that behaviour.
-#
-#   2. ImplicitSpecies.concentration computes empty = n - trapped with no
-#      clamping; once a trap saturates and the iterate overshoots into c_t > n,
-#      the trapping-reaction Jacobian becomes singular and Newton diverges no
-#      matter how small dt is. We replace the expression by a smooth max(., 0).
-# ---------------------------------------------------------------------------
-
-_DT_MIN = 1e-6
-_MAX_RETRIES = 30
-
-
-def _iterate_with_cutback(self):
-    self._timesteps.append(float(self.t))
-    if self.show_progress_bar:
-        self.progress_bar.update(
-            min(self.dt.value, abs(self.settings.final_time - self.t.value))
-        )
-    t_backup = float(self.t.value)
-    u_backup = self.u.x.array.copy()
-    u_n_backup = self.u_n.x.array.copy()
-    nb_its = None
-    for attempt in range(_MAX_RETRIES + 1):
-        self.t.value = t_backup + float(self.dt.value)
-        self.update_time_dependent_values()
-        try:
-            _ = self.solver.solve()
-            reason = self.solver.solver.getConvergedReason()
-            if reason <= 0:
-                raise RuntimeError(f"SNES did not converge (reason {reason})")
-            nb_its = self.solver.solver.getIterationNumber()
-            break
-        except BaseException:
-            cur = float(self.dt.value)
-            if attempt == _MAX_RETRIES or cur <= _DT_MIN:
-                raise
-            self.u.x.array[:] = u_backup
-            self.u_n.x.array[:] = u_n_backup
-            self.t.value = t_backup
-            self.dt.value = max(cur * 0.5, _DT_MIN)
-    self.post_processing()
-    self.u_n.x.array[:] = self.u.x.array[:]
-    if self.settings.stepsize.adaptive:
-        self.dt.value = self.settings.stepsize.modify_value(
-            value=self.dt.value, nb_iterations=nb_its, t=self.t.value
-        )
-
-
-F.ProblemBase.iterate = _iterate_with_cutback
-
-
-_CLAMP_EPS = 1e6  # smoothing scale in atoms/m^3
-
-
-def _clamped_concentration(self):
-    raw = self.value_fenics - sum(o.solution for o in self.others)
-    return 0.5 * (raw + ufl.sqrt(raw * raw + _CLAMP_EPS * _CLAMP_EPS))
-
-
-F.ImplicitSpecies.concentration = property(_clamped_concentration)
-
 # # ### Parameters ###
 D_0 = 1.6e-7  # m^2 s^-1
 E_D = 0.28  # eV
@@ -159,20 +93,9 @@ width = 0.5e-9
 
 def festim_sim(densities):
 
-    # snes_error_if_not_converged=False lets the cutback patch react to
-    # non-convergence by halving dt instead of aborting the run.
-    model = F.HydrogenTransportProblem(
-        petsc_options={
-            "snes_error_if_not_converged": False,
-            "ksp_error_if_not_converged": False,
-        }
-    )
+    model = F.HydrogenTransportProblem()
     vertices = np.concatenate(
         [
-            # 200 verts per segment (was 100 in FESTIM 1.0): with the clamped
-            # trap formulation, 100 under-resolves the steep damage_dist
-            # sigmoid at x = 2.5e-6 m and the deeper traps over-fill by 2-5x,
-            # producing spurious spikes in the TDS spectrum.
             np.linspace(0, 3e-9, num=200),
             np.linspace(3e-9, 8e-6, num=200),
             np.linspace(8e-6, 8e-5, num=200),
@@ -277,20 +200,14 @@ def festim_sim(densities):
     model.settings = F.Settings(
         atol=1e10,
         rtol=1e-10,
-        max_iterations=50,  # default 30 is too low under the clamp nonlinearity
         final_time=start_tds + (max_temp - min_temp) / Beta,  # time to reach max temp
     )
-    # target_nb_iterations is set very high so dt grows geometrically to
-    # max_stepsize regardless of the (always high) iteration count produced
-    # by the clamped trapping nonlinearity; cutback (patched above) is what
-    # actually protects against a step that doesn't converge.
     model.settings.stepsize = F.Stepsize(
         initial_value=2,
         growth_factor=1.1,
         cutback_factor=0.9,
-        target_nb_iterations=1000,
-        # cap dt during implantation: unbounded dt fights badly with the
-        # clamped trapping nonlinearity and forces many Newton cutbacks.
+        target_nb_iterations=4,
+        # cap dt so the implantation transient and the TDS ramp stay resolved
         max_stepsize=lambda t: 50 if t > t_imp + t_rest * 0.5 else 200,
     )
     derived_quantities = [
@@ -307,6 +224,12 @@ def festim_sim(densities):
     ]
 
     model.exports = vtx_exports + derived_quantities
+
+    # A backtracking line search helps Newton convergence when traps
+    # approach saturation during the long implantation phase.
+    # (Merged on top of FESTIM's default options; must be set before
+    # initialise().)
+    model.petsc_options = {"snes_linesearch_type": "bt"}
 
     # import dolfinx
 
