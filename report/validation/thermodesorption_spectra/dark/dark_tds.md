@@ -5,9 +5,9 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.7
+    jupytext_version: 1.16.2
 kernelspec:
-  display_name: vv-festim-report-env-festim-2
+  display_name: vv-festim-report-env
   language: python
   name: python3
 ---
@@ -46,7 +46,6 @@ The density distribution of the neutron-induced traps is $n_i \ f(x)$.
 :tags: [hide-input, hide-output]
 
 import festim as F
-
 import ufl
 import numpy as np
 import matplotlib.pyplot as plt
@@ -131,14 +130,9 @@ def festim_sim(densities):
                 name=f"empty {i+2}",
             )
         )
-        
 
     empty_intrinsic_traps = F.ImplicitSpecies(
         n=2.4e22, others=[instrinsic_trapped_H], name="empty 1"
-    )
-
-    assert len([empty_intrinsic_traps] + empty_neutron_induced_traps) == len(
-        neutron_induced_trapped_species + [instrinsic_trapped_H]
     )
 
     model.species = [H] + [instrinsic_trapped_H] + neutron_induced_trapped_species
@@ -219,11 +213,7 @@ def festim_sim(densities):
     derived_quantities.append(flux_left)
     derived_quantities.append(flux_right)
 
-    vtx_exports = [
-        # F.VTXSpeciesExport(filename=spe.name, field=spe) for spe in model.species
-    ]
-
-    model.exports = vtx_exports + derived_quantities
+    model.exports = derived_quantities
 
     # A backtracking line search helps Newton convergence when traps
     # approach saturation during the long implantation phase.
@@ -231,11 +221,7 @@ def festim_sim(densities):
     # initialise().)
     model.petsc_options = {"snes_linesearch_type": "bt"}
 
-    # import dolfinx
-
-    # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
     model.initialise()
-    # model.solver.convergence_criterion = "incremental"
     model.run()
 
     return derived_quantities
@@ -255,15 +241,11 @@ The results produced by FESTIM are in good agreement with the experimental data.
 :tags: [hide-input]
 
 from matplotlib import cm, colors
-
-norm = colors.LogNorm(
-    vmin=min(list(dpa_n_i.keys())[1:]), vmax=max(dpa_n_i.keys())
-)  # using [1:] indexing to ignore 0
+norm = colors.LogNorm(vmin=min(list(dpa_n_i.keys())[1:]), vmax=max(dpa_n_i.keys())) #using [1:] indexing to ignore 0
 colorbar = cm.viridis
 sm = plt.cm.ScalarMappable(cmap=colorbar, norm=norm)
 
-
-def plot_tds(derived_quantities: list, trap_contributions=False, **kwargs):
+def plot_tds(derived_quantities, trap_contributions=False, **kwargs):
     t = np.array(derived_quantities[0].t)
     flux_left = np.array(derived_quantities[-2].data)
     flux_right = np.array(derived_quantities[-1].data)
@@ -287,7 +269,6 @@ def plot_tds(derived_quantities: list, trap_contributions=False, **kwargs):
             plt.plot(temp[idx][1:], cont, linestyle="--", color=colors[i], label=label)
             plt.fill_between(temp[idx][1:], 0, cont, facecolor="grey", alpha=0.1)
 
-
 for dpa, derived_quantities in dpa_to_quantities.items():
     filename = f"tds_data/{dpa}_dpa.csv"
     experimental_tds = np.genfromtxt(filename, delimiter=",")
@@ -296,18 +277,14 @@ for dpa, derived_quantities in dpa_to_quantities.items():
 
     if dpa == 0.1:
         plt.figure(1)
-        plt.title(f"Damage = {dpa} dpa")
+        plt.title("Damage = 0.1 dpa")
         plt.ylabel(r"Desorption flux (m$^{-2}$ s$^{-1}$)")
         plt.xlabel(r"Temperature (K)")
         plot_tds(
             derived_quantities, linewidth=3, label="FESTIM", trap_contributions=True
         )
         plt.scatter(
-            experimental_temp,
-            experimental_flux,
-            color="black",
-            label="experiment",
-            s=16,
+            experimental_temp, experimental_flux, color="black", label="experiment", s=16
         )
 
     plt.figure(2)
@@ -325,9 +302,7 @@ for dpa, derived_quantities in dpa_to_quantities.items():
             "undamaged",
             xy=(max_curve_x, max_curve_y),  # Point to annotate
             xytext=(300, 0.4e17),  # Location of text
-            arrowprops=dict(
-                arrowstyle="->", connectionstyle="arc3", facecolor="black"
-            ),  # Arrow properties
+            arrowprops=dict(arrowstyle="->", connectionstyle="arc3", facecolor='black'),  # Arrow properties
         )
 
 for i in [1, 2]:
@@ -344,7 +319,6 @@ plt.legend()
 
 # Plotting color bar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-
 plt.figure(2)
 divider = make_axes_locatable(ax)
 cax = divider.append_axes("right", size="5%", pad=0.1)
@@ -367,14 +341,12 @@ This table displays the neutron-induced traps' detrapping energy $E_p$ and their
 :tags: [hide-input]
 
 dpa_no_zero = dpa_n_i | {}
-dpa_no_zero.pop(0, None)  # the 0-dpa key is optional
-data = {"E_p (eV)": detrapping_energies} | dpa_no_zero
+dpa_no_zero.pop(0)
+data = {"E_p (eV)" : detrapping_energies} | dpa_no_zero
 dpa_frame = pd.DataFrame(data)
 
-dpa_frame.columns = dpa_frame.columns.map(
-    lambda s: f"{s:.1e} dpa" if not isinstance(s, str) else s
-)
-dpa_frame.style.relabel_index([f"Trap D{i}" for i in range(1, 6)], axis=0).format(
-    "{:.2e}".format
-)
+dpa_frame.columns = dpa_frame.columns.map(lambda s: f"{s:.1e} dpa" if not isinstance(s, str) else s)
+dpa_frame.style \
+    .relabel_index([f"Trap D{i}" for i in range(1, 6)], axis=0) \
+    .format("{:.2e}".format)
 ```
